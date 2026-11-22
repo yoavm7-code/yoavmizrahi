@@ -1,5 +1,7 @@
-/* The admin. Connects to GitHub with a key, loads the site's content, and lets you edit, preview
-   and publish it. See _plans/2026-11-22-admin-and-mobile.md for how it is put together. */
+/* The admin. Signs in, loads the site's content, and lets you edit, preview and publish it.
+   Login mode (username + password through worker/) is the default; key mode (a GitHub key pasted
+   on each device) is the fallback when config.LOGIN_API is empty.
+   See _plans/2026-11-22-admin-and-mobile.md and _plans/2026-11-22-admin-login.md. */
 
 import { createClient, explain } from './github.js';
 import { createStore } from './store.js';
@@ -7,8 +9,9 @@ import { createPreview } from './preview.js';
 import { prepare, fromBase64, mimeFor } from './media.js';
 import { publish, describeChanges, check, commitMessage, waitForLive } from './publish.js';
 import * as panels from './panels.js';
+import * as auth from './auth.js';
 import { h, clear, icon, button, toast, dialog, confirm, plural } from './ui.js';
-import { REPO, NEW_KEY_URL, SITE_ROOT } from './config.js';
+import { REPO, NEW_KEY_URL, SITE_ROOT, LOGIN_API } from './config.js';
 
 /* Never run inside someone else's page (protects against click tricks). */
 if (window.top !== window.self) {
@@ -32,6 +35,8 @@ var shell = null;
 var mediaCache = {};
 var mediaLoading = {};
 var liveState = null;
+var account = null;
+var signInOpen = false;
 
 /* ---------- The key ---------- */
 
@@ -67,10 +72,10 @@ function showConnect(message) {
     note.textContent = 'Checking the key…';
     note.className = 'field__note';
     try {
-      var info = await createClient(key).repoInfo();
+      var info = await createClient(function () { return key; }).repoInfo();
       if (!info.permissions || !info.permissions.push) throw Object.assign(new Error('read only'), { status: 403 });
       saveKey(key, remember.checked);
-      start(key);
+      startWithKey(key);
     } catch (e) {
       go.disabled = false;
       note.textContent = explain(e);
@@ -105,17 +110,176 @@ function showConnect(message) {
   input.focus();
 }
 
+/* ---------- Sign-in screens (login mode) ---------- */
+
+/* One card with three forms: sign in, first-time setup, and reset a forgotten password.
+   Real <form>s with autocomplete hints, so the iPhone Passwords app and Face ID can fill them. */
+function showLogin(message, mode) {
+  document.body.className = 'is-connect';
+  mode = mode || 'signin';
+  var card = h('div.connect__card');
+  clear(app).appendChild(h('main.connect', card));
+  var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+  var note = h('p.field__note', { 'aria-live': 'polite' });
+  function say(text, bad) { note.textContent = text || ''; note.className = 'field__note' + (bad ? ' field__note--error' : ''); }
+  function input(id, label, type, autocomplete, extra) {
+    var el = h('input.input', Object.assign({ id: id, name: id, type: type, autocomplete: autocomplete, autocapitalize: 'none', spellcheck: 'false', required: true }, extra || {}));
+    return { el: el, field: h('div.field', h('div.field__top', h('label.field__label', { for: id }, label)), el) };
+  }
+  /* Appends children, skipping empty ones (Element.append would print "null"). */
+  function put(el) {
+    Array.prototype.slice.call(arguments, 1).forEach(function (c) { if (c) el.appendChild(c); });
+  }
+  function switcher(text, target) {
+    return h('button.link.link--button', { type: 'button', on: { click: function () { showLogin('', target); } } }, text);
+  }
+
+  var remember = h('input', { type: 'checkbox', id: 'remember', checked: true });
+  var rememberRow = h('label.check', remember, h('span', 'Keep me signed in on this device'));
+  var submit;
+  var form = h('form.stack', { novalidate: true });
+
+  if (mode === 'signin') {
+    var user = input('username', 'Username', 'text', 'username', { value: auth.lastUser() });
+    var pass = input('password', 'Password', 'password', 'current-password');
+    submit = button('Sign in', { kind: 'primary', icon: 'key' });
+    submit.type = 'submit';
+    put(form, user.field, pass.field, rememberRow, submit, note);
+    put(card,
+      h('span.connect__kicker', 'ADMIN'),
+      h('h1.connect__title', 'Sign in'),
+      standalone ? h('p.callout', 'This Home Screen app signs in separately from Safari. Sign in once here and it remembers you.') : null,
+      form,
+      h('div.connect__links', switcher('Forgot your password?', 'reset'), switcher('First time here? Set up your login', 'setup'))
+    );
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (!user.el.value.trim() || !pass.el.value) { say('Fill in your username and password.', true); return; }
+      submit.disabled = true;
+      say('Signing in…');
+      try {
+        await auth.login(user.el.value.trim(), pass.el.value, remember.checked);
+        startWithLogin();
+      } catch (err) {
+        submit.disabled = false;
+        say(auth.explainAuth(err), true);
+        pass.el.select();
+      }
+    });
+    setTimeout(function () { (user.el.value ? pass.el : user.el).focus(); }, 50);
+  } else {
+    var isSetup = mode === 'setup';
+    var code = input('code', 'Setup code', 'password', 'one-time-code');
+    var nuser = input('username', 'Choose a username', 'text', 'username', { value: auth.lastUser() });
+    var npass = input('new-password', isSetup ? 'Choose a password' : 'New password', 'password', 'new-password', { minlength: 12 });
+    var keyInput = input('github-key', isSetup ? 'Your GitHub key' : 'GitHub key (only if you also want to replace it)', 'password', 'off', { required: !isSetup ? null : true, placeholder: 'github_pat_...' });
+    submit = button(isSetup ? 'Create my login' : 'Reset my password', { kind: 'primary', icon: 'key' });
+    submit.type = 'submit';
+    put(form,
+      code.field,
+      h('p.field__hint', 'The setup code was given to you when the admin was set up. It is saved in your Passwords app or on your card.'),
+      nuser.field, npass.field,
+      h('p.field__hint', 'At least 12 characters. Your phone can suggest a strong one and remember it.'),
+      keyInput.field,
+      isSetup ? h('p.field__hint', h('a.link', { href: NEW_KEY_URL, target: '_blank', rel: 'noopener' }, 'Make the GitHub key', icon('external')), ' (choose "Only select repositories" and pick ', h('code', REPO.name), '). You paste it here once; it is kept safely on the sign-in service, never in your browser.') : null,
+      rememberRow, submit, note
+    );
+    put(card,
+      h('span.connect__kicker', 'ADMIN'),
+      h('h1.connect__title', isSetup ? 'Set up your login' : 'Reset your password'),
+      h('p.connect__lead', isSetup ? 'Do this once. Afterwards you sign in with just a username and password, on any device.' : 'Use your setup code to choose a new password. Every device is signed out.'),
+      form,
+      h('div.connect__links', switcher('Back to sign in', 'signin'))
+    );
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (!code.el.value.trim()) { say('Enter your setup code.', true); code.el.focus(); return; }
+      if (npass.el.value.length < 12) { say('Passwords need at least 12 characters.', true); npass.el.focus(); return; }
+      submit.disabled = true;
+      say(isSetup ? 'Setting up…' : 'Resetting…');
+      try {
+        await auth.setup(code.el.value.trim(), nuser.el.value.trim(), npass.el.value, keyInput.el.value.trim(), remember.checked);
+        forgetKey();
+        toast(isSetup ? 'Your login is ready.' : 'Password changed. Other devices are signed out.');
+        startWithLogin();
+      } catch (err) {
+        submit.disabled = false;
+        say(auth.explainAuth(err), true);
+      }
+    });
+    setTimeout(function () { code.el.focus(); }, 50);
+  }
+  if (message) say(message, true);
+
+  /* Tell people up front if the sign-in service is unreachable, and where the way out is. */
+  auth.health().then(function (hs) {
+    if (mode === 'signin' && hs && hs.ready === false) showLogin('', 'setup');
+  }).catch(function () {
+    card.insertBefore(h('p.callout.callout--warn', "Can't reach the sign-in service right now. If you need to undo a publish, use the ", h('a.link', { href: 'rescue.html' }, 'rescue page'), '.'), card.children[2] || null);
+  });
+}
+
+/* A sign-in sheet over the editor when the session ends mid-work. Nothing is lost. */
+function signInAgain() {
+  if (signInOpen) return;
+  signInOpen = true;
+  var user = h('input.input', { type: 'text', name: 'username', autocomplete: 'username', value: auth.lastUser(), autocapitalize: 'none', spellcheck: 'false' });
+  var pass = h('input.input', { type: 'password', name: 'password', autocomplete: 'current-password' });
+  var note = h('p.field__note', { 'aria-live': 'polite' });
+  var form = h('form.stack', { novalidate: true },
+    h('p.dialog__text', 'You were signed out. Your draft is safe. Sign in to keep going.'),
+    h('div.field', h('label.field__label', 'Username'), user),
+    h('div.field', h('label.field__label', 'Password'), pass),
+    note
+  );
+  var d = dialog('Sign in again', form, [
+    { label: 'Sign in', kind: 'primary', icon: 'key', onClick: function () { form.requestSubmit(); return false; } }
+  ], { locked: true, onClose: function () { signInOpen = false; } });
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    note.textContent = 'Signing in…';
+    note.className = 'field__note';
+    try {
+      await auth.login(user.value.trim(), pass.value, true);
+      d.close();
+      toast('Signed in. Carrying on where you were.');
+      refreshAccount();
+      store.sync();
+    } catch (err) {
+      note.textContent = auth.explainAuth(err);
+      note.className = 'field__note field__note--error';
+    }
+  });
+  setTimeout(function () { (user.value ? pass : user).focus(); }, 80);
+}
+
+/* Account details (key expiry, recent sign-ins) and a renewed session, every 20 minutes. */
+async function refreshAccount() {
+  if (!auth.enabled) return;
+  try {
+    account = await auth.me();
+    if (ctx && current.name === 'settings') renderPanel(true);
+  } catch (e) {
+    if (e.status === 401) signInAgain();
+  }
+}
+
 /* ---------- Start ---------- */
 
-async function start(key) {
+function startWithKey(key) { start(function () { return key; }, null); }
+function startWithLogin() { start(auth.token, LOGIN_API + '/gh'); }
+
+async function start(getToken, api) {
   document.body.className = 'is-loading';
   clear(app).appendChild(h('main.loading', h('span.loading__dot'), h('p', 'Opening your site…')));
-  gh = createClient(key);
+  gh = createClient(getToken, api);
   store = createStore(gh);
   try {
     var info = await gh.repoInfo();
     if (!info.permissions || !info.permissions.push) throw Object.assign(new Error('read only'), { status: 403 });
     var source = await store.load();
+    if (auth.enabled) { account = await auth.me().catch(function () { return null; }); setInterval(refreshAccount, 20 * 60000); }
     buildShell();
     window.addEventListener('hashchange', route);
     route();
@@ -123,10 +287,12 @@ async function start(key) {
     else if (source && source.fromOtherDevice) toast('Picked up your draft from another device.');
     expiryNotice();
   } catch (e) {
-    if (e.status === 401 || e.status === 403 || e.status === 404) { forgetKey(); showConnect(explain(e)); return; }
+    if (auth.enabled && e.session) { auth.clearToken(); showLogin(); return; }
+    if (!auth.enabled && (e.status === 401 || e.status === 403 || e.status === 404)) { forgetKey(); showConnect(explain(e)); return; }
     clear(app).appendChild(h('main.loading',
       h('p', explain(e)),
-      button('Try again', { kind: 'primary', onClick: function () { start(key); } })
+      e.loginServer ? h('p.small-text', 'If you need to undo a publish right now, use the ', h('a.link', { href: 'rescue.html' }, 'rescue page'), '.') : null,
+      button('Try again', { kind: 'primary', onClick: function () { start(getToken, api); } })
     ));
   }
 }
@@ -140,6 +306,11 @@ function staleDraftNotice() {
 
 function expiryNotice() {
   var exp = keyExpiry();
+  if (!exp && account && account.patExpires) {
+    var left = Math.round((new Date(account.patExpires) - Date.now()) / 86400000);
+    if (left <= 14) toast('The GitHub key expires in ' + plural(Math.max(left, 0), 'day') + '. Replace it in Settings.', 'error', 10000);
+    return;
+  }
   if (!exp) return;
   var days = Math.round((new Date(exp) - Date.now()) / 86400000);
   if (days <= 21) toast('Your GitHub key expires in ' + plural(Math.max(days, 0), 'day') + '. Make a new one in Settings.', 'error', 10000);
@@ -212,6 +383,11 @@ function buildShell() {
     keyExpiry: keyExpiry,
     reconnect: function () { forgetKey(); location.hash = ''; showConnect(); },
     signOut: signOut,
+    loginMode: auth.enabled,
+    account: function () { return account; },
+    changePassword: changePassword,
+    replaceGithubKey: replaceGithubKey,
+    signOutEverywhere: signOutEverywhere,
     selectedDeskKey: null,
     onDeskSelect: null
   };
@@ -220,7 +396,7 @@ function buildShell() {
     updateTop();
     if (!info.quiet && !info.sync) preview.refresh();
     if (info.structural) renderPanel(true);
-    if (info.sync && store.state.syncError && store.state.syncError.status === 401) keyStopped();
+    if (info.sync && store.state.syncError && (store.state.syncError.status === 401 || store.state.syncError.githubKey)) keyStopped(store.state.syncError);
   });
   wide.addEventListener('change', function () { renderPanel(true); });
   document.addEventListener('keydown', onKey);
@@ -457,7 +633,7 @@ async function runPublish(message, force) {
       return;
     }
     if (e.invalid) { openPublish(); return; }
-    if (e.status === 401) { keyStopped(); return; }
+    if (e.status === 401 || e.githubKey) { keyStopped(e); return; }
     dialog("Publishing didn't finish", h('p.dialog__text', explain(e) + ' Nothing on the live site changed.'), [
       { label: 'Close', kind: 'ghost' },
       { label: 'Try again', kind: 'primary', onClick: function () { runPublish(message, force); } }
@@ -471,7 +647,16 @@ async function discardDraft() {
   toast('Draft discarded. Press Undo to bring it back.');
 }
 
-function keyStopped() {
+/* The session ended (login mode) or the GitHub key stopped working. */
+function keyStopped(err) {
+  if (auth.enabled && err && err.session) { signInAgain(); return; }
+  if (auth.enabled) {
+    dialog('The GitHub key stopped working', h('p.dialog__text', 'It may have expired or been deleted on GitHub. Your draft is safe. Make a new key and replace it in Settings.'), [
+      { label: 'Later', kind: 'ghost' },
+      { label: 'Open Settings', kind: 'primary', onClick: function () { ctx.go('#/settings'); } }
+    ]);
+    return;
+  }
   dialog('Your GitHub key stopped working', h('p.dialog__text', 'It may have expired or been deleted. Your draft is safe on this device. Connect a new key to keep going.'), [
     { label: 'Later', kind: 'ghost' },
     { label: 'Connect a new key', kind: 'primary', onClick: ctx.reconnect }
@@ -480,12 +665,80 @@ function keyStopped() {
 
 async function signOut() {
   var dirty = store.isDirty();
-  if (!(await confirm('Sign out on this device?', dirty ? 'Your draft stays saved on GitHub, so you can continue on any device.' : 'You will need your key to sign in again.', 'Sign out'))) return;
+  if (!(await confirm('Sign out on this device?', dirty ? 'Your draft stays saved, so you can continue on any device.' : 'You can sign in again any time.', 'Sign out'))) return;
   await store.sync();
   store.forgetLocal();
-  forgetKey();
   location.hash = '';
+  if (auth.enabled) { auth.clearToken(); showLogin(); return; }
+  forgetKey();
   showConnect();
+}
+
+/* ---------- Account (login mode) ---------- */
+
+function passwordField(label, autocomplete) {
+  return h('input.input', { type: 'password', autocomplete: autocomplete, 'aria-label': label, placeholder: label });
+}
+
+function changePassword() {
+  var current = passwordField('Current password', 'current-password');
+  var next = passwordField('New password (12+ characters)', 'new-password');
+  var note = h('p.field__note', { 'aria-live': 'polite' });
+  var d = dialog('Change your password', h('div.stack', current, next, h('p.field__hint', 'Other devices are signed out. This one stays signed in.'), note), [
+    { label: 'Cancel', kind: 'ghost' },
+    { label: 'Change password', kind: 'primary', onClick: function () {
+      if (next.value.length < 12) { note.textContent = 'Passwords need at least 12 characters.'; note.className = 'field__note field__note--error'; return false; }
+      note.textContent = 'Saving…';
+      note.className = 'field__note';
+      auth.changePassword(current.value, next.value).then(function () {
+        d.close();
+        toast('Password changed. Other devices are signed out.');
+      }).catch(function (e) {
+        note.textContent = auth.explainAuth(e);
+        note.className = 'field__note field__note--error';
+      });
+      return false;
+    } }
+  ]);
+}
+
+function replaceGithubKey() {
+  var pass = passwordField('Your password', 'current-password');
+  var key = h('input.input', { type: 'password', autocomplete: 'off', placeholder: 'github_pat_...', 'aria-label': 'New GitHub key' });
+  var note = h('p.field__note', { 'aria-live': 'polite' });
+  var d = dialog('Replace the GitHub key', h('div.stack',
+    h('p.dialog__text', 'Make a new key on GitHub (choose "Only select repositories" and pick ' + REPO.name + '), then paste it here.'),
+    h('a.btn.btn--secondary.btn--small', { href: NEW_KEY_URL, target: '_blank', rel: 'noopener' }, icon('external'), h('span', 'Open GitHub')),
+    key, pass, note
+  ), [
+    { label: 'Cancel', kind: 'ghost' },
+    { label: 'Replace key', kind: 'primary', onClick: function () {
+      note.textContent = 'Checking the key with GitHub…';
+      note.className = 'field__note';
+      auth.replaceKey(pass.value, key.value.trim()).then(function () {
+        d.close();
+        toast('GitHub key replaced. You can delete the old one on GitHub.');
+        refreshAccount();
+      }).catch(function (e) {
+        note.textContent = auth.explainAuth(e);
+        note.className = 'field__note field__note--error';
+      });
+      return false;
+    } }
+  ]);
+}
+
+async function signOutEverywhere() {
+  if (!(await confirm('Sign out on every device?', 'Every phone, tablet and computer signed in to the admin is signed out, this one too. Use this if a device was lost.', 'Sign out everywhere', 'danger'))) return;
+  try {
+    await store.sync();
+    await auth.signOutEverywhere();
+    store.forgetLocal();
+    location.hash = '';
+    showLogin();
+  } catch (e) {
+    toast(auth.explainAuth(e), 'error');
+  }
 }
 
 /* ---------- Keyboard ---------- */
@@ -503,5 +756,9 @@ function onKey(e) {
 
 /* ---------- Go ---------- */
 
-var existing = getKey();
-if (existing) start(existing); else showConnect();
+if (auth.enabled) {
+  if (auth.token()) startWithLogin(); else showLogin();
+} else {
+  var existing = getKey();
+  if (existing) startWithKey(existing); else showConnect();
+}

@@ -1,25 +1,33 @@
-/* Talks to the GitHub API with the admin key. Nothing else in the admin sends the key anywhere. */
+/* Talks to the GitHub API. Two ways in:
+   - Login mode: through the login server (worker/), which holds the GitHub key. The admin only
+     sends its session token.
+   - Key mode: straight to api.github.com with a GitHub key pasted on this device.
+   Either way, nothing else in the admin sends a token anywhere. */
 
 import { REPO } from './config.js';
 
-var API = 'https://api.github.com';
 var BASE = '/repos/' + REPO.owner + '/' + REPO.name;
 
-export function createClient(token) {
+/* api: 'https://api.github.com' (key mode) or '<login server>/gh' (login mode). getToken returns
+   the current key or session token, read fresh on every call so a new sign-in takes effect. */
+export function createClient(getToken, api) {
+  var viaLogin = !!api && api.indexOf('https://api.github.com') !== 0;
+  api = api || 'https://api.github.com';
   async function request(method, path, body, opts) {
     opts = opts || {};
     var headers = {
-      Authorization: 'Bearer ' + token,
+      Authorization: 'Bearer ' + getToken(),
       Accept: opts.accept || 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28'
     };
     if (body) headers['Content-Type'] = 'application/json';
     var res;
     try {
-      res = await fetch(API + path, { method: method, headers: headers, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+      res = await fetch(api + path, { method: method, headers: headers, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
     } catch (e) {
       var offline = new Error('network');
       offline.status = 0;
+      offline.loginServer = viaLogin;
       throw offline;
     }
     if (!res.ok) {
@@ -27,6 +35,11 @@ export function createClient(token) {
       err.status = res.status;
       err.data = await res.json().catch(function () { return null; });
       err.rateLimited = res.headers.get('x-ratelimit-remaining') === '0';
+      if (viaLogin) {
+        err.session = res.status === 401;
+        err.githubKey = err.data && err.data.error === 'github_key';
+        err.refused = err.data && err.data.error === 'refused' ? err.data.message : null;
+      }
       throw err;
     }
     if (opts.text) return res.text();
@@ -65,7 +78,11 @@ export function createClient(token) {
 /* Turns any failure into one sentence a person can act on. */
 export function explain(err) {
   if (!err || err.status === undefined) return 'Something unexpected went wrong. Your draft is safe. Try again.';
+  if (err.status === 0 && err.loginServer) return "Can't reach the sign-in service. Check your internet connection. Your draft is safe.";
   if (err.status === 0) return "Can't reach GitHub. Check your internet connection and try again. Your draft is safe.";
+  if (err.session) return 'You were signed out. Sign in again to continue. Your draft is safe.';
+  if (err.githubKey) return 'The GitHub key stopped working (it may have expired). Replace it in Settings. Your draft is safe.';
+  if (err.refused) return 'This change was blocked for safety: ' + err.refused + ' Your draft is safe.';
   if (err.status === 401) return 'Your GitHub key stopped working. It may have expired or been deleted. Connect a new key to continue.';
   if (err.status === 403 && err.rateLimited) return 'GitHub asked us to slow down. Wait a minute and try again.';
   if (err.status === 403) return "Your GitHub key isn't allowed to do this. It needs \"Contents: Read and write\" on the " + REPO.name + ' repository.';

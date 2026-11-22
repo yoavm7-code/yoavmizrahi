@@ -31,3 +31,10 @@ export var LIMITS = {
 
 /* The live site, relative to this admin page. */
 export var SITE_ROOT = new URL('../', location.href).href;
+
+/* The login server (worker/). When set, the admin signs in with a username and password and the
+   GitHub key stays on the server. Empty = the older mode where each device pastes a GitHub key.
+   On this computer (localhost) a test server can be set in localStorage "ym-admin-login-api". */
+var LIVE_LOGIN_API = 'https://ym-admin-login.yoavm7.workers.dev';
+var localTest = /^(127\.0\.0\.1|localhost)$/.test(location.hostname) ? localStorage.getItem('ym-admin-login-api') : null;
+export var LOGIN_API = localTest !== null ? localTest : LIVE_LOGIN_API;

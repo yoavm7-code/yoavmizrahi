@@ -67,13 +67,13 @@ README.md           short public readme
 
 ## The admin (`/admin/`)
 
-- Unlocked with a fine-grained GitHub key (this repo only, Contents read/write). On `*.github.io` the key lives only in the open tab (other Pages sites share that origin); on Yoav's own domain he can stay signed in.
+- **Sign-in:** username + password through the login server in `worker/` (Cloudflare Worker, free plan). The server holds the GitHub key encrypted and proxies only content changes to GitHub; see `worker/RUNBOOK.md` before touching it. Fallback "key mode" (a GitHub key pasted per device) returns if `LIVE_LOGIN_API` in `admin/config.js` is emptied.
 - Drafts autosave to localStorage and sync to the `drafts` branch (`content/draft.json` + uploaded media), so laptop and phone share one draft. Publishing resets `drafts` to `main`.
 - Publish = validate → render → one atomic commit to `main` (Git Trees API) → poll the live `index.html` until `<meta name="build">` matches.
 - History restores past versions as new commits. `admin/rescue.html` (self-contained) undoes the last publish even if the admin is broken.
 - Uploaded images are re-encoded through a canvas (strips GPS/EXIF), max 2400px, WebP, named by content hash in `media/`. Media is never deleted, so restores always work.
 - Strict CSP in `admin/index.html`, no third-party scripts, all content inserted as text. The preview is the real site rendered into a blob iframe; `data-mode="arrange"` turns on desk arranging (positions sent back with postMessage).
-- Files: `app.js` (shell, routing, publish UI), `panels.js` (editor screens), `store.js` (draft, undo, sync), `publish.js`, `preview.js`, `github.js`, `media.js`, `ui.js`, `config.js`.
+- Files: `app.js` (shell, sign-in screens, routing, publish UI), `panels.js` (editor screens), `store.js` (draft, undo, sync), `auth.js` (login server calls), `publish.js`, `preview.js`, `github.js`, `media.js`, `ui.js`, `config.js`.
 
 ## How it works
 

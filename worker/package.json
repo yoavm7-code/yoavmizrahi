@@ -1,0 +1,15 @@
+{
+  "name": "yoavmizrahi-admin-login",
+  "private": true,
+  "description": "Login server for the portfolio admin. See RUNBOOK.md.",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "test": "node --test test/rules.test.js"
+  },
+  "devDependencies": {
+    "wrangler": "4.166.0"
+  }
+}

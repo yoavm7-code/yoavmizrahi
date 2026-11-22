@@ -713,6 +713,11 @@ export function renderSettings(ctx, el) {
   seo.body.appendChild(bound(ctx, { label: 'Menu tagline', hint: 'Bottom of the full-screen menu. Shown in capitals.', path: 'site.tagline', max: LIMITS.line, caps: true, get: function (x) { return x.site.tagline; }, set: function (x, v) { x.site.tagline = v; } }));
   el.appendChild(seo);
 
+  if (ctx.loginMode) {
+    el.appendChild(renderAccount(ctx));
+    ctx.preview.go('#/about');
+    return;
+  }
   var account = section('This device');
   var exp = ctx.keyExpiry();
   account.body.appendChild(h('div.card',
@@ -726,6 +731,42 @@ export function renderSettings(ctx, el) {
   account.body.appendChild(h('p.small-text', 'If the admin ever breaks, the ', h('a.link', { href: 'rescue.html' }, 'rescue page'), ' can undo the last publish on its own.'));
   el.appendChild(account);
   ctx.preview.go('#/about');
+}
+
+/* Login mode: who is signed in, the GitHub key's expiry, recent sign-ins and account actions. */
+function renderAccount(ctx) {
+  var acc = ctx.account() || {};
+  var box = section('Your login');
+  var exp = acc.patExpires ? new Date(acc.patExpires) : null;
+  var days = exp ? Math.round((exp - Date.now()) / 86400000) : null;
+  box.body.appendChild(h('div.card',
+    h('div.card__row', icon('key'), h('span', 'Signed in as ', h('strong', acc.username || '…'))),
+    h('p.muted-text', exp
+      ? 'The GitHub key works until ' + exp.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }) + (days <= 14 ? '. Replace it soon.' : '. The admin reminds you two weeks before.')
+      : 'The GitHub key has no expiry date.'),
+    h('div.row-gap',
+      button('Change password', { small: true, icon: 'key', onClick: ctx.changePassword }),
+      button('Replace GitHub key', { small: true, onClick: ctx.replaceGithubKey })
+    )
+  ));
+  if (acc.signins && acc.signins.length) {
+    box.body.appendChild(h('div.stack',
+      h('strong', 'Recent sign-ins'),
+      h('ul.signins', acc.signins.map(function (s) {
+        return h('li.signins__row' + (s.ok ? '' : '.is-failed'),
+          h('span', when(s.at)),
+          h('span', [s.device, s.place].filter(Boolean).join(' · ') || 'Unknown device'),
+          h('span.badge' + (s.ok ? '.badge--muted' : '.badge--warn'), s.ok ? (s.kind === 'setup' ? 'Setup' : 'Signed in') : 'Wrong password'));
+      })),
+      h('p.small-text', "Don't recognise one? Change your password and sign out everywhere.")
+    ));
+  }
+  box.body.appendChild(h('div.row-gap',
+    button('Sign out on this device', { small: true, kind: 'ghost', onClick: ctx.signOut }),
+    button('Sign out everywhere', { small: true, kind: 'danger', onClick: ctx.signOutEverywhere })
+  ));
+  box.body.appendChild(h('p.small-text', 'If the admin ever breaks, the ', h('a.link', { href: 'rescue.html' }, 'rescue page'), ' can undo the last publish on its own.'));
+  return box;
 }
 
 /* ---------- History ---------- */

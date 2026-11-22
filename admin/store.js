@@ -145,6 +145,7 @@ export function createStore(gh) {
     if (state.syncing) { scheduleSync(); return; }
     if (state.syncedAt === state.updatedAt) return;
     state.syncing = true;
+    state.syncError = null;
     emit({ sync: true });
     var stamp = state.updatedAt;
     try {
@@ -170,7 +171,7 @@ export function createStore(gh) {
       state.syncError = null;
     } catch (e) {
       state.syncError = e;
-      if (e.status !== 401) scheduleSync();
+      if (e.status !== 401 && !e.githubKey && !e.refused) scheduleSync();
     }
     state.syncing = false;
     emit({ sync: true });

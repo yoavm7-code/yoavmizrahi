@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src https://api.github.com; img-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src https://api.github.com https://ym-admin-login.yoavm7.workers.dev; img-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex, nofollow">
 <title>Rescue · Admin</title>
@@ -16,12 +16,25 @@
   <h1>Undo the last publish</h1>
   <p>Use this if a publish broke the site or the admin. It puts the site back exactly as it was before the last publish. It works on its own, without the admin.</p>
 
-  <div class="box" id="key-box">
+  <div class="tabs" role="tablist">
+    <button type="button" role="tab" id="tab-login" aria-selected="true">Sign in</button>
+    <button type="button" role="tab" id="tab-key" aria-selected="false">Use a GitHub key</button>
+  </div>
+
+  <form class="box" id="login-box" novalidate>
+    <label for="username">Username</label>
+    <input id="username" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false">
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="current-password">
+    <button type="submit">Show recent publishes</button>
+  </form>
+
+  <form class="box" id="key-box" novalidate hidden>
     <label for="key">Your GitHub key</label>
     <input id="key" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_...">
-    <p class="hint">If you are signed in to the admin in this browser, it is filled in for you.</p>
-    <button id="load" type="button">Show recent publishes</button>
-  </div>
+    <p class="hint">For when the sign-in service is down. Make a key on GitHub with access to the yoavmizrahi repository (Contents: Read and write).</p>
+    <button type="submit">Show recent publishes</button>
+  </form>
 
   <p id="status" class="status" aria-live="polite"></p>
   <ol id="list" class="list" hidden></ol>

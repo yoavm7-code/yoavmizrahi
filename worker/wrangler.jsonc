@@ -1,0 +1,19 @@
+{
+  // Login server for yoavmizrahi.com/admin/. See RUNBOOK.md.
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "ym-admin-login",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-01",
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  "vars": {
+    "ALLOWED_ORIGINS": "https://yoavmizrahi.com",
+    "GITHUB_API_BASE": "https://api.github.com",
+    "GITHUB_OWNER": "yoavm7-code",
+    "GITHUB_REPO": "yoavmizrahi"
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "AUTH", "class_name": "AuthStore" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["AuthStore"] }]
+}

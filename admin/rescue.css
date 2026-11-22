@@ -13,6 +13,10 @@ input:focus { outline: 2px solid #FF5A36; outline-offset: 1px; }
 button { min-height: 46px; padding: 0 20px; border: 0; border-radius: 999px; background: #171614; color: #EDE9E1; font: 600 15px/1 system-ui, sans-serif; cursor: pointer; align-self: flex-start; }
 button:disabled { opacity: .5; cursor: default; }
 button.danger { background: #FF5A36; color: #171614; }
+.tabs { display: flex; gap: 6px; padding: 4px; border-radius: 999px; background: #E4DFD5; align-self: flex-start; }
+.tabs button { min-height: 40px; background: transparent; color: #171614; }
+.tabs button[aria-selected="true"] { background: #171614; color: #EDE9E1; }
+.box[hidden] { display: none; }
 .status:empty { display: none; }
 .status { padding: 12px 14px; border-radius: 10px; background: #E4DFD5; }
 .status.is-bad { background: #F3D9D6; color: #8A1F18; }
