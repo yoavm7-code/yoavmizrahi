@@ -7,9 +7,13 @@ Plain HTML, CSS and JavaScript. No build step, no dependencies.
 ## Structure
 
 ```
-index.html      all pages and content
-css/style.css   design (palette, type, motion)
-js/main.js      routing, page wipe, menu, cursor, desk, demos, film reel
+content/site.json   all content (texts, works, films, desk layout, links)
+js/render.js        builds index.html and the share pages from site.json
+js/schema.js        content rules shared by the site and the admin
+js/main.js          routing, page wipe, menu, cursor, desk, demos, film reel
+css/style.css       design (palette, type, motion, phone layout)
+admin/              the admin: edit, preview and publish from any device
+index.html, w/, f/  generated pages (do not edit by hand)
 ```
 
 Pages use hash routes, so they work on any static host (including GitHub Pages):
@@ -18,27 +22,26 @@ Pages use hash routes, so they work on any static host (including GitHub Pages):
 |---|---|
 | `#/` | The desk (home) |
 | `#/work` | Work |
-| `#/work/uploader` · `#/work/toto` · `#/work/memesh` | Project pages |
-| `#/films` | Films (timeline reel) |
+| `#/work/<id>` | Project pages |
+| `#/films` · `#/films/<id>` | Films (timeline reel) |
 | `#/about` | About |
 
-## Filling in content
+## Editing content
 
-Everything to replace is in `index.html`, written in `[SQUARE BRACKETS]`:
+Open `/admin/` on the live site and connect it with a GitHub key (the admin walks you through it).
+Edit, check the live preview, and press Publish. Every publish is one commit, listed under History,
+and can be undone there or on `/admin/rescue.html`.
 
-- **Project texts:** search for `[One line`.
-- **Year of Mega Uploader:** `[Year]`.
-- **Email and links:** `[YOUR EMAIL]`, and the `href="#"` on LinkedIn / YouTube.
-- **Films:** each film is a `data-clip` button in the Films section, and a tape (`data-tape`) on the desk.
-  Put the YouTube video id (the part after `watch?v=`) in `data-youtube="..."` and the film plays inside the monitor and the viewer.
-- **Screenshots:** the `[ SCREENSHOT ]` boxes (`.polaroid__img`) are ready for an `<img>` or `<video>`.
+To regenerate the pages after editing `content/site.json` or `js/render.js` by hand:
+
+```
+node tools/generate.mjs
+```
 
 ## Run locally
 
-Open `index.html` in a browser, or serve the folder:
-
 ```
-npx serve .
+python -m http.server
 ```
 
 ## Publish on GitHub Pages

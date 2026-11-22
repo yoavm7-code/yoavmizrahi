@@ -49,19 +49,40 @@ Eleven concepts were explored. The site is the 11th, "Harmonized", which combine
 Plain **HTML + CSS + vanilla JS**. No framework, no build step, no dependencies (Google Fonts only). Keep it that way unless Yoav agrees otherwise.
 
 ```
-index.html      every page and all text content
-css/style.css   design tokens, components, motion, responsive, reduced-motion
-js/main.js      router, wipe, menu, cursor, desk dragging, monitor/tapes, demos, film reel
-README.md       short public readme
+content/site.json   ALL content: texts, works, films, desk positions, links. The source of truth.
+js/schema.js        content rules: normalize() + validate(), object styles, sizes, limits
+js/render.js        generates index.html and the share pages (w/<id>/, f/<id>/) from site.json
+index.html          GENERATED. Never edit by hand; it is overwritten on every publish.
+w/, f/              GENERATED share pages (link previews for each work and film)
+css/style.css       design tokens, components, motion, responsive, reduced-motion
+js/main.js          behavior only: router, wipe, menu, cursor, desk, monitor/tapes, demos, reel
+admin/              the admin (see below)
+tools/generate.mjs  regenerates index.html + share pages locally: node tools/generate.mjs
+_plans/             approved plans
+README.md           short public readme
+.nojekyll           tells GitHub Pages to serve files as they are
 ```
+
+**Content flow:** content lives in `content/site.json`. `js/render.js` turns it into the finished `index.html` (no runtime fetching: visitors get complete HTML). Yoav edits through the admin, which runs `render.js` in the browser and commits JSON + HTML together. If you change `js/render.js` or `content/site.json` by hand, run `node tools/generate.mjs` and commit the regenerated files. Markup changes go in `render.js`, never in `index.html`.
+
+## The admin (`/admin/`)
+
+- Unlocked with a fine-grained GitHub key (this repo only, Contents read/write). On `*.github.io` the key lives only in the open tab (other Pages sites share that origin); on Yoav's own domain he can stay signed in.
+- Drafts autosave to localStorage and sync to the `drafts` branch (`content/draft.json` + uploaded media), so laptop and phone share one draft. Publishing resets `drafts` to `main`.
+- Publish = validate → render → one atomic commit to `main` (Git Trees API) → poll the live `index.html` until `<meta name="build">` matches.
+- History restores past versions as new commits. `admin/rescue.html` (self-contained) undoes the last publish even if the admin is broken.
+- Uploaded images are re-encoded through a canvas (strips GPS/EXIF), max 2400px, WebP, named by content hash in `media/`. Media is never deleted, so restores always work.
+- Strict CSP in `admin/index.html`, no third-party scripts, all content inserted as text. The preview is the real site rendered into a blob iframe; `data-mode="arrange"` turns on desk arranging (positions sent back with postMessage).
+- Files: `app.js` (shell, routing, publish UI), `panels.js` (editor screens), `store.js` (draft, undo, sync), `publish.js`, `preview.js`, `github.js`, `media.js`, `ui.js`, `config.js`.
 
 ## How it works
 
-- **Routing:** hash routes (`#/`, `#/work`, `#/work/uploader`, `#/work/toto`, `#/work/memesh`, `#/films`, `#/about`). Each page is a `<section class="page" data-page="...">`, and `.is-active` shows it. The `routes` object in `main.js` maps hash → page, wipe label and header name. Adding a page means adding a section and a route.
+- **Routing:** hash routes (`#/`, `#/work`, `#/work/<id>`, `#/films`, `#/films/<id>`, `#/about`). Each page is a `<section class="page" data-page="..." data-route data-label data-name>`, and `.is-active` shows it. `main.js` builds its routes from those attributes, so new works get routes automatically. `#/films/<id>` opens the reel on that film.
+- **Phone and tablet:** up to 900px the desk becomes a pile (flex, order from `data-m`, slight tilt, no dragging, tapes play with ▶). Between 900px and the desk width the whole desk is scaled with `zoom` so nothing hides off to the side. Film titles shrink to fit (`fitText`).
 - **Page wipe:** `.wipe` gets `.is-cover`, then the page swaps, then `.is-reveal`, then it resets. It's skipped on first load and with `prefers-reduced-motion`.
 - **Animations replay** because pages go from `display:none` to visible. `.up` / `.d1–.d4` stagger content. `[data-split]` headings are split into words and letters by JS.
 - **Cursor:** only on fine pointers. Elements with `data-cursor="view|drag"` grow it into the orange circle.
-- **The desk:** `.obj` elements have `data-x`, `data-y` and `data-r` (home position and rotation). Pointer events drag them, and buttons and links inside an object don't start a drag.
+- **The desk:** `.obj` elements have `data-x`, `data-y` and `data-r` (home position and rotation) and `data-obj` keys (`note`, `monitor`, `work:<id>`, `tape:<id>`). Pointer events drag them, and buttons and links inside an object don't start a drag. Works use one of four object styles: `device`, `phone`, `polaroid`, `screen` (a small monitor). The uploader and Toto demos are hand-built and tied to their works.
 - **Tapes:** dropping a tape (`[data-tape]`) on the monitor, or pressing its ▶ button, inserts it. The monitor `data-state` is `empty`, `idle` or `playing`.
 - **Demos** share state across all their instances (desk and project page):
   - `[data-widget="uploader"]`: simulated upload of 3 sample files.
@@ -69,19 +90,20 @@ README.md       short public readme
 - **Film reel:** each `[data-clip]` has `data-start`/`data-end` (0–1 along the track) plus title, part, presents, meta, file and youtube. The reel plays across 150 "seconds" of timecode; clicking a clip, scrubbing the ruler, or prev/next jumps.
 - **YouTube:** put the video id in `data-youtube="..."` on a clip or a tape. The player is embedded with `youtube-nocookie.com`. If the id is empty, a placeholder shows instead.
 
-## Content still missing (all in `index.html`, in `[SQUARE BRACKETS]`)
+## Content still missing (in `content/site.json`, in `[SQUARE BRACKETS]`)
+
+Yoav fills these in through the admin; its Overview lists every one with a "Fix" button.
 
 - One-line descriptions: Mega Uploader (`[One line...]`) and Memesh (`[One line...]`).
 - Mega Uploader year: `[Year]`.
 - Film 2 (title, subtitle, genre), runtimes and YouTube ids. Leviathan Part 1 is on The Wide Silence.
-- Real visuals: screenshots or screen recordings for the polaroid / Memesh stage, and optionally film stills.
-- Email, LinkedIn and YouTube links (About page and menu footer).
+- Real visuals: screenshots or screen recordings for Memesh.
+- Email, LinkedIn and YouTube links, and the site address (domain).
 
-Other works Yoav has built that could join later: **Ad Intel** and **LoreWire**. Each would be a new desk object, a Work card, a project page and a route. Keep the "same object on desk and page" rule.
+Other works Yoav has built that could join later: **Ad Intel** and **LoreWire**. He can add them in the admin (Works → Add a work).
 
 ## Ideas on the list (not done yet)
 
-- The desk is 1420px wide and scrolls sideways on phones. A dedicated phone layout for the desk (stacked objects, no dragging) would be nicer.
 - Real assets instead of placeholders; the Toto demo could use real World Cup 2026 fixtures.
 - Hebrew version? Not decided — ask Yoav.
 
@@ -96,6 +118,7 @@ Other works Yoav has built that could join later: **Ad Intel** and **LoreWire**.
   - Click through every route.
   - Drag a tape into the monitor.
   - Run both demos and the reel.
-  - Check at 390px width.
+  - Check at 390px, 820px (tablet) and 1180px (laptop) width.
   - Check the console for errors.
+  - For admin changes: test against a fake GitHub API (Playwright route interception), never the real repo.
 - **Commit messages** should be short and in plain English. Push to `main` only when Yoav asks.

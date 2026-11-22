@@ -1,16 +1,26 @@
 <!doctype html>
+<!-- Generated from content/site.json by js/render.js. Edit content in /admin/, not here. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Yoav Mizrahi — Products &amp; films, built with AI</title>
 <meta name="description" content="Portfolio of Yoav Mizrahi: products and films, built with AI.">
+<meta name="theme-color" content="#EDE9E1">
+<meta name="build" content="local-mwrw2cqe">
+<link rel="canonical" href="https://yoavmizrahi.com/">
+<meta property="og:url" content="https://yoavmizrahi.com/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Yoav Mizrahi — Products &amp; films, built with AI">
+<meta property="og:description" content="Portfolio of Yoav Mizrahi: products and films, built with AI.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=Inter:wght@400;500;600;700&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body data-page="home">
+<body data-page="home" data-site-title="Yoav Mizrahi — Products &amp; films, built with AI" data-site-name="Yoav Mizrahi">
 
 <header class="site-header">
   <div class="site-header__inner">
@@ -25,13 +35,13 @@
 <main>
 
 <!-- ============ HOME: THE DESK ============ -->
-<section class="page page--home" data-page="home" aria-label="The desk">
+<section class="page page--home" data-page="home" data-route="/" data-label="The desk" data-name="THE DESK" aria-label="The desk">
   <div class="desk-scroll">
-    <div class="desk grid-surface" data-desk>
-      <span class="desk__hint mono">DRAG ANYTHING · DROP A TAPE IN THE MONITOR · OPEN ANY PROJECT</span>
+    <div class="desk grid-surface" data-desk data-w="1420" data-h="820">
+      <span class="desk__hint mono"><span class="only-wide">DRAG ANYTHING · DROP A TAPE IN THE MONITOR · OPEN ANY PROJECT</span><span class="only-narrow">TAP ▶ ON A TAPE TO PLAY IT · OPEN ANY PROJECT</span></span>
 
       <!-- Note -->
-      <div class="obj" data-obj="note" data-x="60" data-y="40" data-r="-3" data-cursor="drag">
+      <div class="obj" data-obj="note" data-x="60" data-y="40" data-r="-3" data-m="1" data-cursor="drag">
         <div class="note settle">
           <span class="note__tape" aria-hidden="true"></span>
           <p class="note__hi">Hi, I’m Yoav.</p>
@@ -40,8 +50,8 @@
         </div>
       </div>
 
-      <!-- Mega Uploader device -->
-      <div class="obj" data-obj="uploader" data-x="70" data-y="300" data-r="2" data-cursor="drag">
+      <!-- Mega Uploader -->
+      <div class="obj" data-obj="work:uploader" data-x="70" data-y="300" data-r="2" data-m="4" data-cursor="drag">
         <div class="device device--uploader settle d1">
           <div class="device__screen device__screen--paper">
             <div class="row-between"><span class="label">01 · PRODUCTION TOOL</span><span class="led" data-upload-led aria-hidden="true"></span></div>
@@ -52,8 +62,8 @@
         </div>
       </div>
 
-      <!-- Toto Mundial phone -->
-      <div class="obj" data-obj="phone" data-x="450" data-y="40" data-r="4" data-cursor="drag">
+      <!-- Toto Mundial -->
+      <div class="obj" data-obj="work:toto" data-x="450" data-y="40" data-r="4" data-m="5" data-cursor="drag">
         <div class="phone settle d2">
           <div class="phone__screen">
             <span class="phone__notch" aria-hidden="true"></span>
@@ -64,14 +74,24 @@
         </div>
       </div>
 
+      <!-- Memesh -->
+      <div class="obj" data-obj="work:memesh" data-x="770" data-y="520" data-r="-6" data-m="6" data-cursor="drag">
+        <div class="polaroid settle d3">
+          <div class="polaroid__img mono">[ SCREENSHOT ]</div>
+          <span class="label">03 · CLIENT SYSTEM</span>
+          <span class="polaroid__title">Memesh</span>
+          <a class="uline mono-link" href="#/work/memesh">OPEN PROJECT →</a>
+        </div>
+      </div>
+
       <!-- Monitor -->
-      <div class="obj" data-obj="monitor" data-x="800" data-y="40" data-r="0" data-cursor="drag">
+      <div class="obj" data-obj="monitor" data-x="800" data-y="40" data-r="0" data-m="2" data-cursor="drag">
         <div class="monitor settle d1">
           <div class="monitor__screen" data-monitor data-state="empty">
             <span class="scanlines" aria-hidden="true"></span>
-            <div class="monitor__empty mono"><span class="monitor__nosignal">NO SIGNAL</span><span class="monitor__hint">DRAG A TAPE IN HERE</span></div>
+            <div class="monitor__empty mono"><span class="monitor__nosignal">NO SIGNAL</span><span class="monitor__hint"><span class="only-wide">DRAG A TAPE IN HERE</span><span class="only-narrow">TAP ▶ ON A TAPE TO PLAY IT</span></span></div>
             <div class="monitor__idle tv-on">
-              <span class="credit">THE WIDE SILENCE PRESENTS</span>
+              <span class="credit" data-monitor-presents></span>
               <span class="monitor__title" data-monitor-title></span>
               <span class="credit credit--light" data-monitor-part></span>
               <button class="btn play-btn" type="button" data-monitor-play aria-label="Play film"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
@@ -88,37 +108,29 @@
         </div>
       </div>
 
-      <!-- Tapes. data-youtube = YouTube video id (leave empty for a placeholder) -->
-      <div class="obj" data-obj="tapeA" data-tape data-x="1010" data-y="520" data-r="-4" data-cursor="drag"
-           data-title="LEVIATHAN" data-part="PART ONE" data-youtube="">
+      <!-- Tapes. Each one plays its film on the monitor. -->
+      <div class="tapes" data-obj-group="tapes" data-m="3">
+      <div class="obj" data-obj="tape:leviathan-1" data-x="1010" data-y="520" data-r="-4" data-m="3" data-cursor="drag" data-tape
+           data-title="LEVIATHAN" data-part="PART ONE" data-presents="THE WIDE SILENCE PRESENTS" data-youtube="">
         <div class="tape settle d3">
-          <div class="tape__label"><span>LEVIATHAN · PT 1</span><button class="btn tape__play" type="button" data-insert aria-label="Play Leviathan Part 1 on the monitor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div>
+          <div class="tape__label"><span>LEVIATHAN · PT 1</span><button class="btn tape__play" type="button" data-insert aria-label="Play LEVIATHAN — PART 1 on the monitor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div>
           <div class="tape__reels" aria-hidden="true"><span></span><span></span></div>
         </div>
       </div>
-      <div class="obj" data-obj="tapeB" data-tape data-x="1190" data-y="600" data-r="7" data-cursor="drag"
-           data-title="[TITLE]" data-part="[SUBTITLE]" data-youtube="">
+      <div class="obj" data-obj="tape:film-2" data-x="1190" data-y="600" data-r="7" data-m="3" data-cursor="drag" data-tape
+           data-title="[TITLE]" data-part="[SUBTITLE]" data-presents="THE WIDE SILENCE PRESENTS" data-youtube="">
         <div class="tape settle d4">
-          <div class="tape__label"><span>[FILM TITLE]</span><button class="btn tape__play" type="button" data-insert aria-label="Play the second film on the monitor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div>
+          <div class="tape__label"><span>[FILM TITLE]</span><button class="btn tape__play" type="button" data-insert aria-label="Play [FILM TITLE] on the monitor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div>
           <div class="tape__reels" aria-hidden="true"><span></span><span></span></div>
         </div>
       </div>
-
-      <!-- Memesh polaroid -->
-      <div class="obj" data-obj="polaroid" data-x="770" data-y="520" data-r="-6" data-cursor="drag">
-        <div class="polaroid settle d3">
-          <div class="polaroid__img mono">[ SCREENSHOT ]</div>
-          <span class="label">03 · CLIENT SYSTEM</span>
-          <span class="polaroid__title">Memesh</span>
-          <a class="uline mono-link" href="#/work/memesh">OPEN PROJECT →</a>
-        </div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- ============ WORK ============ -->
-<section class="page page--work" data-page="work" aria-label="Work">
+<section class="page page--work" data-page="work" data-route="/work" data-label="Work" data-name="WORK" aria-label="Work">
   <div class="wrap">
     <div class="page-head">
       <h1 class="display" data-split>Work</h1>
@@ -146,7 +158,7 @@
 </section>
 
 <!-- ============ PROJECT: MEGA UPLOADER ============ -->
-<section class="page page--project" data-page="uploader" aria-label="Mega Uploader">
+<section class="page page--project" data-page="work-uploader" data-route="/work/uploader" data-label="Mega Uploader" data-name="WORK / MEGA UPLOADER" aria-label="Mega Uploader">
   <div class="wrap">
     <a class="uline mono-link up" href="#/work">← ALL WORK</a>
     <div class="proj-head">
@@ -172,7 +184,7 @@
 </section>
 
 <!-- ============ PROJECT: TOTO MUNDIAL ============ -->
-<section class="page page--project" data-page="toto" aria-label="Toto Mundial">
+<section class="page page--project" data-page="work-toto" data-route="/work/toto" data-label="Toto Mundial" data-name="WORK / TOTO MUNDIAL" aria-label="Toto Mundial">
   <div class="wrap">
     <a class="uline mono-link up" href="#/work">← ALL WORK</a>
     <div class="proj-head">
@@ -199,7 +211,7 @@
 </section>
 
 <!-- ============ PROJECT: MEMESH ============ -->
-<section class="page page--project" data-page="memesh" aria-label="Memesh">
+<section class="page page--project" data-page="work-memesh" data-route="/work/memesh" data-label="Memesh" data-name="WORK / MEMESH" aria-label="Memesh">
   <div class="wrap">
     <a class="uline mono-link up" href="#/work">← ALL WORK</a>
     <div class="proj-head">
@@ -214,7 +226,7 @@
     <div class="stage grid-surface grid-surface--deep up d3">
       <span class="stage__label mono">ON THE DESK</span>
       <div class="polaroid polaroid--big">
-        <div class="polaroid__img mono">[ SCREEN RECORDING OF THE SYSTEM ]</div>
+        <div class="polaroid__img mono">[ SCREENSHOT OR SCREEN RECORDING ]</div>
         <span class="polaroid__title">Memesh</span>
       </div>
     </div>
@@ -223,7 +235,7 @@
 </section>
 
 <!-- ============ FILMS ============ -->
-<section class="page page--films" data-page="films" aria-label="Films">
+<section class="page page--films" data-page="films" data-route="/films" data-label="Films" data-name="FILMS" aria-label="Films">
   <div class="films">
     <div class="films__head">
       <h1 class="display display--films" data-split>Films</h1>
@@ -255,25 +267,25 @@
       </div>
     </div>
 
-    <!-- The reel. Each clip: start/end (0–1 along the timeline), data-youtube = video id. -->
+    <!-- The reel. Each clip covers data-start to data-end (0 to 1 along the timeline). -->
     <div class="timeline up d2">
       <div class="timeline__inner">
         <div class="timeline__labels mono"><span class="tl-spacer"></span><span class="tl-row">FILMS</span></div>
         <div class="timeline__lanes">
           <button class="ruler" type="button" data-scrub aria-label="Scrub the reel"></button>
           <div class="lane" data-lane>
-            <button class="clip" type="button" data-clip data-start="0" data-end="0.45"
+            <button class="clip" type="button" data-clip data-id="leviathan-1" data-start="0" data-end="0.4"
               data-label="LEVIATHAN — PART 1" data-title="LEVIATHAN" data-part="PART ONE"
               data-presents="THE WIDE SILENCE PRESENTS" data-meta="SCI-FI SHORT · [RUNTIME]"
               data-file="LEVIATHAN_PT1.MOV" data-youtube="">LEVIATHAN — PART 1</button>
-            <button class="clip" type="button" data-clip data-start="0.45" data-end="0.8"
+            <button class="clip" type="button" data-clip data-id="film-2" data-start="0.4" data-end="0.8"
               data-label="[FILM TITLE]" data-title="[TITLE]" data-part="[SUBTITLE]"
               data-presents="THE WIDE SILENCE PRESENTS" data-meta="[GENRE] · [RUNTIME]"
               data-file="FILM_02.MOV" data-youtube="">[FILM TITLE]</button>
-            <button class="clip clip--soon" type="button" data-clip data-start="0.8" data-end="1"
+            <button class="clip clip--soon" type="button" data-clip data-id="next" data-start="0.8" data-end="1"
               data-label="IN PRODUCTION" data-title="COMING SOON" data-part="[NEXT FILM]"
               data-presents="NOW IN PRODUCTION" data-meta="IN PRODUCTION"
-              data-file="FILM_03.MOV" data-soon>IN PRODUCTION</button>
+              data-file="FILM_03.MOV" data-youtube="" data-soon>IN PRODUCTION</button>
           </div>
           <div class="playhead" data-playhead aria-hidden="true"><span class="playhead__head"></span><span class="playhead__line"></span></div>
         </div>
@@ -283,7 +295,7 @@
 </section>
 
 <!-- ============ ABOUT ============ -->
-<section class="page page--about" data-page="about" aria-label="About">
+<section class="page page--about" data-page="about" data-route="/about" data-label="About" data-name="ABOUT" aria-label="About">
   <div class="wrap">
     <h1 class="display" data-split>About</h1>
     <div class="about up d2">
@@ -292,8 +304,6 @@
         <span class="label label--accent">BEFORE</span>
         <span>Outbrain and Duda.</span>
         <span>Information Systems, Academic College of Tel Aviv‑Yaffo.</span>
-        <span class="label label--accent about__gap">ELSEWHERE</span>
-        <span><a class="uline" href="mailto:[YOUR EMAIL]">[YOUR EMAIL]</a> · <a class="uline" href="#">LinkedIn</a> · <a class="uline" href="#">YouTube</a></span>
       </div>
     </div>
   </div>
@@ -310,7 +320,7 @@
     <a class="mlink" href="#/films"><span class="mlink__in"><span class="mlink__num">03</span>Films</span></a>
     <a class="mlink" href="#/about"><span class="mlink__in"><span class="mlink__num">04</span>About</span></a>
   </nav>
-  <div class="menu__foot mono"><span>PRODUCTS &amp; FILMS, BUILT WITH AI</span><span>[YOUR EMAIL]</span></div>
+  <div class="menu__foot mono"><span>PRODUCTS &amp; FILMS, BUILT WITH AI</span></div>
 </div>
 
 <!-- Page wipe -->

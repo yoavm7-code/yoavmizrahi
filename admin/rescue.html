@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src https://api.github.com; img-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<title>Rescue · Admin</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="rescue.css">
+</head>
+<body>
+<main class="rescue">
+  <p class="kicker">RESCUE</p>
+  <h1>Undo the last publish</h1>
+  <p>Use this if a publish broke the site or the admin. It puts the site back exactly as it was before the last publish. It works on its own, without the admin.</p>
+
+  <div class="box" id="key-box">
+    <label for="key">Your GitHub key</label>
+    <input id="key" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_...">
+    <p class="hint">If you are signed in to the admin in this browser, it is filled in for you.</p>
+    <button id="load" type="button">Show recent publishes</button>
+  </div>
+
+  <p id="status" class="status" aria-live="polite"></p>
+  <ol id="list" class="list" hidden></ol>
+  <div class="actions" id="actions" hidden>
+    <button id="undo" type="button" class="danger">Undo the last publish</button>
+    <a href="./">Back to the admin</a>
+  </div>
+</main>
+<script src="rescue.js"></script>
+</body>
+</html>

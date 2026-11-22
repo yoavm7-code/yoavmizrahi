@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "site": {
+    "name": "Yoav Mizrahi",
+    "title": "Yoav Mizrahi — Products & films, built with AI",
+    "description": "Portfolio of Yoav Mizrahi: products and films, built with AI.",
+    "tagline": "PRODUCTS & FILMS, BUILT WITH AI",
+    "channel": "The Wide Silence",
+    "url": "https://yoavmizrahi.com",
+    "email": "",
+    "links": [
+      { "label": "LinkedIn", "url": "" },
+      { "label": "YouTube", "url": "" }
+    ]
+  },
+  "desk": {
+    "hint": "DRAG ANYTHING · DROP A TAPE IN THE MONITOR · OPEN ANY PROJECT",
+    "hintMobile": "TAP ▶ ON A TAPE TO PLAY IT · OPEN ANY PROJECT",
+    "note": {
+      "hi": "Hi, I’m Yoav.",
+      "line": "I build products & films with AI.",
+      "small": "Everything on this desk works. Play with it — or open the menu.",
+      "x": 60, "y": 40, "r": -3
+    },
+    "monitor": { "x": 800, "y": 40, "r": 0 },
+    "mobileOrder": ["note", "monitor", "tapes", "work:uploader", "work:toto", "work:memesh"]
+  },
+  "works": [
+    {
+      "id": "uploader",
+      "title": "Mega Uploader",
+      "kind": "PRODUCTION TOOL",
+      "year": "[Year]",
+      "madeWith": "AI coding agents",
+      "description": "[One line: what it uploads, and for whom.] Built with AI agents and running in production.",
+      "link": "",
+      "style": "device",
+      "demo": "uploader",
+      "media": null,
+      "desk": { "show": true, "x": 70, "y": 300, "r": 2 }
+    },
+    {
+      "id": "toto",
+      "title": "Toto Mundial",
+      "kind": "WEB APP",
+      "year": "2026",
+      "madeWith": "AI coding agents",
+      "description": "A World Cup 2026 prediction pool for friends. Call the score, lock it in, argue about it later.",
+      "link": "",
+      "style": "phone",
+      "demo": "toto",
+      "media": null,
+      "desk": { "show": true, "x": 450, "y": 40, "r": 4 }
+    },
+    {
+      "id": "memesh",
+      "title": "Memesh",
+      "kind": "CLIENT SYSTEM",
+      "year": "2026",
+      "madeWith": "AI coding agents",
+      "description": "The operations system behind a real playground business. [One line: what it handles day to day.]",
+      "link": "",
+      "style": "polaroid",
+      "demo": null,
+      "media": null,
+      "desk": { "show": true, "x": 770, "y": 520, "r": -6 }
+    }
+  ],
+  "films": [
+    {
+      "id": "leviathan-1",
+      "title": "LEVIATHAN",
+      "part": "PART ONE",
+      "label": "LEVIATHAN — PART 1",
+      "presents": "THE WIDE SILENCE PRESENTS",
+      "genre": "SCI-FI SHORT",
+      "runtime": "[RUNTIME]",
+      "file": "LEVIATHAN_PT1.MOV",
+      "youtube": "",
+      "soon": false,
+      "tape": { "show": true, "label": "LEVIATHAN · PT 1", "x": 1010, "y": 520, "r": -4 }
+    },
+    {
+      "id": "film-2",
+      "title": "[TITLE]",
+      "part": "[SUBTITLE]",
+      "label": "[FILM TITLE]",
+      "presents": "THE WIDE SILENCE PRESENTS",
+      "genre": "[GENRE]",
+      "runtime": "[RUNTIME]",
+      "file": "FILM_02.MOV",
+      "youtube": "",
+      "soon": false,
+      "tape": { "show": true, "label": "[FILM TITLE]", "x": 1190, "y": 600, "r": 7 }
+    },
+    {
+      "id": "next",
+      "title": "COMING SOON",
+      "part": "[NEXT FILM]",
+      "label": "IN PRODUCTION",
+      "presents": "NOW IN PRODUCTION",
+      "genre": "",
+      "runtime": "",
+      "file": "FILM_03.MOV",
+      "youtube": "",
+      "soon": true,
+      "tape": { "show": false, "label": "", "x": 1100, "y": 420, "r": 0 }
+    }
+  ],
+  "about": {
+    "lead": "I direct AI agents to build working software, and I make realistic AI films for my channel, The Wide Silence. Same obsession in both: the details people feel but don’t notice.",
+    "before": [
+      "Outbrain and Duda.",
+      "Information Systems, Academic College of Tel Aviv‑Yaffo."
+    ]
+  }
+}
