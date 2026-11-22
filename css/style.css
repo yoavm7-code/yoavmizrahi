@@ -518,6 +518,8 @@ body.menu-open .mlink:nth-child(4) .mlink__in { transition-delay: .54s; }
   html:not([data-mode="arrange"]) .tapes { align-self: stretch; }
   .monitor { padding: 12px 12px 10px; }
   .monitor__title { font-size: 34px; }
+  .tape { padding: 7px; }
+  .tape__label { padding: 6px 4px 6px 8px; }
   .tape__label span { font-size: 10px; letter-spacing: .04em; }
   .polaroid { width: 260px; }
   .polaroid__img { height: 200px; }
@@ -555,6 +557,12 @@ body.menu-open .mlink:nth-child(4) .mlink__in { transition-delay: .54s; }
 
   /* Menu */
   .mlink__num { min-width: 2em; margin-right: 12px; }
+}
+
+@media (max-width: 380px) {
+  html:not([data-mode="arrange"]) .desk { padding-left: 14px; padding-right: 14px; }
+  html:not([data-mode="arrange"]) .tapes { gap: 10px; }
+  .tape__label span { letter-spacing: 0; }
 }
 
 /* ---------- Reduced motion ---------- */
