@@ -518,6 +518,7 @@ body.menu-open .mlink:nth-child(4) .mlink__in { transition-delay: .54s; }
   html:not([data-mode="arrange"]) .tapes { align-self: stretch; }
   .monitor { padding: 12px 12px 10px; }
   .monitor__title { font-size: 34px; }
+  .tape__label span { font-size: 10px; letter-spacing: .04em; }
   .polaroid { width: 260px; }
   .polaroid__img { height: 200px; }
   .screen { width: min(420px, calc(100vw - 40px)); }
