@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yoav Mizrahi — Products &amp; films, built with AI</title>
+<meta name="description" content="Portfolio of Yoav Mizrahi: products and films, built with AI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=Inter:wght@400;500;600;700&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="home">
+
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="brand uline" href="#/">Yoav Mizrahi</a>
+    <div class="site-header__right">
+      <span class="page-name mono" data-page-name>THE DESK</span>
+      <button class="btn pill pill--solid" type="button" data-menu-toggle aria-expanded="false" aria-controls="menu">Menu</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ HOME: THE DESK ============ -->
+<section class="page page--home" data-page="home" aria-label="The desk">
+  <div class="desk-scroll">
+    <div class="desk grid-surface" data-desk>
+      <span class="desk__hint mono">DRAG ANYTHING · DROP A TAPE IN THE MONITOR · OPEN ANY PROJECT</span>
+
+      <!-- Note -->
+      <div class="obj" data-obj="note" data-x="60" data-y="40" data-r="-3" data-cursor="drag">
+        <div class="note settle">
+          <span class="note__tape" aria-hidden="true"></span>
+          <p class="note__hi">Hi, I’m Yoav.</p>
+          <p class="note__line">I build products &amp; films with AI.</p>
+          <p class="note__small">Everything on this desk works. Play with it — or open the menu.</p>
+        </div>
+      </div>
+
+      <!-- Mega Uploader device -->
+      <div class="obj" data-obj="uploader" data-x="70" data-y="300" data-r="2" data-cursor="drag">
+        <div class="device device--uploader settle d1">
+          <div class="device__screen device__screen--paper">
+            <div class="row-between"><span class="label">01 · PRODUCTION TOOL</span><span class="led" data-upload-led aria-hidden="true"></span></div>
+            <span class="device__title">Mega Uploader</span>
+            <div class="uploader" data-widget="uploader"></div>
+          </div>
+          <div class="device__foot"><a class="uline mono-link mono-link--light" href="#/work/uploader">OPEN PROJECT →</a></div>
+        </div>
+      </div>
+
+      <!-- Toto Mundial phone -->
+      <div class="obj" data-obj="phone" data-x="450" data-y="40" data-r="4" data-cursor="drag">
+        <div class="phone settle d2">
+          <div class="phone__screen">
+            <span class="phone__notch" aria-hidden="true"></span>
+            <div class="stack-4"><span class="label label--dark">02 · WEB APP</span><span class="phone__title">Toto Mundial</span></div>
+            <div class="toto" data-widget="toto"></div>
+          </div>
+          <div class="phone__foot"><a class="uline mono-link mono-link--light" href="#/work/toto">OPEN PROJECT →</a></div>
+        </div>
+      </div>
+
+      <!-- Monitor -->
+      <div class="obj" data-obj="monitor" data-x="800" data-y="40" data-r="0" data-cursor="drag">
+        <div class="monitor settle d1">
+          <div class="monitor__screen" data-monitor data-state="empty">
+            <span class="scanlines" aria-hidden="true"></span>
+            <div class="monitor__empty mono"><span class="monitor__nosignal">NO SIGNAL</span><span class="monitor__hint">DRAG A TAPE IN HERE</span></div>
+            <div class="monitor__idle tv-on">
+              <span class="credit">THE WIDE SILENCE PRESENTS</span>
+              <span class="monitor__title" data-monitor-title></span>
+              <span class="credit credit--light" data-monitor-part></span>
+              <button class="btn play-btn" type="button" data-monitor-play aria-label="Play film"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
+            </div>
+            <div class="monitor__playing" data-monitor-player></div>
+          </div>
+          <div class="monitor__foot">
+            <a class="uline mono-link mono-link--light" href="#/films">ALL FILMS →</a>
+            <div class="row-gap-12">
+              <button class="btn eject" type="button" data-eject>⏏ EJECT</button>
+              <span class="power" data-power aria-hidden="true"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tapes. data-youtube = YouTube video id (leave empty for a placeholder) -->
+      <div class="obj" data-obj="tapeA" data-tape data-x="1010" data-y="520" data-r="-4" data-cursor="drag"
+           data-title="LEVIATHAN" data-part="PART ONE" data-youtube="">
+        <div class="tape settle d3">
+          <div class="tape__label"><span>LEVIATHAN · PT 1</span><button class="btn tape__play" type="button" data-insert aria-label="Play Leviathan Part 1 on the monitor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div>
+          <div class="tape__reels" aria-hidden="true"><span></span><span></span></div>
+        </div>
+      </div>
+      <div class="obj" data-obj="tapeB" data-tape data-x="1190" data-y="600" data-r="7" data-cursor="drag"
+           data-title="[TITLE]" data-part="[SUBTITLE]" data-youtube="">
+        <div class="tape settle d4">
+          <div class="tape__label"><span>[FILM TITLE]</span><button class="btn tape__play" type="button" data-insert aria-label="Play the second film on the monitor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div>
+          <div class="tape__reels" aria-hidden="true"><span></span><span></span></div>
+        </div>
+      </div>
+
+      <!-- Memesh polaroid -->
+      <div class="obj" data-obj="polaroid" data-x="770" data-y="520" data-r="-6" data-cursor="drag">
+        <div class="polaroid settle d3">
+          <div class="polaroid__img mono">[ SCREENSHOT ]</div>
+          <span class="label">03 · CLIENT SYSTEM</span>
+          <span class="polaroid__title">Memesh</span>
+          <a class="uline mono-link" href="#/work/memesh">OPEN PROJECT →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WORK ============ -->
+<section class="page page--work" data-page="work" aria-label="Work">
+  <div class="wrap">
+    <div class="page-head">
+      <h1 class="display" data-split>Work</h1>
+      <a class="uline mono-link up d2" href="#/">← BACK TO THE DESK</a>
+    </div>
+    <div class="cards up d2">
+      <a class="card" href="#/work/uploader" data-cursor="view">
+        <div class="card__cover"><div class="card__inner grid-dark"><span class="card__no">01</span><span class="card__title">Mega Uploader</span></div><span class="card__bar" aria-hidden="true"></span></div>
+        <div class="card__meta mono"><span>MEGA UPLOADER</span><span class="muted">PRODUCTION TOOL</span></div>
+      </a>
+      <a class="card" href="#/work/toto" data-cursor="view">
+        <div class="card__cover"><div class="card__inner grid-dark"><span class="card__no">02</span><span class="card__title">Toto Mundial</span></div><span class="card__bar" aria-hidden="true"></span></div>
+        <div class="card__meta mono"><span>TOTO MUNDIAL</span><span class="muted">WEB APP</span></div>
+      </a>
+      <a class="card" href="#/work/memesh" data-cursor="view">
+        <div class="card__cover"><div class="card__inner grid-dark"><span class="card__no">03</span><span class="card__title">Memesh</span></div><span class="card__bar" aria-hidden="true"></span></div>
+        <div class="card__meta mono"><span>MEMESH</span><span class="muted">CLIENT SYSTEM</span></div>
+      </a>
+      <a class="card" href="#/films" data-cursor="view">
+        <div class="card__cover"><div class="card__inner grid-dark"><span class="card__no">04</span><span class="card__title">Films</span></div><span class="card__bar" aria-hidden="true"></span></div>
+        <div class="card__meta mono"><span>FILMS</span><span class="muted">THE WIDE SILENCE</span></div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROJECT: MEGA UPLOADER ============ -->
+<section class="page page--project" data-page="uploader" aria-label="Mega Uploader">
+  <div class="wrap">
+    <a class="uline mono-link up" href="#/work">← ALL WORK</a>
+    <div class="proj-head">
+      <span class="label label--accent up">01 · PRODUCTION TOOL</span>
+      <h1 class="display" data-split>Mega Uploader</h1>
+    </div>
+    <div class="proj-meta up d2">
+      <div><span class="label">YEAR</span><span class="strong">[Year]</span></div>
+      <div><span class="label">MADE WITH</span><span class="strong">AI coding agents</span></div>
+      <p>[One line: what it uploads, and for whom.] Built with AI agents and running in production.</p>
+    </div>
+    <div class="stage grid-surface grid-surface--deep up d3">
+      <span class="stage__label mono">ON THE DESK · TRY IT</span>
+      <div class="device device--uploader device--big">
+        <div class="device__screen device__screen--paper">
+          <div class="row-between"><span class="label">UPLOAD QUEUE</span><span class="device__pct" data-upload-total>0%</span></div>
+          <div class="uploader" data-widget="uploader"></div>
+        </div>
+      </div>
+    </div>
+    <a class="next" href="#/work/toto" data-cursor="view"><span class="label">NEXT</span><span class="next__title uline">Toto Mundial →</span></a>
+  </div>
+</section>
+
+<!-- ============ PROJECT: TOTO MUNDIAL ============ -->
+<section class="page page--project" data-page="toto" aria-label="Toto Mundial">
+  <div class="wrap">
+    <a class="uline mono-link up" href="#/work">← ALL WORK</a>
+    <div class="proj-head">
+      <span class="label label--accent up">02 · WEB APP</span>
+      <h1 class="display" data-split>Toto Mundial</h1>
+    </div>
+    <div class="proj-meta up d2">
+      <div><span class="label">YEAR</span><span class="strong">2026</span></div>
+      <div><span class="label">MADE WITH</span><span class="strong">AI coding agents</span></div>
+      <p>A World Cup 2026 prediction pool for friends. Call the score, lock it in, argue about it later.</p>
+    </div>
+    <div class="stage grid-surface grid-surface--deep up d3">
+      <span class="stage__label mono">ON THE DESK · TRY IT</span>
+      <div class="phone phone--big">
+        <div class="phone__screen">
+          <span class="phone__notch" aria-hidden="true"></span>
+          <span class="phone__title">Toto Mundial</span>
+          <div class="toto" data-widget="toto"></div>
+        </div>
+      </div>
+    </div>
+    <a class="next" href="#/work/memesh" data-cursor="view"><span class="label">NEXT</span><span class="next__title uline">Memesh →</span></a>
+  </div>
+</section>
+
+<!-- ============ PROJECT: MEMESH ============ -->
+<section class="page page--project" data-page="memesh" aria-label="Memesh">
+  <div class="wrap">
+    <a class="uline mono-link up" href="#/work">← ALL WORK</a>
+    <div class="proj-head">
+      <span class="label label--accent up">03 · CLIENT SYSTEM</span>
+      <h1 class="display" data-split>Memesh</h1>
+    </div>
+    <div class="proj-meta up d2">
+      <div><span class="label">YEAR</span><span class="strong">2026</span></div>
+      <div><span class="label">MADE WITH</span><span class="strong">AI coding agents</span></div>
+      <p>The operations system behind a real playground business. [One line: what it handles day to day.]</p>
+    </div>
+    <div class="stage grid-surface grid-surface--deep up d3">
+      <span class="stage__label mono">ON THE DESK</span>
+      <div class="polaroid polaroid--big">
+        <div class="polaroid__img mono">[ SCREEN RECORDING OF THE SYSTEM ]</div>
+        <span class="polaroid__title">Memesh</span>
+      </div>
+    </div>
+    <a class="next" href="#/films" data-cursor="view"><span class="label">NEXT</span><span class="next__title uline">The films →</span></a>
+  </div>
+</section>
+
+<!-- ============ FILMS ============ -->
+<section class="page page--films" data-page="films" aria-label="Films">
+  <div class="films">
+    <div class="films__head">
+      <h1 class="display display--films" data-split>Films</h1>
+      <span class="timecode mono" data-timecode>00:00:00:00</span>
+    </div>
+
+    <div class="viewer up d1">
+      <div class="viewer__screen">
+        <span class="scanlines" aria-hidden="true"></span>
+        <span class="viewer__file mono" data-reel-file></span>
+        <div class="viewer__scene" data-reel-scene>
+          <div class="viewer__idle">
+            <span class="credit" data-reel-presents></span>
+            <span class="viewer__title" data-reel-title></span>
+            <span class="credit credit--light" data-reel-part></span>
+            <button class="btn play-btn play-btn--big" type="button" data-reel-filmplay aria-label="Play film"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
+          </div>
+          <div class="viewer__player" data-reel-player></div>
+        </div>
+      </div>
+      <div class="transport">
+        <button class="btn tbtn" type="button" data-reel-prev aria-label="Previous film"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6z"/><path d="M20 5v14L9 12z"/></svg></button>
+        <button class="btn tbtn tbtn--play" type="button" data-reel-toggle aria-label="Play reel">
+          <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5v14l12-7z"/></svg>
+          <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6z"/><path d="M14 5h4v14h-4z"/></svg>
+        </button>
+        <button class="btn tbtn" type="button" data-reel-next aria-label="Next film"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2z"/><path d="M4 5v14l11-7z"/></svg></button>
+        <span class="transport__label mono" data-reel-label></span>
+      </div>
+    </div>
+
+    <!-- The reel. Each clip: start/end (0–1 along the timeline), data-youtube = video id. -->
+    <div class="timeline up d2">
+      <div class="timeline__inner">
+        <div class="timeline__labels mono"><span class="tl-spacer"></span><span class="tl-row">FILMS</span></div>
+        <div class="timeline__lanes">
+          <button class="ruler" type="button" data-scrub aria-label="Scrub the reel"></button>
+          <div class="lane" data-lane>
+            <button class="clip" type="button" data-clip data-start="0" data-end="0.45"
+              data-label="LEVIATHAN — PART 1" data-title="LEVIATHAN" data-part="PART ONE"
+              data-presents="THE WIDE SILENCE PRESENTS" data-meta="SCI-FI SHORT · [RUNTIME]"
+              data-file="LEVIATHAN_PT1.MOV" data-youtube="">LEVIATHAN — PART 1</button>
+            <button class="clip" type="button" data-clip data-start="0.45" data-end="0.8"
+              data-label="[FILM TITLE]" data-title="[TITLE]" data-part="[SUBTITLE]"
+              data-presents="THE WIDE SILENCE PRESENTS" data-meta="[GENRE] · [RUNTIME]"
+              data-file="FILM_02.MOV" data-youtube="">[FILM TITLE]</button>
+            <button class="clip clip--soon" type="button" data-clip data-start="0.8" data-end="1"
+              data-label="IN PRODUCTION" data-title="COMING SOON" data-part="[NEXT FILM]"
+              data-presents="NOW IN PRODUCTION" data-meta="IN PRODUCTION"
+              data-file="FILM_03.MOV" data-soon>IN PRODUCTION</button>
+          </div>
+          <div class="playhead" data-playhead aria-hidden="true"><span class="playhead__head"></span><span class="playhead__line"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ABOUT ============ -->
+<section class="page page--about" data-page="about" aria-label="About">
+  <div class="wrap">
+    <h1 class="display" data-split>About</h1>
+    <div class="about up d2">
+      <p class="about__lead">I direct AI agents to build working software, and I make realistic AI films for my channel, The Wide Silence. Same obsession in both: the details people feel but don’t notice.</p>
+      <div class="about__side">
+        <span class="label label--accent">BEFORE</span>
+        <span>Outbrain and Duda.</span>
+        <span>Information Systems, Academic College of Tel Aviv‑Yaffo.</span>
+        <span class="label label--accent about__gap">ELSEWHERE</span>
+        <span><a class="uline" href="mailto:[YOUR EMAIL]">[YOUR EMAIL]</a> · <a class="uline" href="#">LinkedIn</a> · <a class="uline" href="#">YouTube</a></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- Menu -->
+<div class="menu" id="menu" role="dialog" aria-modal="true" aria-label="Menu" aria-hidden="true">
+  <div class="menu__top"><button class="btn pill pill--paper" type="button" data-menu-toggle>Close</button></div>
+  <nav class="menu__nav">
+    <a class="mlink" href="#/"><span class="mlink__in"><span class="mlink__num">01</span>The desk</span></a>
+    <a class="mlink" href="#/work"><span class="mlink__in"><span class="mlink__num">02</span>Work</span></a>
+    <a class="mlink" href="#/films"><span class="mlink__in"><span class="mlink__num">03</span>Films</span></a>
+    <a class="mlink" href="#/about"><span class="mlink__in"><span class="mlink__num">04</span>About</span></a>
+  </nav>
+  <div class="menu__foot mono"><span>PRODUCTS &amp; FILMS, BUILT WITH AI</span><span>[YOUR EMAIL]</span></div>
+</div>
+
+<!-- Page wipe -->
+<div class="wipe" data-wipe aria-hidden="true">
+  <span class="wipe__kicker mono">NOW OPENING</span>
+  <span class="wipe__label" data-wipe-label></span>
+</div>
+
+<!-- Custom cursor -->
+<div class="cursor" data-cursor-el aria-hidden="true"><span data-cursor-text>VIEW</span></div>
+
+<script src="js/main.js"></script>
+</body>
+</html>
