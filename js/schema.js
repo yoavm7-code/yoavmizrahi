@@ -103,19 +103,6 @@ export const DEMOS = {
   }
 };
 
-/* Approximate size of each desk object in px, used to size the desk and to place new objects. */
-export const SIZES = {
-  note: { w: 300, h: 250 },
-  monitor: { w: 560, h: 400 },
-  tape: { w: 210, h: 124 },
-  device: { w: 330, h: 400 },
-  phone: { w: 260, h: 590 },
-  polaroid: { w: 220, h: 280 },
-  screen: { w: 420, h: 330 }
-};
-
-export const DESK = { minWidth: 1420, minHeight: 820, maxX: 3000, maxY: 2400, maxR: 25 };
-
 export const LIMITS = {
   short: 40,
   title: 60,
@@ -186,7 +173,8 @@ function caps(v) { return str(v).trim().toUpperCase(); }
 
 /* ---------- Desk ids ---------- */
 
-/* Every desk item has a key used for the phone stack order. Tapes move together as one group. */
+/* Every desk item has a key used for the desk order. Tapes move together as one group; on wide
+   screens they sit with the monitor (js/desk-layout.js). */
 export function deskKeys(content) {
   var keys = ['note', 'monitor'];
   if (content.films.some(function (f) { return f.tape && f.tape.show; })) keys.push('tapes');
@@ -230,16 +218,16 @@ export function normalize(input) {
     return { label: str(l && l.label).trim(), url: str(l && l.url).trim() };
   });
 
-  var d = c.desk = obj(c.desk);
-  d.hint = caps(d.hint);
-  d.hintMobile = caps(d.hintMobile);
-  d.note = obj(d.note);
-  ['hi', 'line', 'small'].forEach(function (k) { d.note[k] = str(d.note[k]); });
-  [d.note, d.monitor = obj(d.monitor)].forEach(function (o) {
-    o.x = clampNum(o.x, 0, DESK.maxX, 60);
-    o.y = clampNum(o.y, 0, DESK.maxY, 40);
-    o.r = clampNum(o.r, -DESK.maxR, DESK.maxR, 0);
-  });
+  /* Positions are worked out on the page (js/desk-layout.js), so any saved ones are dropped. The
+     order used to be called mobileOrder, when it only applied to phones. */
+  var rawDesk = obj(c.desk);
+  var rawNote = obj(rawDesk.note);
+  var d = c.desk = {
+    hint: caps(rawDesk.hint),
+    hintMobile: caps(rawDesk.hintMobile),
+    note: { hi: str(rawNote.hi), line: str(rawNote.line), small: str(rawNote.small) },
+    order: []
+  };
 
   c.works = (Array.isArray(c.works) ? c.works : []).map(function (w) {
     w = w || {};
@@ -255,12 +243,7 @@ export function normalize(input) {
       style: STYLES[w.style] ? w.style : 'polaroid',
       demo: DEMOS[w.demo] ? w.demo : null,
       media: null,
-      desk: {
-        show: !(w.desk && w.desk.show === false),
-        x: clampNum(w.desk && w.desk.x, 0, DESK.maxX, 60),
-        y: clampNum(w.desk && w.desk.y, 0, DESK.maxY, 60),
-        r: clampNum(w.desk && w.desk.r, -DESK.maxR, DESK.maxR, 0)
-      }
+      desk: { show: !(w.desk && w.desk.show === false) }
     };
     if (out.demo) out.style = DEMOS[out.demo].style;
     var editable = out.demo && DEMOS[out.demo].replica && DEMOS[out.demo].replica.editable;
@@ -291,13 +274,7 @@ export function normalize(input) {
       file: caps(f.file),
       youtube: youtubeId(f.youtube),
       soon: !!f.soon,
-      tape: {
-        show: !f.soon && !!t.show,
-        label: caps(t.label),
-        x: clampNum(t.x, 0, DESK.maxX, 1000),
-        y: clampNum(t.y, 0, DESK.maxY, 500),
-        r: clampNum(t.r, -DESK.maxR, DESK.maxR, 0)
-      }
+      tape: { show: !f.soon && !!t.show, label: caps(t.label) }
     };
   });
 
@@ -308,13 +285,14 @@ export function normalize(input) {
   dz.lead = str(dz.lead).trim();
   dz.points = (Array.isArray(dz.points) ? dz.points : []).map(function (l) { return str(l).trim(); }).filter(Boolean);
 
-  /* Phone order: keep the saved order, drop keys that no longer exist, append new ones. */
+  /* Desk order: keep the saved order, drop keys that no longer exist, append new ones. */
   var keys = deskKeys(c);
-  var order = (Array.isArray(d.mobileOrder) ? d.mobileOrder : []).filter(function (k, i, arr) {
+  var saved = Array.isArray(rawDesk.order) ? rawDesk.order : Array.isArray(rawDesk.mobileOrder) ? rawDesk.mobileOrder : [];
+  var order = saved.filter(function (k, i, arr) {
     return keys.indexOf(k) !== -1 && arr.indexOf(k) === i;
   });
   keys.forEach(function (k) { if (order.indexOf(k) === -1) order.push(k); });
-  d.mobileOrder = order;
+  d.order = order;
 
   return c;
 }

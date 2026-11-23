@@ -221,9 +221,6 @@ textarea.input { resize: vertical; min-height: 90px; }
 .card__row .ico { color: var(--accent-ink); }
 .card > .btn { align-self: flex-start; }
 
-.slider__label { display: grid; grid-template-columns: auto 1fr 48px; align-items: center; gap: 14px; font-weight: 600; }
-.slider { width: 100%; accent-color: var(--accent); min-height: 44px; }
-.slider__value { font-family: var(--mono); font-size: 13px; text-align: right; }
 
 .danger-zone { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding-top: 6px; }
 
@@ -321,7 +318,6 @@ textarea.input { resize: vertical; min-height: 90px; }
 .preview__bar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--paper-2); }
 .preview__label { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-right: auto; display: flex; align-items: center; gap: 8px; }
 .preview__label::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
-.is-arranging .preview__label::after { content: "· ARRANGING"; color: var(--accent-ink); }
 .preview__close { display: none; }
 .seg { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--paper-deep); }
 .seg__btn { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border: 0; border-radius: 999px; background: transparent; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--muted); }

@@ -7,7 +7,7 @@
 <title>Yoav Mizrahi - Products &amp; films, built with AI</title>
 <meta name="description" content="Portfolio of Yoav Mizrahi: products and films, built with AI.">
 <meta name="theme-color" content="#EDE9E1">
-<meta name="build" content="local-mwtnor7q">
+<meta name="build" content="local-mwtocibw">
 <link rel="canonical" href="https://yoavmizrahi.com/">
 <meta property="og:url" content="https://yoavmizrahi.com/">
 <meta property="og:type" content="website">
@@ -37,11 +37,10 @@
 <!-- ============ HOME: THE DESK ============ -->
 <section class="page page--home" data-page="home" data-route="/" data-label="The desk" data-name="THE DESK" aria-label="The desk">
   <div class="desk-scroll">
-    <div class="desk grid-surface" data-desk data-w="1430" data-h="1192">
-      <span class="desk__hint mono"><span class="only-wide">DRAG ANYTHING · DROP A TAPE IN THE MONITOR · OPEN ANY PROJECT</span><span class="only-narrow">TAP ▶ ON A TAPE TO PLAY IT · OPEN ANY PROJECT</span></span>
+    <div class="desk grid-surface" data-desk>
 
       <!-- Note -->
-      <div class="obj" data-obj="note" data-x="60" data-y="40" data-r="-3" data-m="1" data-cursor="drag">
+      <div class="obj" data-obj="note" data-cursor="drag">
         <div class="note settle">
           <span class="note__tape" aria-hidden="true"></span>
           <p class="note__hi">Hi, I&#39;m Yoav.</p>
@@ -50,68 +49,8 @@
         </div>
       </div>
 
-      <!-- Mega Uploader -->
-      <div class="obj" data-obj="work:uploader" data-x="70" data-y="300" data-r="2" data-m="4" data-cursor="drag">
-        <div class="device device--uploader settle d1">
-          <div class="device__screen device__screen--paper">
-            <div class="row-between"><span class="label">01 · PRODUCTION TOOL</span><span class="led" data-upload-led aria-hidden="true"></span></div>
-            <span class="device__title">Mega Uploader</span>
-            <div class="uploader" data-widget="uploader"></div>
-          </div>
-          <div class="device__foot"><a class="uline mono-link mono-link--light" href="#/work/uploader">OPEN PROJECT →</a></div>
-        </div>
-      </div>
-
-      <!-- Toto Mundial -->
-      <div class="obj" data-obj="work:toto" data-x="450" data-y="40" data-r="4" data-m="5" data-cursor="drag">
-        <div class="phone settle d2">
-          <div class="phone__screen phone__screen--paper">
-            <span class="phone__notch" aria-hidden="true"></span>
-            <div class="stack-4"><span class="label">02 · WEB APP</span><span class="phone__title">Toto Mundial</span></div>
-            <div class="toto" data-widget="toto"></div>
-          </div>
-          <div class="phone__foot"><a class="uline mono-link mono-link--light" href="#/work/toto">OPEN PROJECT →</a></div>
-        </div>
-      </div>
-
-      <!-- Memesh -->
-      <div class="obj" data-obj="work:memesh" data-x="745" data-y="478" data-r="-6" data-m="6" data-cursor="drag">
-        <div class="polaroid settle d3">
-          <div class="polaroid__img mono"><img class="media" src="demos/memesh/poster.jpg" alt="Memesh, a screenshot of the replica" loading="lazy" decoding="async"></div>
-          <span class="label">03 · CLIENT SYSTEM</span>
-          <span class="polaroid__title">Memesh</span>
-          <a class="uline mono-link" href="#/work/memesh">OPEN PROJECT →</a>
-        </div>
-      </div>
-
-      <!-- LoreWire -->
-      <div class="obj" data-obj="work:lorewire" data-x="820" data-y="780" data-r="-2" data-m="7" data-cursor="drag">
-        <div class="screen settle d4">
-          <div class="screen__display"><img class="media" src="demos/lorewire/poster.jpg" alt="LoreWire, a screenshot of the replica" loading="lazy" decoding="async"></div>
-          <div class="screen__foot"><span class="label label--dark">04 · WEBSITE</span><span class="screen__title">LoreWire</span><a class="uline mono-link mono-link--light" href="#/work/lorewire">OPEN PROJECT →</a></div>
-        </div>
-      </div>
-
-      <!-- Ad Intel -->
-      <div class="obj" data-obj="work:ad-intel" data-x="990" data-y="436" data-r="2" data-m="8" data-cursor="drag">
-        <div class="screen settle d1">
-          <div class="screen__display"><img class="media" src="demos/ad-intel/poster.jpg" alt="Ad Intel, a screenshot of the replica" loading="lazy" decoding="async"></div>
-          <div class="screen__foot"><span class="label label--dark">05 · INTERNAL TOOL</span><span class="screen__title">Ad Intel</span><a class="uline mono-link mono-link--light" href="#/work/ad-intel">OPEN PROJECT →</a></div>
-        </div>
-      </div>
-
-      <!-- I.M Engineering -->
-      <div class="obj" data-obj="work:im-eng" data-x="520" data-y="892" data-r="4" data-m="9" data-cursor="drag">
-        <div class="polaroid settle d2">
-          <div class="polaroid__img mono"><img class="media" src="demos/im-eng/poster.jpg" alt="I.M Engineering, a screenshot of the replica" loading="lazy" decoding="async"></div>
-          <span class="label">06 · WEBSITE</span>
-          <span class="polaroid__title">I.M Engineering</span>
-          <a class="uline mono-link" href="#/work/im-eng">OPEN PROJECT →</a>
-        </div>
-      </div>
-
       <!-- Monitor -->
-      <div class="obj" data-obj="monitor" data-x="800" data-y="40" data-r="0" data-m="2" data-cursor="drag">
+      <div class="obj" data-obj="monitor" data-cursor="drag">
         <div class="monitor settle d1">
           <div class="monitor__screen" data-monitor data-state="empty">
             <span class="scanlines" aria-hidden="true"></span>
@@ -135,29 +74,29 @@
       </div>
 
       <!-- Tapes. Each one plays its film on the monitor. -->
-      <div class="tapes" data-obj-group="tapes" data-m="3">
-      <div class="obj" data-obj="tape:leviathan-1" data-x="452" data-y="626" data-r="-5" data-m="3" data-cursor="drag" data-tape
+      <div class="tapes" data-obj-group="tapes">
+      <div class="obj" data-obj="tape:leviathan-1" data-cursor="drag" data-tape
            data-title="THE LAST WARNING" data-part="" data-presents="THE WIDE SILENCE PRESENTS" data-youtube="5GAV8yWfhFk">
         <div class="tape settle d3">
           <div class="tape__label"><span>THE LAST WARNING</span><button class="btn tape__play" type="button" data-insert aria-label="Play THE LAST WARNING on the monitor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div>
           <div class="tape__reels" aria-hidden="true"><span></span><span></span></div>
         </div>
       </div>
-      <div class="obj" data-obj="tape:film-2" data-x="590" data-y="752" data-r="4" data-m="3" data-cursor="drag" data-tape
+      <div class="obj" data-obj="tape:film-2" data-cursor="drag" data-tape
            data-title="LEVIATHAN" data-part="PART 1" data-presents="THE WIDE SILENCE PRESENTS" data-youtube="NonEDg3Tm6Y">
         <div class="tape settle d4">
           <div class="tape__label"><span>LEVIATHAN · PART 1</span><button class="btn tape__play" type="button" data-insert aria-label="Play LEVIATHAN · PART 1 on the monitor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div>
           <div class="tape__reels" aria-hidden="true"><span></span><span></span></div>
         </div>
       </div>
-      <div class="obj" data-obj="tape:leviathan-part-2" data-x="40" data-y="720" data-r="5" data-m="3" data-cursor="drag" data-tape
+      <div class="obj" data-obj="tape:leviathan-part-2" data-cursor="drag" data-tape
            data-title="LEVIATHAN" data-part="PART 2" data-presents="THE WIDE SILENCE PRESENTS" data-youtube="AxNXYx13sxg">
         <div class="tape settle d1">
           <div class="tape__label"><span>LEVIATHAN · PART 2</span><button class="btn tape__play" type="button" data-insert aria-label="Play LEVIATHAN · PART 2 on the monitor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div>
           <div class="tape__reels" aria-hidden="true"><span></span><span></span></div>
         </div>
       </div>
-      <div class="obj" data-obj="tape:devil-s-herd" data-x="272" data-y="752" data-r="2" data-m="3" data-cursor="drag" data-tape
+      <div class="obj" data-obj="tape:devil-s-herd" data-cursor="drag" data-tape
            data-title="DEVIL&#39;S HERD" data-part="" data-presents="THE WIDE SILENCE PRESENTS" data-youtube="owoyoKpygNk">
         <div class="tape settle d2">
           <div class="tape__label"><span>DEVIL&#39;S HERD</span><button class="btn tape__play" type="button" data-insert aria-label="Play DEVIL&#39;S HERD on the monitor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div>
@@ -165,8 +104,70 @@
         </div>
       </div>
       </div>
+
+      <!-- Mega Uploader -->
+      <div class="obj" data-obj="work:uploader" data-cursor="drag">
+        <div class="device device--uploader settle d1">
+          <div class="device__screen device__screen--paper">
+            <div class="row-between"><span class="label">01 · PRODUCTION TOOL</span><span class="led" data-upload-led aria-hidden="true"></span></div>
+            <span class="device__title">Mega Uploader</span>
+            <div class="uploader" data-widget="uploader"></div>
+          </div>
+          <div class="device__foot"><a class="uline mono-link mono-link--light" href="#/work/uploader">OPEN PROJECT →</a></div>
+        </div>
+      </div>
+
+      <!-- Toto Mundial -->
+      <div class="obj" data-obj="work:toto" data-cursor="drag">
+        <div class="phone settle d2">
+          <div class="phone__screen phone__screen--paper">
+            <span class="phone__notch" aria-hidden="true"></span>
+            <div class="stack-4"><span class="label">02 · WEB APP</span><span class="phone__title">Toto Mundial</span></div>
+            <div class="toto" data-widget="toto"></div>
+          </div>
+          <div class="phone__foot"><a class="uline mono-link mono-link--light" href="#/work/toto">OPEN PROJECT →</a></div>
+        </div>
+      </div>
+
+      <!-- Memesh -->
+      <div class="obj" data-obj="work:memesh" data-cursor="drag">
+        <div class="polaroid settle d3">
+          <div class="polaroid__img mono"><img class="media" src="demos/memesh/poster.jpg" alt="Memesh, a screenshot of the replica" loading="lazy" decoding="async"></div>
+          <span class="label">03 · CLIENT SYSTEM</span>
+          <span class="polaroid__title">Memesh</span>
+          <a class="uline mono-link" href="#/work/memesh">OPEN PROJECT →</a>
+        </div>
+      </div>
+
+      <!-- LoreWire -->
+      <div class="obj" data-obj="work:lorewire" data-cursor="drag">
+        <div class="screen settle d4">
+          <div class="screen__display"><img class="media" src="demos/lorewire/poster.jpg" alt="LoreWire, a screenshot of the replica" loading="lazy" decoding="async"></div>
+          <div class="screen__foot"><span class="label label--dark">04 · WEBSITE</span><span class="screen__title">LoreWire</span><a class="uline mono-link mono-link--light" href="#/work/lorewire">OPEN PROJECT →</a></div>
+        </div>
+      </div>
+
+      <!-- Ad Intel -->
+      <div class="obj" data-obj="work:ad-intel" data-cursor="drag">
+        <div class="screen settle d1">
+          <div class="screen__display"><img class="media" src="demos/ad-intel/poster.jpg" alt="Ad Intel, a screenshot of the replica" loading="lazy" decoding="async"></div>
+          <div class="screen__foot"><span class="label label--dark">05 · INTERNAL TOOL</span><span class="screen__title">Ad Intel</span><a class="uline mono-link mono-link--light" href="#/work/ad-intel">OPEN PROJECT →</a></div>
+        </div>
+      </div>
+
+      <!-- I.M Engineering -->
+      <div class="obj" data-obj="work:im-eng" data-cursor="drag">
+        <div class="polaroid settle d2">
+          <div class="polaroid__img mono"><img class="media" src="demos/im-eng/poster.jpg" alt="I.M Engineering, a screenshot of the replica" loading="lazy" decoding="async"></div>
+          <span class="label">06 · WEBSITE</span>
+          <span class="polaroid__title">I.M Engineering</span>
+          <a class="uline mono-link" href="#/work/im-eng">OPEN PROJECT →</a>
+        </div>
+      </div>
+      <p class="desk__hint mono"><span class="only-wide">DRAG ANYTHING · DROP A TAPE IN THE MONITOR · OPEN ANY PROJECT</span><span class="only-narrow">TAP ▶ ON A TAPE TO PLAY IT · OPEN ANY PROJECT</span></p>
     </div>
   </div>
+  <button class="btn pill pill--solid tidy" type="button" data-tidy hidden>Tidy up</button>
 </section>
 
 <!-- ============ WORK ============ -->
@@ -562,6 +563,7 @@
 <!-- Custom cursor -->
 <div class="cursor" data-cursor-el aria-hidden="true"><span data-cursor-text>VIEW</span></div>
 
+<script src="js/desk-layout.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

@@ -3,7 +3,7 @@
    Every value is escaped by the html`` tag, so content can never inject markup.
    Plain ES module, no dependencies, works in the browser and in Node. */
 
-import { normalize, runtimeSeconds, isSafeUrl, isMediaPath, SIZES, DESK, DEMOS } from './schema.js';
+import { normalize, runtimeSeconds, isSafeUrl, isMediaPath, DEMOS } from './schema.js';
 
 /* ---------- Safe templating ---------- */
 
@@ -111,26 +111,16 @@ export function routes(content) {
 
 /* ---------- Desk ---------- */
 
-function deskSize(c) {
-  var w = DESK.minWidth;
-  var h = DESK.minHeight;
-  function grow(x, y, size) { w = Math.max(w, x + size.w + 20); h = Math.max(h, y + size.h + 20); }
-  grow(c.desk.note.x, c.desk.note.y, SIZES.note);
-  grow(c.desk.monitor.x, c.desk.monitor.y, SIZES.monitor);
-  c.works.forEach(function (wk) { if (wk.desk.show) grow(wk.desk.x, wk.desk.y, SIZES[wk.style]); });
-  c.films.forEach(function (f) { if (f.tape.show) grow(f.tape.x, f.tape.y, SIZES.tape); });
-  return { w: w, h: h };
+/* Positions are worked out on the page by js/desk-layout.js; the markup follows the desk order. */
+function objAttrs(key) {
+  return html`data-obj="${key}" data-cursor="drag"`;
 }
 
-function objAttrs(key, pos, order, cursor) {
-  return html`data-obj="${key}" data-x="${pos.x}" data-y="${pos.y}" data-r="${pos.r}" data-m="${order}" data-cursor="${cursor || 'drag'}"`;
-}
-
-function deskNote(c, order) {
+function deskNote(c) {
   var n = c.desk.note;
   return html`
       <!-- Note -->
-      <div class="obj" ${objAttrs('note', n, order)}>
+      <div class="obj" ${objAttrs('note')}>
         <div class="note settle">
           <span class="note__tape" aria-hidden="true"></span>
           <p class="note__hi">${n.hi}</p>
@@ -141,7 +131,7 @@ function deskNote(c, order) {
 `;
 }
 
-function deskWork(w, i, order, paths) {
+function deskWork(w, i, paths) {
   var delay = ['d1', 'd2', 'd3', 'd4'][i % 4];
   var href = '#/work/' + w.id;
   var label = numLabel(i, w.kind);
@@ -184,15 +174,15 @@ function deskWork(w, i, order, paths) {
   }
   return html`
       <!-- ${w.title} -->
-      <div class="obj" ${objAttrs('work:' + w.id, w.desk, order)}>${body}
+      <div class="obj" ${objAttrs('work:' + w.id)}>${body}
       </div>
 `;
 }
 
-function deskMonitor(c, order) {
+function deskMonitor() {
   return html`
       <!-- Monitor -->
-      <div class="obj" ${objAttrs('monitor', c.desk.monitor, order)}>
+      <div class="obj" ${objAttrs('monitor')}>
         <div class="monitor settle d1">
           <div class="monitor__screen" data-monitor data-state="empty">
             <span class="scanlines" aria-hidden="true"></span>
@@ -217,15 +207,15 @@ function deskMonitor(c, order) {
 `;
 }
 
-function deskTapes(c, order) {
+function deskTapes(c) {
   var tapes = c.films.filter(function (f) { return f.tape.show; });
   if (!tapes.length) return '';
   return html`
       <!-- Tapes. Each one plays its film on the monitor. -->
-      <div class="tapes" data-obj-group="tapes" data-m="${order}">
+      <div class="tapes" data-obj-group="tapes">
 ${tapes.map(function (f, j) {
     var delay = ['d3', 'd4', 'd1', 'd2'][j % 4];
-    return html`      <div class="obj" ${objAttrs('tape:' + f.id, f.tape, order)} data-tape
+    return html`      <div class="obj" ${objAttrs('tape:' + f.id)} data-tape
            data-title="${f.title}" data-part="${f.part}" data-presents="${f.presents}" data-youtube="${f.youtube}">
         <div class="tape settle ${delay}">
           <div class="tape__label"><span>${f.tape.label}</span><button class="btn tape__play" type="button" data-insert aria-label="${'Play ' + (f.label || f.title) + ' on the monitor'}">${PLAY_ICON}</button></div>
@@ -238,20 +228,24 @@ ${tapes.map(function (f, j) {
 }
 
 function pageHome(c, paths) {
-  var size = deskSize(c);
-  var order = function (key) { return c.desk.mobileOrder.indexOf(key) + 1; };
-  var works = [];
+  var parts = {
+    note: function () { return deskNote(c); },
+    monitor: deskMonitor,
+    tapes: function () { return deskTapes(c); }
+  };
   c.works.forEach(function (w, i) {
-    if (w.desk.show) works.push(deskWork(w, i, order('work:' + w.id), paths));
+    if (w.desk.show) parts['work:' + w.id] = function () { return deskWork(w, i, paths); };
   });
+  var objects = c.desk.order.map(function (key) { return parts[key] ? parts[key]() : ''; });
   return html`
 <!-- ============ HOME: THE DESK ============ -->
 <section class="page page--home" data-page="home" data-route="/" data-label="The desk" data-name="THE DESK" aria-label="The desk">
   <div class="desk-scroll">
-    <div class="desk grid-surface" data-desk data-w="${size.w}" data-h="${size.h}">
-      <span class="desk__hint mono"><span class="only-wide">${c.desk.hint}</span><span class="only-narrow">${c.desk.hintMobile}</span></span>
-${deskNote(c, order('note'))}${works}${deskMonitor(c, order('monitor'))}${deskTapes(c, order('tapes'))}    </div>
+    <div class="desk grid-surface" data-desk>
+${objects}      <p class="desk__hint mono"><span class="only-wide">${c.desk.hint}</span><span class="only-narrow">${c.desk.hintMobile}</span></p>
+    </div>
   </div>
+  <button class="btn pill pill--solid tidy" type="button" data-tidy hidden>Tidy up</button>
 </section>
 `;
 }
@@ -552,13 +546,13 @@ ${opts.build ? html`<meta name="build" content="${opts.build}">
 /* Returns the full index.html as a string.
    opts.root     prefix for css/js/media paths (the admin preview passes the site's absolute URL)
    opts.build    id written into <meta name="build">, used to tell when a publish is live
-   opts.mode     'site' (default), 'preview' or 'arrange'
+   opts.mode     'site' (default) or 'preview'
    opts.mediaUrl maps media/... paths to URLs (the preview uses it for unpublished uploads) */
 export function renderSite(content, opts) {
   opts = opts || {};
   var c = normalize(content);
   var paths = makePaths(opts);
-  var mode = opts.mode === 'preview' || opts.mode === 'arrange' ? opts.mode : '';
+  var mode = opts.mode === 'preview' ? opts.mode : '';
   var email = c.site.email;
   return tidy('<!doctype html>\n' +
 '<!-- Generated from content/site.json by js/render.js. Edit content in /admin/, not here. -->\n' + html`<html lang="en"${mode ? html` data-mode="${mode}"` : ''}>
@@ -602,6 +596,7 @@ ${pageHome(c, paths)}${pageWork(c, paths)}${c.works.map(function (w, i) { return
 <!-- Custom cursor -->
 <div class="cursor" data-cursor-el aria-hidden="true"><span data-cursor-text>VIEW</span></div>
 
+<script src="${paths.asset('js/desk-layout.js')}"></script>
 <script src="${paths.asset('js/main.js')}"></script>
 </body>
 </html>

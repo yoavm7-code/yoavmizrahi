@@ -15,7 +15,7 @@ const LIVE_IDS = LIVE.works.map((w) => w.id);
 function older() {
   const c = JSON.parse(SITE_JSON);
   const gone = c.works.pop();
-  c.desk.mobileOrder = c.desk.mobileOrder.filter((k) => k !== 'work:' + gone.id);
+  c.desk.order = c.desk.order.filter((k) => k !== 'work:' + gone.id);
   return c;
 }
 

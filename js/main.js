@@ -6,8 +6,7 @@
   var $ = function (sel, root) { return (root || document).querySelector(sel); };
   var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var arranging = document.documentElement.getAttribute('data-mode') === 'arrange';
-  var narrow = window.matchMedia(arranging ? 'not all' : '(max-width: 900px)');
+  var narrow = window.matchMedia('(max-width: 900px)');
 
   function youtubeEmbed(id) {
     var f = document.createElement('iframe');
@@ -94,6 +93,7 @@
     openReplicas(r.page);
     if (route.film) reelGoId(route.film);
     if (r.page === 'films') fitText($('[data-reel-title]'));
+    if (r.page === 'home') layoutDesk();
   }
 
   function navigate() {
@@ -161,7 +161,7 @@
     document.addEventListener('pointerover', function (e) {
       if (dragging) return;
       var el = e.target.closest('[data-cursor]');
-      if (!el || (!arranging && e.target.closest('button, a:not([data-cursor])'))) { setCursor('dot'); return; }
+      if (!el || e.target.closest('button, a:not([data-cursor])')) { setCursor('dot'); return; }
       setCursor(el.getAttribute('data-cursor'));
     });
   }
@@ -415,79 +415,212 @@
   function openReplicas(page) { replicas.forEach(function (r) { if (r.page === page) r.open(); }); }
   narrow.addEventListener('change', function () { openReplicas(current); });
 
-  /* ---------- The desk: dragging, tapes, monitor ---------- */
-  /* Up to 900px wide the desk is a stack: objects keep a slight tilt, follow data-m order and are
-     not draggable. Tapes play with their ▶ button. Wider screens that are narrower than the desk
-     get the whole desk scaled down to fit, so nothing hides off to the side. */
+  /* ---------- The desk: layout, dragging, tapes, monitor ---------- */
+  /* Wider than 900px, js/desk-layout.js places everything in the desk order: the note, the film
+     corner (the monitor with its tapes piled beside it) and the works. Up to 900px the desk is a
+     pile you scroll through (CSS). Anything can be dragged anywhere on the desk, with a mouse
+     straight away and on touch after a short press and hold, so a quick swipe still scrolls.
+     A drag adds an offset to the object's home spot; Tidy up takes the offsets away. */
+  var Layout = window.DeskLayout;
   var desk = $('[data-desk]');
   var objs = $$('.obj', desk);
   var monitorObj = $('[data-obj="monitor"]', desk);
+  var tapes = $$('[data-tape]', desk);
   var screen = $('[data-monitor]');
   var monitorPlayer = $('[data-monitor-player]');
   var ejectBtn = $('[data-eject]');
   var power = $('[data-power]');
+  var tidyBtn = $('[data-tidy]');
   var z = objs.length + 1;
   var tapeIn = null;
 
-  var deskW = +desk.getAttribute('data-w');
-  var deskScale = 1;
-  desk.style.minWidth = deskW + 'px';
-  desk.style.minHeight = desk.getAttribute('data-h') + 'px';
-  $$('[data-m]', desk).forEach(function (el) { el.style.order = el.getAttribute('data-m'); });
+  var GAP = 40;          // between objects on the desk
+  var CORNER_GAP = 28;   // between the monitor and its tapes
+  var HINT_ROOM = 56;    // kept free under the objects for the hint line
+  var HOLD_MS = 350;     // press and hold on touch before an object lifts
+  var SLOP = 8;          // movement that turns a press into a scroll instead
 
-  function fitDesk() {
-    var room = document.documentElement.clientWidth;
-    deskScale = narrow.matches ? 1 : Math.max(arranging ? 0.3 : 0.7, Math.min(1, room / deskW));
-    desk.style.zoom = deskScale === 1 ? '' : deskScale;
+  var offsets = {};      // key -> { dx, dy } added by dragging
+  var sizes = {};        // key -> { w, h } measured before any tilt
+  objs.forEach(function (o, i) {
+    offsets[keyOf(o)] = { dx: 0, dy: 0 };
+    o.style.zIndex = i + 1;
+  });
+
+  function keyOf(o) { return o.getAttribute('data-obj'); }
+  function lean(o) {
+    var key = keyOf(o);
+    if (key === 'monitor') return 0;
+    var r = Layout.tilt(key);
+    if (o.hasAttribute('data-tape') || narrow.matches) r = r * 2 / 3;
+    return Math.round(r * 4) / 4;
   }
-  fitDesk();
-  window.addEventListener('resize', fitDesk);
-
-  function homePos(o) { return { x: +o.getAttribute('data-x'), y: +o.getAttribute('data-y'), r: +o.getAttribute('data-r') }; }
-  function place(o, x, y) { o.style.left = x + 'px'; o.style.top = y + 'px'; }
   function rest(o) {
-    var r = homePos(o).r;
-    if (narrow.matches) r = Math.max(-3, Math.min(3, r));
-    o.style.transform = 'rotate(' + r + 'deg)';
+    var off = offsets[keyOf(o)];
+    o.style.transform = (off.dx || off.dy ? 'translate(' + off.dx + 'px,' + off.dy + 'px) ' : '') + 'rotate(' + lean(o) + 'deg)';
   }
-  objs.forEach(function (o, i) { var h = homePos(o); place(o, h.x, h.y); rest(o); o.style.zIndex = i + 1; });
-  narrow.addEventListener('change', function () { objs.forEach(rest); fitDesk(); });
+  function measure(o) {
+    var key = keyOf(o);
+    if (!sizes[key] && o.offsetWidth) sizes[key] = { w: o.offsetWidth, h: o.offsetHeight };
+    return sizes[key];
+  }
+
+  function layoutDesk() {
+    if (!fontsReady || !desk.offsetWidth) return;
+    if (narrow.matches) {
+      desk.style.height = '';
+      objs.forEach(function (o) { o.style.left = ''; o.style.top = ''; rest(o); });
+      return;
+    }
+    objs.forEach(measure);
+    var tapeSize = tapes.map(function (t) { return sizes[keyOf(t)]; }).filter(Boolean)[0];
+    var count = tapeSize ? tapes.length : 0;
+    var view = desk.parentNode.clientHeight - HINT_ROOM;
+    /* The film corner has two shapes (tapes beside the monitor, or under it); keep the better desk. */
+    var best = null;
+    ['beside', 'below'].forEach(function (shape) {
+      var corner = Layout.filmCorner(sizes.monitor, tapeSize || { w: 0, h: 0 }, count, CORNER_GAP, shape);
+      var blocks = [];
+      objs.forEach(function (o) {
+        var key = keyOf(o);
+        if (o.hasAttribute('data-tape')) return;
+        if (key === 'monitor') blocks.push({ key: key, w: corner.w, h: corner.h, r: 0 });
+        else if (sizes[key]) blocks.push({ key: key, w: sizes[key].w, h: sizes[key].h, r: lean(o) });
+      });
+      var result = Layout.arrange(blocks, desk.offsetWidth, view, { gap: GAP });
+      if (!best || Layout.better(result, best.result)) best = { shape: shape, corner: corner, blocks: blocks, result: result };
+    });
+    var corner = best.corner, result = best.result;
+    function put(o, x, y) { o.style.left = x + 'px'; o.style.top = y + 'px'; rest(o); }
+    objs.forEach(function (o) {
+      var key = keyOf(o);
+      if (result.pos[key]) put(o, result.pos[key].x, result.pos[key].y);
+    });
+    var at = result.pos.monitor;
+    if (at) put(monitorObj, at.x + corner.monitor.x, at.y + corner.monitor.y);
+    tapes.forEach(function (t, i) { if (at && corner.tapes[i]) put(t, at.x + corner.tapes[i].x, at.y + corner.tapes[i].y); });
+    desk.style.height = (result.height + HINT_ROOM) + 'px';
+    desk.classList.add('is-laid');
+    console.info('[desk layout]', { width: desk.offsetWidth, objects: best.blocks.length, tapes: count, films: best.shape, fits: result.fits, height: result.height });
+  }
+
+  var layoutFrame = 0;
+  function relayout() { cancelAnimationFrame(layoutFrame); layoutFrame = requestAnimationFrame(layoutDesk); }
+  window.addEventListener('resize', relayout);
+  narrow.addEventListener('change', relayout);
+
+  /* The note's handwriting changes its size, so the first layout waits for the fonts (at most
+     FONT_WAIT), and the desk fades in once. Fonts that arrive later re-measure and re-place. */
+  var FONT_WAIT = 1500;
+  var fontsReady = !document.fonts;
+  function onFonts(late) {
+    if (fontsReady && !late) return;
+    if (late) sizes = {};
+    fontsReady = true;
+    console.info('[desk layout] fonts', { late: !!late });
+    relayout();
+  }
+  if (document.fonts) {
+    var fontTimer = setTimeout(function () { onFonts(false); }, FONT_WAIT);
+    document.fonts.ready.then(function () { var late = fontsReady; clearTimeout(fontTimer); onFonts(late); });
+  }
+  layoutDesk();
+
+  /* ---------- Dragging ---------- */
+  function setOffset(o, dx, dy) { offsets[keyOf(o)] = { dx: Math.round(dx), dy: Math.round(dy) }; }
+  function anyMoved() {
+    return objs.some(function (o) { var f = offsets[keyOf(o)]; return (f.dx || f.dy) && !o.classList.contains('is-inserted'); });
+  }
+  function showTidy() { tidyBtn.hidden = !anyMoved(); }
+
+  function lift(d) {
+    var o = d.o;
+    d.lifted = true;
+    var box = o.getBoundingClientRect(), room = desk.getBoundingClientRect();
+    d.min = { x: room.left - box.left, y: room.top - box.top };
+    d.max = { x: room.right - box.right, y: room.bottom - box.bottom };
+    o.style.zIndex = ++z;
+    o.classList.add('is-dragging');
+    o.style.transform = 'translate(' + d.dx + 'px,' + d.dy + 'px) rotate(0deg) scale(1.04)';
+    if (d.touch && navigator.vibrate) navigator.vibrate(8);
+  }
+  /* A tape counts as dropped on the monitor when the pointer or the tape's middle is over it. */
+  function drop(d, px, py) {
+    var o = d.o;
+    o.classList.remove('is-dragging');
+    rest(o);
+    showTidy();
+    var off = offsets[keyOf(o)];
+    console.info('[desk drag]', { key: keyOf(o), dx: off.dx, dy: off.dy });
+    if (o.hasAttribute('data-tape')) {
+      var t = o.getBoundingClientRect(), m = monitorObj.getBoundingClientRect();
+      function over(x, y) { return x > m.left && x < m.right && y > m.top && y < m.bottom; }
+      if (over(px, py) || over(t.left + t.width / 2, t.top + t.height / 2)) {
+        console.info('[desk drag] tape dropped on the monitor', { key: keyOf(o) });
+        insertTape(o);
+      }
+    }
+  }
 
   objs.forEach(function (o) {
     o.addEventListener('pointerdown', function (e) {
-      if (narrow.matches || e.button !== 0) return;
-      if (!arranging && e.target.closest('button, a')) return;
-      if (arranging) { e.preventDefault(); selectObj(o, true); }
-      o.setPointerCapture(e.pointerId);
-      dragging = { o: o, sx: e.clientX, sy: e.clientY, ox: parseFloat(o.style.left), oy: parseFloat(o.style.top) };
-      o.style.zIndex = ++z;
-      o.classList.add('is-dragging');
-      o.style.transform = 'rotate(0deg) scale(1.04)';
+      if (dragging || e.button !== 0 || e.target.closest('button, a, input, select, textarea, iframe, video')) return;
+      var off = offsets[keyOf(o)];
+      var d = { o: o, id: e.pointerId, sx: e.clientX, sy: e.clientY, dx: off.dx, dy: off.dy, touch: e.pointerType === 'touch', lifted: false };
+      dragging = d;
+      if (d.touch) {
+        d.timer = setTimeout(function () { if (dragging === d) lift(d); }, HOLD_MS);
+      } else {
+        e.preventDefault();
+        o.setPointerCapture(e.pointerId);
+        lift(d);
+      }
     });
-    o.addEventListener('pointermove', function (e) {
-      if (!dragging || dragging.o !== o) return;
-      place(o, Math.max(0, dragging.ox + (e.clientX - dragging.sx) / deskScale), Math.max(0, dragging.oy + (e.clientY - dragging.sy) / deskScale));
-    });
-    function end() {
-      if (!dragging || dragging.o !== o) return;
-      dragging = null;
-      o.classList.remove('is-dragging');
-      if (arranging) {
-        o.setAttribute('data-x', Math.round(parseFloat(o.style.left)));
-        o.setAttribute('data-y', Math.round(parseFloat(o.style.top)));
-        tell({ type: 'desk:moved', key: o.getAttribute('data-obj'), x: +o.getAttribute('data-x'), y: +o.getAttribute('data-y') });
+    o.addEventListener('contextmenu', function (e) { if (dragging && dragging.o === o) e.preventDefault(); });
+  });
+  window.addEventListener('pointermove', function (e) {
+    var d = dragging;
+    if (!d || e.pointerId !== d.id) return;
+    var mx = e.clientX - d.sx, my = e.clientY - d.sy;
+    if (!d.lifted) {
+      if (Math.abs(mx) > SLOP || Math.abs(my) > SLOP) { clearTimeout(d.timer); dragging = null; }
+      return;
+    }
+    setOffset(d.o, d.dx + Math.max(d.min.x, Math.min(d.max.x, mx)), d.dy + Math.max(d.min.y, Math.min(d.max.y, my)));
+    var off = offsets[keyOf(d.o)];
+    d.o.style.transform = 'translate(' + off.dx + 'px,' + off.dy + 'px) rotate(0deg) scale(1.04)';
+  });
+  function endDrag(e) {
+    var d = dragging;
+    if (!d || e.pointerId !== d.id) return;
+    clearTimeout(d.timer);
+    dragging = null;
+    if (d.lifted) drop(d, e.clientX, e.clientY);
+  }
+  window.addEventListener('pointerup', endDrag);
+  window.addEventListener('pointercancel', endDrag);
+  /* Once something is lifted on touch, the finger moves it instead of scrolling the page. */
+  document.addEventListener('touchmove', function (e) { if (dragging && dragging.lifted) e.preventDefault(); }, { passive: false });
+
+  tidyBtn.addEventListener('click', function () {
+    var count = 0;
+    objs.forEach(function (o) {
+      var off = offsets[keyOf(o)];
+      if ((!off.dx && !off.dy) || o.classList.contains('is-inserted')) return;
+      var delay = count++ * 40;
+      setOffset(o, 0, 0);
+      if (!reduceMotion) {
+        o.style.transitionDelay = delay + 'ms';
+        o.classList.add('is-tidying');
+        setTimeout(function () { o.classList.remove('is-tidying'); o.style.transitionDelay = ''; }, 700 + delay);
       }
       rest(o);
-      if (!arranging && o.hasAttribute('data-tape')) {
-        var t = o.getBoundingClientRect(), m = monitorObj.getBoundingClientRect();
-        var cx = t.left + t.width / 2, cy = t.top + t.height / 2;
-        if (cx > m.left && cx < m.right && cy > m.top && cy < m.bottom) insertTape(o);
-      }
-    }
-    o.addEventListener('pointerup', end);
-    o.addEventListener('pointercancel', end);
+    });
+    tidyBtn.hidden = true;
+    console.info('[desk tidy]', { moved: count });
   });
 
+  /* ---------- Tapes and the monitor ---------- */
   function setScreen(state) { screen.setAttribute('data-state', state); }
   function insertTape(tape) {
     if (tapeIn && tapeIn !== tape) returnTape(tapeIn);
@@ -503,13 +636,15 @@
     fitText($('[data-monitor-title]'));
     ejectBtn.classList.add('is-visible');
     power.classList.add('is-on');
+    showTidy();
     if (narrow.matches) monitorObj.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
   }
+  /* An ejected tape goes back to its place in the pile. */
   function returnTape(tape) {
-    var h = homePos(tape);
     tape.classList.remove('is-inserted');
-    place(tape, h.x, h.y);
+    setOffset(tape, 0, 0);
     rest(tape);
+    showTidy();
   }
   function eject() {
     if (!tapeIn) return;
@@ -521,7 +656,7 @@
     power.classList.remove('is-on');
   }
   $$('[data-insert]', desk).forEach(function (b) {
-    b.addEventListener('click', function () { if (!arranging) insertTape(b.closest('.obj')); });
+    b.addEventListener('click', function () { insertTape(b.closest('.obj')); });
   });
   ejectBtn.addEventListener('click', eject);
   $('[data-monitor-play]').addEventListener('click', function () {
@@ -531,28 +666,6 @@
     monitorPlayer.appendChild(id ? youtubeEmbed(id) : placeholderPlayer());
     setScreen('playing');
   });
-
-  /* ---------- Arrange mode (inside the admin's preview only) ---------- */
-  /* Objects drag even from their buttons and links, nothing inside them fires, and every drop is
-     reported to the admin, which saves the position. The admin can rotate and select objects. */
-  function tell(msg) { if (window.parent !== window) window.parent.postMessage(msg, '*'); }
-  function selectObj(o, fromDesk) {
-    objs.forEach(function (x) { x.classList.toggle('is-selected', x === o); });
-    if (fromDesk) tell({ type: 'desk:selected', key: o.getAttribute('data-obj') });
-  }
-  if (arranging) {
-    desk.addEventListener('click', function (e) {
-      if (e.target.closest('.obj')) { e.preventDefault(); e.stopPropagation(); }
-    }, true);
-    window.addEventListener('message', function (e) {
-      if (e.source !== window.parent || !e.data || typeof e.data.type !== 'string') return;
-      var o = objs.filter(function (x) { return x.getAttribute('data-obj') === e.data.key; })[0];
-      if (!o) return;
-      if (e.data.type === 'desk:rotate') { o.setAttribute('data-r', Math.max(-25, Math.min(25, Math.round(+e.data.r || 0)))); rest(o); }
-      if (e.data.type === 'desk:select') { selectObj(o, false); o.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
-    });
-    tell({ type: 'desk:ready' });
-  }
 
   /* ---------- Films: the reel ---------- */
   var clips = $$('[data-clip]');

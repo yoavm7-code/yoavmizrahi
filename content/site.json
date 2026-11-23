@@ -25,17 +25,9 @@
     "note": {
       "hi": "Hi, I'm Yoav.",
       "line": "I build products & films with AI.",
-      "small": "Everything on this desk works. Play with it, or open the menu.",
-      "x": 60,
-      "y": 40,
-      "r": -3
+      "small": "Everything on this desk works. Play with it, or open the menu."
     },
-    "monitor": {
-      "x": 800,
-      "y": 40,
-      "r": 0
-    },
-    "mobileOrder": [
+    "order": [
       "note",
       "monitor",
       "tapes",
@@ -61,10 +53,7 @@
       "demo": "uploader",
       "media": null,
       "desk": {
-        "show": true,
-        "x": 70,
-        "y": 300,
-        "r": 2
+        "show": true
       }
     },
     {
@@ -80,10 +69,7 @@
       "demo": "toto",
       "media": null,
       "desk": {
-        "show": true,
-        "x": 450,
-        "y": 40,
-        "r": 4
+        "show": true
       },
       "replica": {
         "logo": null,
@@ -106,10 +92,7 @@
       "demo": "memesh",
       "media": null,
       "desk": {
-        "show": true,
-        "x": 745,
-        "y": 478,
-        "r": -6
+        "show": true
       },
       "replica": {
         "logo": {
@@ -134,10 +117,7 @@
       "demo": "lorewire",
       "media": null,
       "desk": {
-        "show": true,
-        "x": 820,
-        "y": 780,
-        "r": -2
+        "show": true
       }
     },
     {
@@ -153,10 +133,7 @@
       "demo": "adintel",
       "media": null,
       "desk": {
-        "show": true,
-        "x": 990,
-        "y": 436,
-        "r": 2
+        "show": true
       }
     },
     {
@@ -172,10 +149,7 @@
       "demo": "imeng",
       "media": null,
       "desk": {
-        "show": true,
-        "x": 520,
-        "y": 892,
-        "r": 4
+        "show": true
       }
     }
   ],
@@ -193,10 +167,7 @@
       "soon": false,
       "tape": {
         "show": true,
-        "label": "THE LAST WARNING",
-        "x": 452,
-        "y": 626,
-        "r": -5
+        "label": "THE LAST WARNING"
       }
     },
     {
@@ -212,10 +183,7 @@
       "soon": false,
       "tape": {
         "show": true,
-        "label": "LEVIATHAN · PART 1",
-        "x": 590,
-        "y": 752,
-        "r": 4
+        "label": "LEVIATHAN · PART 1"
       }
     },
     {
@@ -231,10 +199,7 @@
       "soon": false,
       "tape": {
         "show": true,
-        "label": "LEVIATHAN · PART 2",
-        "x": 40,
-        "y": 720,
-        "r": 5
+        "label": "LEVIATHAN · PART 2"
       }
     },
     {
@@ -250,10 +215,7 @@
       "soon": false,
       "tape": {
         "show": true,
-        "label": "DEVIL'S HERD",
-        "x": 272,
-        "y": 752,
-        "r": 2
+        "label": "DEVIL'S HERD"
       }
     }
   ],

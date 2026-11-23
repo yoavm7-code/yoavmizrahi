@@ -72,14 +72,33 @@ test('the build id is written only when given', () => {
   assert.ok(!renderSite(site).includes('name="build"'));
 });
 
+test('the desk is rendered in the desk order, without positions, with the layout script first', () => {
+  const raw = base();
+  raw.works.push({ id: 'two', title: 'Two', style: 'phone' });
+  raw.desk.order = ['work:two', 'tapes', 'note', 'monitor', 'work:one'];
+  const page = renderSite(raw, {});
+  const keys = [...page.matchAll(/data-obj="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(keys, ['work:two', 'tape:film', 'note', 'monitor', 'work:one']);
+  assert.ok(!/data-(x|y|r|m|w|h)="/.test(page), 'no positions in the markup');
+  assert.ok(page.indexOf('js/desk-layout.js') < page.indexOf('js/main.js'));
+  assert.ok(page.includes('data-tidy hidden>Tidy up</button>'));
+});
+
+test('a work taken off the desk is not rendered on it', () => {
+  const raw = base();
+  raw.works[0].desk = { show: false };
+  assert.ok(!renderSite(raw, {}).includes('data-obj="work:one"'));
+});
+
 test('the page is deterministic: same content, same page', () => {
   assert.equal(renderSite(site, { build: 'x' }), renderSite(site, { build: 'x' }));
 });
 
 test('root and mode options are applied', () => {
-  const page = renderSite(site, { root: 'https://yoavmizrahi.com/', mode: 'arrange' });
-  assert.ok(page.includes('<html lang="en" data-mode="arrange">'));
+  const page = renderSite(site, { root: 'https://yoavmizrahi.com/', mode: 'preview' });
+  assert.ok(page.includes('<html lang="en" data-mode="preview">'));
   assert.ok(page.includes('src="https://yoavmizrahi.com/js/main.js"'));
+  assert.ok(renderSite(site, { mode: 'arrange' }).includes('<html lang="en">'), 'arranging by hand is gone');
   assert.ok(page.includes('href="https://yoavmizrahi.com/css/style.css"'));
   assert.ok(renderSite(site, { mode: 'evil' }).includes('<html lang="en">'));
 });

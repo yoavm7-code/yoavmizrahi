@@ -15,7 +15,7 @@ test('a draft started before new works were published keeps them, and keeps its 
   const live = normalize(copy(site));
   const base = copy(live);
   base.works = base.works.slice(0, 2);
-  base.desk.mobileOrder = base.desk.mobileOrder.filter((k) => !k.startsWith('work:') || base.works.some((w) => 'work:' + w.id === k));
+  base.desk.order = base.desk.order.filter((k) => !k.startsWith('work:') || base.works.some((w) => 'work:' + w.id === k));
   const draft = copy(base);
   draft.desk.note.hi = 'Hello there.';
   draft.works[0].description = 'A new line.';
@@ -25,7 +25,7 @@ test('a draft started before new works were published keeps them, and keeps its 
   assert.equal(out.desk.note.hi, 'Hello there.');
   assert.equal(out.works[0].description, 'A new line.');
   assert.deepEqual(out.works.slice(2), live.works.slice(2));
-  assert.deepEqual(out.desk.mobileOrder, live.desk.mobileOrder);
+  assert.deepEqual(out.desk.order, live.desk.order);
 });
 
 test('a leftover copy of an earlier publish (no edits of its own) becomes the live content', () => {

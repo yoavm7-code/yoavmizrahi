@@ -33,9 +33,9 @@ test('each kind of change is named in plain words', () => {
   assert.deepEqual(edit((r) => { r.desk.note.hi = 'Hello'; }), ['Edited the sticky note']);
   assert.deepEqual(edit((r) => { r.desk.hint = 'drag'; }), ['Edited the desk hint']);
   assert.deepEqual(edit((r) => { r.works[0].title = 'Uno'; }), ['Edited work "Uno"']);
-  assert.deepEqual(edit((r) => { r.works.push({ id: 'three', title: 'Three' }); }), ['Changed the phone order of the desk', 'Added work "Three"']);
-  assert.deepEqual(edit((r) => { r.films = []; }), ['Removed film "FILM"', 'Changed the phone order of the desk']);
-  assert.deepEqual(edit((r) => { r.works.reverse(); }), ['Changed the phone order of the desk', 'Changed the order of the works']);
+  assert.deepEqual(edit((r) => { r.works.push({ id: 'three', title: 'Three' }); }), ['Changed the order of the desk', 'Added work "Three"']);
+  assert.deepEqual(edit((r) => { r.films = []; }), ['Removed film "FILM"', 'Changed the order of the desk']);
+  assert.deepEqual(edit((r) => { r.works.reverse(); }), ['Changed the order of the desk', 'Changed the order of the works']);
   assert.deepEqual(edit((r) => { r.about.lead = 'More'; }), ['Edited the About page']);
 });
 
@@ -53,9 +53,8 @@ test('removals come first, so a long list never hides them behind "and N more"',
   assert.match(commitMessage(changes), /^Removed film "FILM"; /);
 });
 
-test('moving things on the desk is counted, not listed as edits', () => {
-  assert.deepEqual(edit((r) => { r.desk.note.x = 99; }), ['Moved 1 thing on the desk']);
-  assert.deepEqual(edit((r) => { r.desk.note.x = 99; r.works[0].desk.y = 1; r.films[0].tape.r = 5; }), ['Moved 3 things on the desk']);
+test('old saved desk positions are not changes: the page works positions out', () => {
+  assert.deepEqual(edit((r) => { r.desk.note.x = 99; r.works[0].desk.y = 1; r.films[0].tape.r = 5; }), []);
 });
 
 test('putting a work on or off the desk is named', () => {
