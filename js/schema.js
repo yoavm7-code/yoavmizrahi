@@ -58,6 +58,18 @@ export const DEMOS = {
       card: 'start'
     }
   },
+  adintel: {
+    name: 'Ad Intel replica',
+    style: 'screen',
+    replica: {
+      title: 'Ad Intel',
+      src: 'demos/ad-intel/',
+      video: 'demos/ad-intel/demo.mp4',
+      poster: 'demos/ad-intel/poster.jpg',
+      width: 1440,
+      height: 900
+    }
+  },
   memesh: {
     name: 'Memesh replica',
     style: 'polaroid',
