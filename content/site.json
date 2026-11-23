@@ -23,9 +23,9 @@
     "hint": "DRAG ANYTHING · DROP A TAPE IN THE MONITOR · OPEN ANY PROJECT",
     "hintMobile": "TAP ▶ ON A TAPE TO PLAY IT · OPEN ANY PROJECT",
     "note": {
-      "hi": "Hi, I’m Yoav.",
+      "hi": "Hi, I'm Yoav.",
       "line": "I build products & films with AI.",
-      "small": "Everything on this desk works. Play with it — or open the menu.",
+      "small": "Everything on this desk works. Play with it, or open the menu.",
       "x": 60,
       "y": 40,
       "r": -3
@@ -73,7 +73,7 @@
       "kind": "WEB APP",
       "year": "2026",
       "madeWith": "AI coding agents",
-      "description": "A World Cup 2026 prediction pool for friends. Call the score, lock it in, argue about it later.",
+      "description": "A World Cup 2026 prediction pool for friends. Everyone picks the scores before kickoff, and the table settles the arguments.",
       "design": "",
       "link": "",
       "style": "phone",
@@ -107,8 +107,8 @@
       "media": null,
       "desk": {
         "show": true,
-        "x": 770,
-        "y": 520,
+        "x": 745,
+        "y": 478,
         "r": -6
       },
       "replica": {
@@ -194,9 +194,9 @@
       "tape": {
         "show": true,
         "label": "THE LAST WARNING",
-        "x": 1010,
-        "y": 520,
-        "r": -4
+        "x": 452,
+        "y": 626,
+        "r": -5
       }
     },
     {
@@ -213,9 +213,9 @@
       "tape": {
         "show": true,
         "label": "LEVIATHAN · PART 1",
-        "x": 1190,
-        "y": 600,
-        "r": 7
+        "x": 590,
+        "y": 752,
+        "r": 4
       }
     },
     {
@@ -233,7 +233,7 @@
         "show": true,
         "label": "LEVIATHAN · PART 2",
         "x": 40,
-        "y": 620,
+        "y": 720,
         "r": 5
       }
     },
@@ -251,21 +251,25 @@
       "tape": {
         "show": true,
         "label": "DEVIL'S HERD",
-        "x": 280,
-        "y": 660,
+        "x": 272,
+        "y": 752,
         "r": 2
       }
     }
   ],
   "about": {
-    "lead": "I direct AI agents to build working software, and I make realistic AI films for my channel, The Wide Silence. Same obsession in both: the details people feel but don’t notice.",
+    "lead": "I direct AI agents to build working software, and I make realistic AI films for my channel, The Wide Silence. In both, I care most about the small things people feel without noticing them.",
     "before": [
       "Outbrain and Duda.",
       "Information Systems, Academic College of Tel Aviv‑Yaffo."
     ],
     "design": {
-      "lead": "",
-      "points": []
+      "lead": "[One or two lines: how you approach web design.]",
+      "points": [
+        "[What you design, for example product sites and web apps.]",
+        "[How you work, for example designing straight in code with AI agents.]",
+        "LoreWire is one example. Open it from Work to click through it."
+      ]
     }
   }
 }
