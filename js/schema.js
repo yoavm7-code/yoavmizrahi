@@ -15,6 +15,7 @@ export const STYLES = {
    A demo with a replica also gets the full product on its project page: an interactive copy
    (demos/<name>/, rendered at width x height and scaled to fit) and a recorded video of it.
    frame 'phone' puts a phone app in a phone-shaped device, which phones can use too.
+   card 'start' crops the work card's poster from its left edge instead of its middle.
    editable lists what the admin may change in a replica: its wording (the replica's i18n module,
    per language) and, for some, its logo. The replica reads these from the published content. */
 export const DEMOS = {
@@ -42,6 +43,19 @@ export const DEMOS = {
       height: 844,
       frame: 'phone',
       editable: { strings: 'demos/toto-mundial/js/i18n.js', languages: ['en', 'he'] }
+    }
+  },
+  lorewire: {
+    name: 'LoreWire replica',
+    style: 'screen',
+    replica: {
+      title: 'LoreWire',
+      src: 'demos/lorewire/',
+      video: 'demos/lorewire/demo.mp4',
+      poster: 'demos/lorewire/poster.jpg',
+      width: 1440,
+      height: 900,
+      card: 'start'
     }
   },
   memesh: {
@@ -77,7 +91,8 @@ export const LIMITS = {
   title: 60,
   line: 120,
   text: 400,
-  lead: 600
+  lead: 600,
+  notes: 1200
 };
 
 const ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -205,6 +220,7 @@ export function normalize(input) {
       year: str(w.year).trim(),
       madeWith: str(w.madeWith).trim(),
       description: str(w.description).trim(),
+      design: str(w.design).trim(),
       link: str(w.link).trim(),
       style: STYLES[w.style] ? w.style : 'polaroid',
       demo: DEMOS[w.demo] ? w.demo : null,
@@ -258,6 +274,9 @@ export function normalize(input) {
   var a = c.about = obj(c.about);
   a.lead = str(a.lead).trim();
   a.before = (Array.isArray(a.before) ? a.before : []).map(function (l) { return str(l).trim(); }).filter(Boolean);
+  var dz = a.design = obj(a.design);
+  dz.lead = str(dz.lead).trim();
+  dz.points = (Array.isArray(dz.points) ? dz.points : []).map(function (l) { return str(l).trim(); }).filter(Boolean);
 
   /* Phone order: keep the saved order, drop keys that no longer exist, append new ones. */
   var keys = deskKeys(c);
@@ -321,6 +340,7 @@ export function validate(content) {
     max(p + '.year', w.year, 12, name + ' year');
     max(p + '.madeWith', w.madeWith, LIMITS.title, name + ' "made with"');
     max(p + '.description', w.description, LIMITS.text, name + ' description');
+    max(p + '.design', w.design, LIMITS.notes, name + ' design notes');
     if (w.link && !isSafeUrl(w.link)) err(p + '.link', name + ': the live link must start with https://');
     if (w.media) {
       if (!isMediaPath(w.media.src)) err(p + '.media', name + ': the image or video file is not valid.');
@@ -328,6 +348,7 @@ export function validate(content) {
     }
     placeholder(p + '.year', w.year, name + ' year');
     placeholder(p + '.description', w.description, name + ' description');
+    placeholder(p + '.design', w.design, name + ' design notes');
     if (!w.demo && !w.media) warn(p + '.media', name + ' has no screenshot or video yet.');
   });
 
@@ -361,6 +382,12 @@ export function validate(content) {
   need('about.lead', content.about.lead, 'About text');
   max('about.lead', content.about.lead, LIMITS.lead, 'About text');
   content.about.before.forEach(function (l, i) { max('about.before.' + i, l, LIMITS.line, 'Background line'); });
+  max('about.design.lead', content.about.design.lead, LIMITS.text, 'Web design text');
+  placeholder('about.design.lead', content.about.design.lead, 'Web design text');
+  content.about.design.points.forEach(function (l, i) {
+    max('about.design.points.' + i, l, LIMITS.line, 'Web design point');
+    placeholder('about.design.points.' + i, l, 'Web design point');
+  });
 
   return { errors: errors, warnings: warnings };
 }

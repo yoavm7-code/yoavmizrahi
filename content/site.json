@@ -41,7 +41,8 @@
       "tapes",
       "work:uploader",
       "work:toto",
-      "work:memesh"
+      "work:memesh",
+      "work:lorewire"
     ]
   },
   "works": [
@@ -94,9 +95,28 @@
       "media": null,
       "desk": {
         "show": true,
-        "x": 770,
-        "y": 520,
+        "x": 745,
+        "y": 478,
         "r": -6
+      }
+    },
+    {
+      "id": "lorewire",
+      "title": "LoreWire",
+      "kind": "WEBSITE",
+      "year": "2026",
+      "madeWith": "AI coding agents",
+      "description": "A website that turns everyday internet dilemmas into short, hand-drawn stories. Each one ends with a question, and readers vote on it.",
+      "design": "Dark by default and built for phones first, since the stories are made for phones and social feeds. One red does all the pointing: the active tab, the poll, the progress bar, the read-along highlight.\n\nFour typefaces, each with one job. Fraunces for titles, Archivo for the logo and buttons, Hanken Grotesk for reading, and a mono for labels and durations.\n\nThe home page works like a streaming service: a rotating hero, rows of posters and a Top 10. Each poster has its title painted into the art, so a row reads like a shelf of comic covers.",
+      "link": "https://lorewire.com",
+      "style": "screen",
+      "demo": "lorewire",
+      "media": null,
+      "desk": {
+        "show": true,
+        "x": 995,
+        "y": 462,
+        "r": -2
       }
     }
   ],
@@ -115,9 +135,9 @@
       "tape": {
         "show": true,
         "label": "THE LAST WARNING",
-        "x": 1010,
-        "y": 520,
-        "r": -4
+        "x": 452,
+        "y": 626,
+        "r": -5
       }
     },
     {
@@ -134,9 +154,9 @@
       "tape": {
         "show": true,
         "label": "LEVIATHAN · PART 1",
-        "x": 1190,
-        "y": 600,
-        "r": 7
+        "x": 590,
+        "y": 752,
+        "r": 4
       }
     },
     {
@@ -172,8 +192,8 @@
       "tape": {
         "show": true,
         "label": "DEVIL'S HERD",
-        "x": 280,
-        "y": 750,
+        "x": 272,
+        "y": 752,
         "r": 2
       }
     }
@@ -183,6 +203,14 @@
     "before": [
       "Outbrain and Duda.",
       "Information Systems, Academic College of Tel Aviv‑Yaffo."
-    ]
+    ],
+    "design": {
+      "lead": "[One or two lines: how you approach web design.]",
+      "points": [
+        "[What you design, for example product sites and web apps.]",
+        "[How you work, for example designing straight in code with AI agents.]",
+        "LoreWire is one example. Open it from Work to click through it."
+      ]
+    }
   }
 }

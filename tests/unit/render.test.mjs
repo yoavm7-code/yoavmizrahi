@@ -162,6 +162,39 @@ test('a phone replica sits in a phone-shaped device and its card shows a standin
   assert.equal(count(page, 'data-widget="toto"'), 1, 'the desk keeps its score picker, the project page does not');
 });
 
+test('a replica card can crop its poster from the left edge', () => {
+  const raw = base();
+  raw.works = [{ id: 'up', title: 'Up', demo: 'uploader' }, { id: 'lw', title: 'Lw', demo: 'lorewire' }];
+  const page = renderSite(raw);
+  assert.equal(DEMOS.lorewire.replica.card, 'start');
+  assert.ok(page.includes('<div class="card__shot card__shot--app card__shot--start" aria-hidden="true"><img src="' + DEMOS.lorewire.replica.poster + '"'));
+  assert.ok(page.includes('<div class="card__shot card__shot--app" aria-hidden="true"><img src="' + DEMOS.uploader.replica.poster + '"'));
+});
+
+test('design notes show on the project page as paragraphs, only when there are some', () => {
+  const raw = base();
+  raw.works = [{ id: 'a', title: 'A', design: 'First <b>idea</b>.\n\n  \r\n\r\nSecond idea.\nSame paragraph.' }, { id: 'b', title: 'B' }];
+  const page = renderSite(raw);
+  assert.equal(count(page, '<section class="proj-design '), 1);
+  assert.ok(page.includes('<div class="proj-design__text"><p>First &lt;b&gt;idea&lt;/b&gt;.</p><p>Second idea.\nSame paragraph.</p></div>'));
+  const a = page.indexOf('data-page="work-a"');
+  const b = page.indexOf('data-page="work-b"');
+  const at = page.indexOf('<section class="proj-design ');
+  assert.ok(a < at && at < b, 'the notes belong to work A');
+});
+
+test('the About page shows the web design section only when it has text', () => {
+  const raw = base();
+  assert.ok(!renderSite(raw).includes('about__design'));
+  raw.about.design = { lead: 'I design in the browser.', points: ['One <i>point</i>', 'Two'] };
+  const page = renderSite(raw);
+  assert.ok(page.includes('<p class="about__design-lead">I design in the browser.</p>'));
+  assert.ok(page.includes('<ul class="about__points"><li>One &lt;i&gt;point&lt;/i&gt;</li><li>Two</li></ul>'));
+  raw.about.design = { lead: '', points: ['Only a point'] };
+  const points = renderSite(raw);
+  assert.ok(points.includes('class="about__design') && !points.includes('about__design-lead'));
+});
+
 test('replica paths follow the root option, for the admin preview', () => {
   const raw = base();
   raw.works = [{ id: 'up', title: 'Up', demo: 'uploader' }];

@@ -152,6 +152,13 @@ test('normalize drops empty background lines on the About page', () => {
   assert.deepEqual(normalize({ about: { before: [' One ', '', '  ', null, 'Two'] } }).about.before, ['One', 'Two']);
 });
 
+test('normalize gives every site a web design section, empty until filled', () => {
+  assert.deepEqual(normalize({}).about.design, { lead: '', points: [] });
+  assert.deepEqual(normalize({ about: { design: { lead: ' Hi ', points: [' A ', '', 3, null] } } }).about.design, { lead: 'Hi', points: ['A', '3'] });
+  assert.equal(normalize({ works: [{ id: 'a', design: '  Notes  ' }] }).works[0].design, 'Notes');
+  assert.equal(normalize({ works: [{ id: 'a' }] }).works[0].design, '');
+});
+
 /* ---------- Validate ---------- */
 
 test('the live content has no errors', () => {
@@ -185,6 +192,17 @@ test('texts over their limit are errors', () => {
   raw.site.name = 'x'.repeat(LIMITS.title);
   raw.about.lead = 'x'.repeat(LIMITS.lead);
   assert.deepEqual(errorsOf(raw), []);
+});
+
+test('design notes and the web design section have limits, and placeholders warn', () => {
+  const raw = base();
+  raw.works[0].design = 'x'.repeat(LIMITS.notes + 1);
+  raw.about.design = { lead: 'x'.repeat(LIMITS.text + 1), points: ['x'.repeat(LIMITS.line + 1)] };
+  assert.deepEqual(errorsOf(raw).sort(), ['about.design.lead', 'about.design.points.0', 'works.0.design']);
+  raw.works[0].design = '[Design notes]';
+  raw.about.design = { lead: '[How you design]', points: ['Fine', '[A point]'] };
+  assert.deepEqual(errorsOf(raw), []);
+  assert.deepEqual(warningsOf(raw).sort(), ['about.design.lead', 'about.design.points.1', 'works.0.design']);
 });
 
 test('bad ids and duplicate ids are errors', () => {
