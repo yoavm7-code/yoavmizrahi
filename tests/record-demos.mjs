@@ -207,11 +207,66 @@ async function memesh(page, mark) {
   await pause(2600);
 }
 
+/* ---------- LoreWire: from the streaming home page to a verdict ---------- */
+
+async function lorewire(page, mark) {
+  const pause = (ms) => page.waitForTimeout(ms);
+  const click = async (target, opts = {}) => {
+    await target.scrollIntoViewIfNeeded();
+    const box = await target.boundingBox();
+    await page.mouse.move(box.x + box.width * (opts.x ?? 0.5), box.y + box.height / 2, { steps: 22 });
+    await pause(opts.wait ?? 260);
+    await target.click();
+  };
+  const wheel = async (dy, steps = 10) => { for (let i = 0; i < steps; i++) { await page.mouse.wheel(0, dy / steps); await pause(60); } };
+
+  await page.mouse.move(720, 300);
+  await pause(800);
+  await mark('poster');
+  await pause(2200);
+
+  /* 1. Home: the hero, then the rows and the Top 10. */
+  await page.mouse.move(720, 600, { steps: 12 });
+  await wheel(640);
+  await pause(1800);
+
+  /* 2. A story: key art, the debate, a vote, then the read-along. */
+  await click(page.locator('[data-row="top"] [data-story]').nth(6));
+  await pause(1800);
+  const modal = page.locator('.modal');
+  await modal.hover();
+  for (let i = 0; i < 8; i++) { await page.mouse.wheel(0, 160); await pause(80); }
+  await pause(900);
+  await click(page.locator('[data-side="b"]'));
+  await pause(2200);
+  await click(page.locator('[data-tab="readalong"]'));
+  await pause(600);
+  await click(page.locator('[data-along-play]'));
+  await pause(5200);
+  await page.keyboard.press('Escape');
+  await pause(900);
+
+  /* 3. Wires: the vertical feed, a verdict in the mini poll, and the next wire. */
+  await click(page.locator('[data-nav="wires"]'));
+  await pause(4200);
+  await click(page.locator('[data-mini="a"]'));
+  await pause(1800);
+  await click(page.locator('[data-wire-next]'));
+  await pause(3800);
+
+  /* 4. Browse by category. */
+  await click(page.locator('[data-nav="browse"]'));
+  await pause(1400);
+  await click(page.locator('[data-cat="Wedding Drama"]'));
+  await pause(2600);
+}
+
 /* view is the page size; scale makes the frames sharper; width is the video's width. */
 const DEMOS = [
   { name: 'mega-uploader', run: megaUploader, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' },
   { name: 'toto-mundial', run: totoMundial, view: { width: 390, height: 844 }, scale: 2, width: 780, pointer: '.rec-pointer' },
-  { name: 'memesh', run: memesh, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' }
+  { name: 'memesh', run: memesh, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' },
+  { name: 'lorewire', run: lorewire, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' }
 ];
 const ONLY = process.argv.slice(2);
 

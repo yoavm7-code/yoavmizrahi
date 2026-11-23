@@ -170,7 +170,7 @@ function deskWork(w, i, order, paths) {
   } else if (w.style === 'screen') {
     body = html`
         <div class="screen settle ${delay}">
-          <div class="screen__display">${mediaEl(w.media, paths) || html`<span class="frame__empty mono">[ SCREENSHOT ]</span>`}</div>
+          <div class="screen__display">${mediaEl(w.media, paths) || replicaPoster(w, paths) || html`<span class="frame__empty mono">[ SCREENSHOT ]</span>`}</div>
           <div class="screen__foot"><span class="label label--dark">${label}</span><span class="screen__title">${w.title}</span>${open}</div>
         </div>`;
   } else {
@@ -265,7 +265,8 @@ function cardShot(w, paths) {
   var replica = replicaOf(w);
   if (replica) {
     var phone = replica.frame === 'phone';
-    return html`<div class="${'card__shot ' + (phone ? 'card__shot--phone grid-dark' : 'card__shot--app')}" aria-hidden="true"><img src="${paths.asset(replica.poster)}" alt="" loading="lazy" decoding="async"><video data-card-video data-src="${paths.asset(replica.video)}" muted loop playsinline preload="none"></video></div>`;
+    var look = phone ? 'card__shot--phone grid-dark' : 'card__shot--app' + (replica.card === 'start' ? ' card__shot--start' : '');
+    return html`<div class="${'card__shot ' + look}" aria-hidden="true"><img src="${paths.asset(replica.poster)}" alt="" loading="lazy" decoding="async"><video data-card-video data-src="${paths.asset(replica.video)}" muted loop playsinline preload="none"></video></div>`;
   }
   var media = mediaEl(w.media, paths);
   return media ? html`<div class="card__shot">${media}</div>` : '';
@@ -374,6 +375,18 @@ function replicaStage(r, paths) {
     </div>`;
 }
 
+/* A work's design notes, when it has them: paragraphs split on blank lines. */
+function designNotes(w) {
+  if (!w.design) return '';
+  return html`<section class="proj-design up d3">
+      <span class="label label--accent">DESIGN</span>
+      <div class="proj-design__text">${paragraphs(w.design)}</div>
+    </section>`;
+}
+function paragraphs(text) {
+  return String(text).split(/\n\s*\n/).map(function (p) { return p.trim(); }).filter(Boolean).map(function (p) { return html`<p>${p}</p>`; });
+}
+
 function pageProject(c, w, i, paths) {
   var next = c.works[i + 1];
   var nextHref = next ? '#/work/' + next.id : '#/films';
@@ -398,6 +411,7 @@ function pageProject(c, w, i, paths) {
     ${replica ? replicaStage(replica, paths) : html`<div class="stage grid-surface grid-surface--deep up d3">
       <span class="stage__label mono">${w.demo ? 'ON THE DESK · TRY IT' : 'ON THE DESK'}</span>${stageObject(w, paths)}
     </div>`}
+    ${designNotes(w)}
     <a class="next" href="${nextHref}" data-cursor="view"><span class="label">NEXT</span><span class="next__title uline">${nextTitle}</span></a>
   </div>
 </section>
@@ -496,6 +510,11 @@ function pageAbout(c) {
         <span>${joined}</span>` : ''}
       </div>
     </div>
+    ${c.about.design.lead || c.about.design.points.length ? html`<section class="about__design up d3">
+      <span class="label label--accent">WEB DESIGN</span>
+      ${c.about.design.lead ? html`<p class="about__design-lead">${c.about.design.lead}</p>` : ''}
+      ${c.about.design.points.length ? html`<ul class="about__points">${c.about.design.points.map(function (p) { return html`<li>${p}</li>`; })}</ul>` : ''}
+    </section>` : ''}
   </div>
 </section>
 `;

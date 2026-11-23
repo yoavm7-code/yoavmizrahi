@@ -356,6 +356,7 @@ export function renderWork(ctx, el, id) {
     bound(ctx, { label: 'Made with', path: p + '.madeWith', max: LIMITS.title, get: get(function (x) { return x.madeWith; }), set: set(function (x, v) { x.madeWith = v; }) })
   ));
   basics.body.appendChild(bound(ctx, { label: 'Description', hint: 'One or two sentences: what it is and who it is for.', path: p + '.description', max: LIMITS.text, multiline: true, rows: 4, get: get(function (x) { return x.description; }), set: set(function (x, v) { x.description = v; }) }));
+  basics.body.appendChild(bound(ctx, { label: 'Design notes (optional)', hint: 'How it was designed. Shown under the demo on its page. Leave an empty line between paragraphs.', path: p + '.design', max: LIMITS.notes, multiline: true, rows: 6, get: get(function (x) { return x.design; }), set: set(function (x, v) { x.design = v; }) }));
   basics.body.appendChild(bound(ctx, { label: 'Live link (optional)', hint: 'If people can use it, paste its address. Adds a "Visit the live product" link.', path: p + '.link', type: 'url', inputmode: 'url', spellcheck: false, placeholder: 'https://', get: get(function (x) { return x.link; }), set: set(function (x, v) { x.link = v.trim(); }) }));
   el.appendChild(basics);
 
@@ -782,6 +783,31 @@ export function renderAbout(ctx, el) {
     if (inputs.length) inputs[inputs.length - 1].focus();
   } }));
   el.appendChild(before);
+
+  var design = section('Web design', 'Shown under "Web design". A short intro, then one point per line.');
+  design.body.appendChild(bound(ctx, { label: 'Intro', path: 'about.design.lead', max: LIMITS.text, multiline: true, rows: 3, get: function (x) { return x.about.design.lead; }, set: function (x, v) { x.about.design.lead = v; } }));
+  var points = h('div.stack');
+  function drawPoints() {
+    clear(points);
+    draft(ctx).about.design.points.forEach(function (line, i) {
+      points.appendChild(h('div.line-row',
+        bound(ctx, { label: 'Point ' + (i + 1), path: 'about.design.points.' + i, max: LIMITS.line, get: function (x) { return x.about.design.points[i] || ''; }, set: function (x, v) { x.about.design.points[i] = v; } }),
+        button('Remove point ' + (i + 1), { iconOnly: true, icon: 'trash', kind: 'ghost', onClick: function () {
+          ctx.store.update(function (x) { x.about.design.points.splice(i, 1); });
+          drawPoints();
+        } })
+      ));
+    });
+  }
+  drawPoints();
+  design.body.appendChild(points);
+  design.body.appendChild(button('Add a point', { icon: 'plus', onClick: function () {
+    ctx.store.update(function (x) { x.about.design.points.push(''); });
+    drawPoints();
+    var inputs = points.querySelectorAll('input');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  } }));
+  el.appendChild(design);
   el.appendChild(h('p.callout', 'Your email and links live in Settings and show here automatically.', ' ', h('a.link', { href: '#/settings' }, 'Open Settings')));
   ctx.preview.go('#/about');
 }

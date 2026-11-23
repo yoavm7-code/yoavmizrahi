@@ -7,7 +7,7 @@
 <title>Yoav Mizrahi - Products &amp; films, built with AI</title>
 <meta name="description" content="Portfolio of Yoav Mizrahi: products and films, built with AI.">
 <meta name="theme-color" content="#EDE9E1">
-<meta name="build" content="local-mwtdzfho">
+<meta name="build" content="local-mwtexwqx">
 <link rel="canonical" href="https://yoavmizrahi.com/">
 <meta property="og:url" content="https://yoavmizrahi.com/">
 <meta property="og:type" content="website">
@@ -37,7 +37,7 @@
 <!-- ============ HOME: THE DESK ============ -->
 <section class="page page--home" data-page="home" data-route="/" data-label="The desk" data-name="THE DESK" aria-label="The desk">
   <div class="desk-scroll">
-    <div class="desk grid-surface" data-desk data-w="1420" data-h="894">
+    <div class="desk grid-surface" data-desk data-w="1435" data-h="896">
       <span class="desk__hint mono"><span class="only-wide">DRAG ANYTHING · DROP A TAPE IN THE MONITOR · OPEN ANY PROJECT</span><span class="only-narrow">TAP ▶ ON A TAPE TO PLAY IT · OPEN ANY PROJECT</span></span>
 
       <!-- Note -->
@@ -75,12 +75,20 @@
       </div>
 
       <!-- Memesh -->
-      <div class="obj" data-obj="work:memesh" data-x="770" data-y="520" data-r="-6" data-m="6" data-cursor="drag">
+      <div class="obj" data-obj="work:memesh" data-x="745" data-y="478" data-r="-6" data-m="6" data-cursor="drag">
         <div class="polaroid settle d3">
           <div class="polaroid__img mono"><img class="media" src="demos/memesh/poster.jpg" alt="Memesh, a screenshot of the replica" loading="lazy" decoding="async"></div>
           <span class="label">03 · CLIENT SYSTEM</span>
           <span class="polaroid__title">Memesh</span>
           <a class="uline mono-link" href="#/work/memesh">OPEN PROJECT →</a>
+        </div>
+      </div>
+
+      <!-- LoreWire -->
+      <div class="obj" data-obj="work:lorewire" data-x="995" data-y="462" data-r="-2" data-m="7" data-cursor="drag">
+        <div class="screen settle d4">
+          <div class="screen__display"><img class="media" src="demos/lorewire/poster.jpg" alt="LoreWire, a screenshot of the replica" loading="lazy" decoding="async"></div>
+          <div class="screen__foot"><span class="label label--dark">04 · WEBSITE</span><span class="screen__title">LoreWire</span><a class="uline mono-link mono-link--light" href="#/work/lorewire">OPEN PROJECT →</a></div>
         </div>
       </div>
 
@@ -110,14 +118,14 @@
 
       <!-- Tapes. Each one plays its film on the monitor. -->
       <div class="tapes" data-obj-group="tapes" data-m="3">
-      <div class="obj" data-obj="tape:leviathan-1" data-x="1010" data-y="520" data-r="-4" data-m="3" data-cursor="drag" data-tape
+      <div class="obj" data-obj="tape:leviathan-1" data-x="452" data-y="626" data-r="-5" data-m="3" data-cursor="drag" data-tape
            data-title="THE LAST WARNING" data-part="" data-presents="THE WIDE SILENCE PRESENTS" data-youtube="5GAV8yWfhFk">
         <div class="tape settle d3">
           <div class="tape__label"><span>THE LAST WARNING</span><button class="btn tape__play" type="button" data-insert aria-label="Play THE LAST WARNING on the monitor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div>
           <div class="tape__reels" aria-hidden="true"><span></span><span></span></div>
         </div>
       </div>
-      <div class="obj" data-obj="tape:film-2" data-x="1190" data-y="600" data-r="7" data-m="3" data-cursor="drag" data-tape
+      <div class="obj" data-obj="tape:film-2" data-x="590" data-y="752" data-r="4" data-m="3" data-cursor="drag" data-tape
            data-title="LEVIATHAN" data-part="PART 1" data-presents="THE WIDE SILENCE PRESENTS" data-youtube="NonEDg3Tm6Y">
         <div class="tape settle d4">
           <div class="tape__label"><span>LEVIATHAN · PART 1</span><button class="btn tape__play" type="button" data-insert aria-label="Play LEVIATHAN · PART 1 on the monitor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div>
@@ -131,7 +139,7 @@
           <div class="tape__reels" aria-hidden="true"><span></span><span></span></div>
         </div>
       </div>
-      <div class="obj" data-obj="tape:devil-s-herd" data-x="280" data-y="750" data-r="2" data-m="3" data-cursor="drag" data-tape
+      <div class="obj" data-obj="tape:devil-s-herd" data-x="272" data-y="752" data-r="2" data-m="3" data-cursor="drag" data-tape
            data-title="DEVIL&#39;S HERD" data-part="" data-presents="THE WIDE SILENCE PRESENTS" data-youtube="owoyoKpygNk">
         <div class="tape settle d2">
           <div class="tape__label"><span>DEVIL&#39;S HERD</span><button class="btn tape__play" type="button" data-insert aria-label="Play DEVIL&#39;S HERD on the monitor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div>
@@ -163,8 +171,12 @@
         <div class="card__cover"><div class="card__shot card__shot--app" aria-hidden="true"><img src="demos/memesh/poster.jpg" alt="" loading="lazy" decoding="async"><video data-card-video data-src="demos/memesh/demo.mp4" muted loop playsinline preload="none"></video></div><div class="card__inner"><span class="card__no">03</span><span class="card__title">Memesh</span></div><span class="card__bar" aria-hidden="true"></span></div>
         <div class="card__meta mono"><span>MEMESH</span><span class="muted">CLIENT SYSTEM</span></div>
       </a>
+      <a class="card card--shot" href="#/work/lorewire" data-cursor="view">
+        <div class="card__cover"><div class="card__shot card__shot--app card__shot--start" aria-hidden="true"><img src="demos/lorewire/poster.jpg" alt="" loading="lazy" decoding="async"><video data-card-video data-src="demos/lorewire/demo.mp4" muted loop playsinline preload="none"></video></div><div class="card__inner"><span class="card__no">04</span><span class="card__title">LoreWire</span></div><span class="card__bar" aria-hidden="true"></span></div>
+        <div class="card__meta mono"><span>LOREWIRE</span><span class="muted">WEBSITE</span></div>
+      </a>
       <a class="card" href="#/films" data-cursor="view">
-        <div class="card__cover"><div class="card__inner grid-dark"><span class="card__no">04</span><span class="card__title">Films</span></div><span class="card__bar" aria-hidden="true"></span></div>
+        <div class="card__cover"><div class="card__inner grid-dark"><span class="card__no">05</span><span class="card__title">Films</span></div><span class="card__bar" aria-hidden="true"></span></div>
         <div class="card__meta mono"><span>FILMS</span><span class="muted">THE WIDE SILENCE</span></div>
       </a>
     </div>
@@ -280,6 +292,49 @@
         <p class="replica__note mono">The clickable demo is built for a computer screen. <a class="uline" href="demos/memesh/">Open it anyway →</a></p>
       </div>
     </div>
+    <a class="next" href="#/work/lorewire" data-cursor="view"><span class="label">NEXT</span><span class="next__title uline">LoreWire →</span></a>
+  </div>
+</section>
+
+<!-- ============ PROJECT: LOREWIRE ============ -->
+<section class="page page--project" data-page="work-lorewire" data-route="/work/lorewire" data-label="LoreWire" data-name="WORK / LOREWIRE" aria-label="LoreWire">
+  <div class="wrap">
+    <a class="uline mono-link up" href="#/work">← ALL WORK</a>
+    <div class="proj-head">
+      <span class="label label--accent up">04 · WEBSITE</span>
+      <h1 class="display" data-split>LoreWire</h1>
+    </div>
+    <div class="proj-meta up d2">
+      <div><span class="label">YEAR</span><span class="strong">2026</span></div>
+      <div><span class="label">MADE WITH</span><span class="strong">AI coding agents</span></div>
+      <p>A website that turns everyday internet dilemmas into short, hand-drawn stories. Each one ends with a question, and readers vote on it.</p>
+      <a class="uline mono-link proj-meta__link" href="https://lorewire.com" target="_blank" rel="noopener">VISIT THE LIVE PRODUCT ↗</a>
+    </div>
+    <div class="stage stage--replica grid-surface grid-surface--deep up d3">
+      <span class="stage__label mono">THE REAL THING · FULLY CLICKABLE</span>
+      <div class="replica" data-replica data-src="demos/lorewire/" data-w="1440" data-h="900" data-frame="desktop" data-title="LoreWire" data-mode="try">
+        <div class="replica__bar">
+          <span class="replica__title mono"><span class="replica__live" aria-hidden="true"></span>LOREWIRE · MADE-UP DATA</span>
+          <div class="replica__modes" role="group" aria-label="Demo or video">
+            <button class="btn replica__mode" type="button" data-replica-mode="try" aria-pressed="true">TRY IT</button>
+            <button class="btn replica__mode" type="button" data-replica-mode="watch" aria-pressed="false">WATCH IT</button>
+          </div>
+          <div class="replica__actions">
+            <button class="btn replica__act" type="button" data-replica-reset>↺ START OVER</button>
+            <a class="replica__act" href="demos/lorewire/" data-replica-full>⤢ FULL SCREEN</a>
+          </div>
+        </div>
+        <div class="replica__screen">
+          <div class="replica__viewport" data-replica-viewport data-cursor-off></div>
+          <video class="replica__video" data-replica-video src="demos/lorewire/demo.mp4" poster="demos/lorewire/poster.jpg" muted loop playsinline controls preload="none" aria-label="A recorded walk through LoreWire"></video>
+        </div>
+        <p class="replica__note mono">The clickable demo is built for a computer screen. <a class="uline" href="demos/lorewire/">Open it anyway →</a></p>
+      </div>
+    </div>
+    <section class="proj-design up d3">
+      <span class="label label--accent">DESIGN</span>
+      <div class="proj-design__text"><p>Dark by default and built for phones first, since the stories are made for phones and social feeds. One red does all the pointing: the active tab, the poll, the progress bar, the read-along highlight.</p><p>Four typefaces, each with one job. Fraunces for titles, Archivo for the logo and buttons, Hanken Grotesk for reading, and a mono for labels and durations.</p><p>The home page works like a streaming service: a rotating hero, rows of posters and a Top 10. Each poster has its title painted into the art, so a row reads like a shelf of comic covers.</p></div>
+    </section>
     <a class="next" href="#/films" data-cursor="view"><span class="label">NEXT</span><span class="next__title uline">The films →</span></a>
   </div>
 </section>
@@ -362,6 +417,11 @@
         <span><a class="uline" href="mailto:yoavm7@gmail.com">yoavm7@gmail.com</a> · <a class="uline" href="https://www.linkedin.com/in/yoavmiz/" target="_blank" rel="noopener">LinkedIn</a> · <a class="uline" href="https://youtube.com/channel/UCRoeN4jIaX6x7e4iE6H72RQ/" target="_blank" rel="noopener">YouTube</a></span>
       </div>
     </div>
+    <section class="about__design up d3">
+      <span class="label label--accent">WEB DESIGN</span>
+      <p class="about__design-lead">[One or two lines: how you approach web design.]</p>
+      <ul class="about__points"><li>[What you design, for example product sites and web apps.]</li><li>[How you work, for example designing straight in code with AI agents.]</li><li>LoreWire is one example. Open it from Work to click through it.</li></ul>
+    </section>
   </div>
 </section>
 
