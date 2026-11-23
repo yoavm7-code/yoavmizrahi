@@ -24,6 +24,24 @@ test('the work page holds the replica in a phone, clickable on every screen', as
   await expect(box.locator('[data-replica-video]')).toBeVisible();
 });
 
+test('the work card keeps its phone clear of the title, at rest and on hover', async ({ page }) => {
+  await page.goto('/#/work');
+  await page.mouse.move(2, 2);
+  const card = page.locator('.page.is-active .card--phone');
+  await expect(card).toBeVisible();
+  const gap = () => card.evaluate((c) => {
+    const range = document.createRange();
+    range.selectNodeContents(c.querySelector('.card__title'));
+    return c.querySelector('.card__shot img').getBoundingClientRect().top - range.getBoundingClientRect().bottom;
+  });
+  await expect.poll(gap, { message: 'the phone overlaps the title' }).toBeGreaterThan(8);
+  if (page.viewportSize().width > 900) {
+    await card.hover();
+    await page.waitForTimeout(1000);
+    expect(await gap(), 'the lifted phone overlaps the title').toBeGreaterThan(8);
+  }
+});
+
 /* ---------- The app ---------- */
 
 test.describe('the Toto Mundial replica', () => {
