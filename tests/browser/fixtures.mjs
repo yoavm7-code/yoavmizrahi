@@ -5,6 +5,16 @@ import { test as base, expect } from '@playwright/test';
 
 export { expect };
 
+/* Fails the test if the page asks any host other than this server or Google Fonts for anything. */
+export function watchRequests(page) {
+  const outside = [];
+  page.on('request', (r) => {
+    const host = new URL(r.url()).hostname;
+    if (!['127.0.0.1', 'fonts.googleapis.com', 'fonts.gstatic.com'].includes(host) && !r.url().startsWith('blob:') && !r.url().startsWith('data:')) outside.push(r.url());
+  });
+  return outside;
+}
+
 export const test = base.extend({
   allowedConsole: [[], { option: true }],
   page: async ({ page, allowedConsole }, use) => {

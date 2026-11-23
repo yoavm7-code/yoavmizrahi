@@ -283,6 +283,9 @@
     var h = +box.getAttribute('data-h');
     var page = box.closest('.page').getAttribute('data-page');
     var frame = null;
+    /* The screen takes the replica's own shape. Set here, not in the markup: the admin's preview
+       allows no inline styles. */
+    viewport.style.aspectRatio = video.style.aspectRatio = w + ' / ' + h;
 
     function log(msg, values) { console.info('[site replica] ' + msg, values || {}); }
     function load() {
@@ -326,7 +329,8 @@
 
     return {
       page: page,
-      open: function () { setMode(narrow.matches ? 'watch' : box.getAttribute('data-mode')); },
+      /* A desktop replica is too small to use on a narrow screen; a phone replica is made for one. */
+      open: function () { setMode(narrow.matches && box.getAttribute('data-frame') !== 'phone' ? 'watch' : box.getAttribute('data-mode')); },
       close: function () { video.pause(); document.documentElement.classList.remove('cursor-off'); }
     };
   });

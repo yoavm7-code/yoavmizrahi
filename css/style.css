@@ -352,7 +352,7 @@ body[data-theme="dark"] .site-header { border-color: var(--ink-line); }
 .card:hover .card__bar { width: 100%; }
 /* A card with a picture of the work: the picture fills the cover and fades to ink under the title.
    A replica's poster is zoomed in so the app reads at card size; its video takes over on hover. */
-.card__shot { position: absolute; inset: 0; overflow: hidden; background: var(--ink); transition: transform .8s var(--ease); }
+.card__shot { position: absolute; inset: 0; overflow: hidden; background-color: var(--ink); transition: transform .8s var(--ease); }
 .card__shot .media { width: 100%; height: 100%; object-fit: cover; }
 .card__shot--app > img, .card__shot--app > video { position: absolute; left: -14%; top: -12%; width: 175%; max-width: none; height: auto; }
 .card__shot--app > video { opacity: 0; transition: opacity .4s ease; }
@@ -361,6 +361,11 @@ body[data-theme="dark"] .site-header { border-color: var(--ink-line); }
 .card--shot .card__inner { position: relative; z-index: 1; }
 .card--shot:hover .card__inner { transform: none; }
 .card--shot:hover .card__shot { transform: scale(1.04); }
+/* A phone app stands as a phone on the ink card, its screen showing the poster (and the video on hover). */
+.card__shot--phone > img, .card__shot--phone > video { position: absolute; inset-inline-end: 6%; top: 11%; width: 27%; height: auto; border: 5px solid #2B2A27; border-radius: 20px; box-shadow: 0 18px 40px rgba(0,0,0,.5); transform: rotate(4deg); }
+.card__shot--phone > video { opacity: 0; transition: opacity .4s ease; }
+.card.is-playing .card__shot--phone > video { opacity: 1; }
+.card--phone .card__cover::after { display: none; }
 .card__meta { display: flex; justify-content: space-between; font-size: 12px; letter-spacing: .1em; }
 
 /* ---------- Project pages ---------- */
@@ -386,7 +391,7 @@ body[data-theme="dark"] .site-header { border-color: var(--ink-line); }
 .replica__act { display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border: 1px solid var(--ink-line); border-radius: 999px; background: transparent; color: var(--paper); font-family: var(--mono); font-size: 11px; letter-spacing: .1em; transition: border-color .2s ease; }
 .replica__act:hover { border-color: var(--muted-dark); }
 .replica__screen { position: relative; overflow: hidden; border-radius: 12px; background: #F6F6F4; }
-.replica__viewport { position: relative; width: 100%; aspect-ratio: 16 / 10; overflow: hidden; }
+.replica__viewport { position: relative; width: 100%; aspect-ratio: 16 / 10; overflow: hidden; } /* main.js sets the replica's own shape */
 .replica__viewport::before { content: "LOADING THE DEMO…"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11px; letter-spacing: .14em; color: var(--muted); }
 .replica__frame { position: absolute; left: 0; top: 0; display: block; border: 0; transform-origin: 0 0; }
 .replica__video { display: none; width: 100%; aspect-ratio: 16 / 10; background: var(--ink); }
@@ -394,6 +399,11 @@ body[data-theme="dark"] .site-header { border-color: var(--ink-line); }
 .replica[data-mode="watch"] .replica__video { display: block; }
 .replica__note { display: none; margin: 12px 4px 2px; font-size: 11px; line-height: 1.7; letter-spacing: .06em; color: var(--muted-dark); }
 .replica__note a { color: var(--paper); }
+/* A phone replica: the ink device becomes a phone, its screen as tall as the window allows. */
+.replica--phone { max-width: 470px; padding: 12px 12px 18px; border-radius: 40px; }
+.replica--phone .replica__bar { justify-content: center; }
+.replica--phone .replica__title { flex-basis: 100%; justify-content: center; }
+.replica--phone .replica__screen { width: min(100%, 390px, max(320px, calc((100vh - 170px) * 390 / 844))); margin: 0 auto; border-radius: 30px; background: #FFF8F5; }
 .next { display: flex; flex-direction: column; gap: 10px; padding: 70px 0 90px; border-top: 1px solid var(--line); }
 .next__title { align-self: flex-start; font-family: var(--display); font-weight: 800; font-size: clamp(48px, 7vw, 112px); line-height: .95; letter-spacing: -0.04em; padding-bottom: 6px; }
 .next:hover .next__title { background-size: 100% 1.5px; }
@@ -547,8 +557,8 @@ body.menu-open .mlink:nth-child(4) .mlink__in { transition-delay: .54s; }
   .tape__play::after { content: ""; position: absolute; inset: -8px; }
   .eject { min-height: 44px; padding: 8px 14px; }
 
-  /* Replicas: the video plays here; the clickable demo is one link away. */
-  .replica__modes, [data-replica-reset] { display: none; }
+  /* Desktop replicas: the video plays here; the clickable demo is one link away. Phone replicas stay clickable. */
+  .replica:not(.replica--phone) .replica__modes, .replica:not(.replica--phone) [data-replica-reset] { display: none; }
   .replica__note { display: block; }
   .replica__act { min-height: 44px; }
 }
@@ -577,11 +587,14 @@ body.menu-open .mlink:nth-child(4) .mlink__in { transition-delay: .54s; }
   .cards { gap: 32px; }
   .card { flex-basis: 100%; }
   .card__inner { padding: 20px; }
+  .card__shot--phone > img, .card__shot--phone > video { inset-inline-end: 4%; top: 9%; width: 23%; border-width: 4px; border-radius: 14px; }
   .proj-meta { gap: 20px 32px; padding-bottom: 24px; }
   .proj-meta p { flex-basis: 100%; font-size: 18px; }
   .proj-meta__link { align-self: auto; }
   .stage { min-height: 0; padding: 56px 12px 28px; }
   .replica { padding: 8px 8px 10px; border-radius: 18px; }
+  .replica--phone { padding: 10px 8px 14px; border-radius: 34px; }
+  .replica--phone .replica__screen { width: 100%; border-radius: 26px; }
   .replica__title { font-size: 10px; letter-spacing: .1em; }
   .next { padding: 48px 0 64px; }
   .about { gap: 32px; }

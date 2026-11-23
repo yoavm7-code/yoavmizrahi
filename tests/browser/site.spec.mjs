@@ -159,8 +159,8 @@ test('a work card plays its video only on hover, and loads nothing before', asyn
   expect(await video.evaluate((v) => v.paused)).toBe(true);
 });
 
-test('the score picker changes, locks, and unlocks', async ({ page }) => {
-  await page.goto('/#/work/toto');
+test('the score picker on the desk changes, locks, and unlocks', async ({ page }) => {
+  await page.goto('/#/');
   const demo = page.locator('.page.is-active [data-widget="toto"]');
   const score = demo.locator('.toto__score');
   await expect(score).toHaveText('2–1');
