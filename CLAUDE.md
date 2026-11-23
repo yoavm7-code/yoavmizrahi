@@ -117,15 +117,9 @@ README.md           short public readme
 - **Film reel:** each `[data-clip]` has `data-start`/`data-end` (0–1 along the track) plus title, part, presents, meta, file and youtube. The reel plays across 150 "seconds" of timecode; clicking a clip, scrubbing the ruler, or prev/next jumps.
 - **YouTube:** put the video id in `data-youtube="..."` on a clip or a tape. The player is embedded with `youtube-nocookie.com`. If the id is empty, a placeholder shows instead.
 
-## Content still missing (in `content/site.json`, in `[SQUARE BRACKETS]`)
+## Placeholders
 
-Yoav fills these in through the admin; its Overview lists every one with a "Fix" button.
-
-- One-line descriptions: Mega Uploader (`[One line...]`) and Memesh (`[One line...]`).
-- Years: Mega Uploader, Ad Intel and I.M Engineering (`[Year]`).
-- Film 2 (title, subtitle, genre), runtimes and YouTube ids. Leviathan Part 1 is on The Wide Silence.
-- The About page's web design intro and its first two points (`[One or two lines...]`, `[What you design...]`, `[How you work...]`).
-- Email, LinkedIn and YouTube links, and the site address (domain).
+None right now. Missing content goes in `content/site.json` in `[SQUARE BRACKETS]`; the generator prints a note for each one, and the admin's Overview lists them with a "Fix" button.
 
 ## Ideas on the list (not done yet)
 

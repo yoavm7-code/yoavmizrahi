@@ -3,7 +3,7 @@
   "site": {
     "name": "Yoav Mizrahi",
     "title": "Yoav Mizrahi - Products & films, built with AI",
-    "description": "Portfolio of Yoav Mizrahi: products and films, built with AI.",
+    "description": "Yoav Mizrahi builds software with AI agents and makes AI films for The Wide Silence. Every product here is clickable.",
     "tagline": "PRODUCTS & FILMS, BUILT WITH AI",
     "channel": "The Wide Silence",
     "url": "https://yoavmizrahi.com",
@@ -46,8 +46,8 @@
       "kind": "PRODUCTION TOOL",
       "year": "2026",
       "madeWith": "AI coding agents",
-      "description": "Built with AI agents and running in production.",
-      "design": "",
+      "description": "Launches ad campaigns in bulk. Fill a sheet with dozens of campaigns, press Run live, and watch each one get built and uploaded, with a plain reason when one fails. It runs in production.",
+      "design": "Made for people who launch dozens of campaigns at once, so the workspace is a spreadsheet. Each row is a campaign, each column a setting like country, vertical or landing page, and every row gets a check or a cross once the run is over.\n\nQuiet greys, with one blue for actions. Green, amber and red only report how a run went. Campaign names and the run log are set in Geist Mono, so long names line up and are easy to scan. There is a dark mode too.",
       "link": "",
       "style": "device",
       "demo": "uploader",
@@ -63,7 +63,7 @@
       "year": "2026",
       "madeWith": "AI coding agents",
       "description": "A World Cup 2026 prediction pool for friends. Everyone picks the scores before kickoff, and the table settles the arguments.",
-      "design": "",
+      "design": "Warm and a little festive, like a stadium at sunset: a cream background, terracotta for actions, and a trophy rising over the hills at the top of the home page.\n\nBuilt for a phone held in one hand. The tabs sit at the bottom, and a pick is two steppers that save as you tap, with an undo for slips. Rank and points are big numbers in Space Grotesk, readable at a glance.\n\nIt works in English and in Hebrew. One tap on the globe flips the whole layout to right to left.",
       "link": "",
       "style": "phone",
       "demo": "toto",
@@ -85,8 +85,8 @@
       "kind": "CLIENT SYSTEM",
       "year": "2026",
       "madeWith": "AI coding agents",
-      "description": "The operations system behind a real playground business.",
-      "design": "",
+      "description": "The system that runs a kids' playground. Parents book sessions and buy punch cards, the front desk checks kids in with a QR code, and the manager watches the day fill up.",
+      "design": "Soft and friendly, since the people using it are parents and the staff of a kids' playground. Peach for actions, green for open spots, and rounded cards everywhere.\n\nThree apps share one look. Parents book from their phone. The front desk scans and checks in. The manager gets today's sessions, the day in numbers, and the week ahead shaded by how full each slot is.\n\nHebrew first and right to left, like the real product, with English one tap away.",
       "link": "",
       "style": "polaroid",
       "demo": "memesh",
@@ -124,7 +124,7 @@
       "id": "ad-intel",
       "title": "Ad Intel",
       "kind": "INTERNAL TOOL",
-      "year": "[Year]",
+      "year": "2026",
       "madeWith": "AI coding agents",
       "description": "A dashboard that watches the Facebook and Instagram ads competitors run, saves each one with its landing article, and shows which topics we haven't written about yet.",
       "design": "Built to be read fast, like a trading terminal: a dark screen, hairline borders, and every number, domain and label in a monospace font so columns line up.\n\nOne amber marks what is live or needs a decision: the active tab, the counts that matter, the Draft article button. Green and red only show state, like a clear policy check or a dead link.",
@@ -140,7 +140,7 @@
       "id": "im-eng",
       "title": "I.M Engineering",
       "kind": "WEBSITE",
-      "year": "[Year]",
+      "year": "2026",
       "madeWith": "AI coding agents",
       "description": "The website of I.M Engineering & Construction, a contractor that builds offices, restaurants and shops. It shows the finished projects and turns visitors into calls and messages. In Hebrew, right to left, and made for phones too.",
       "design": "Black, white and one gold, taken from the logo. The photos do the selling, so every project is a full-bleed photo with its category in a small gold pill and the title over a dark fade.\n\nOn a computer the menu is a thin rail of icons on the right. On a phone it turns into a tab bar at the bottom, and a call button appears once you scroll past the opening video.\n\nAn accessibility panel adds text size and twelve options, from high contrast to a reading guide that follows the pointer.",
@@ -238,11 +238,11 @@
       "Information Systems, Academic College of Tel Aviv‑Yaffo."
     ],
     "design": {
-      "lead": "[One or two lines: how you approach web design.]",
+      "lead": "I design websites and web apps the same way I build them: in code, with AI agents, checking every screen in a real browser on a laptop and on a phone.",
       "points": [
-        "[What you design, for example product sites and web apps.]",
-        "[How you work, for example designing straight in code with AI agents.]",
-        "LoreWire is one example. Open it from Work to click through it."
+        "Product websites, web apps and dashboards. Each one gets a look that comes from what it is for, not from a template.",
+        "I try a few very different directions first. Then most of the time goes into details and how it feels on a phone.",
+        "LoreWire and I.M Engineering are two examples. Both are on the Work page, and you can click through them."
       ]
     }
   }
