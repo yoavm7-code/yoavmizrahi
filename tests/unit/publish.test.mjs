@@ -1,6 +1,7 @@
 // admin/publish.js: the change summary, the commit message, and watching a publish go live.
 import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
+import { existsSync, readFileSync } from 'node:fs';
 
 /* admin/config.js reads the page address when it loads. */
 globalThis.location = new URL('https://yoavmizrahi.com/admin/');
@@ -57,6 +58,20 @@ test('commit message: plain default, joined changes, long lists shortened', () =
 test('usedMedia lists the media files the content points at', () => {
   const c = normalize({ works: [{ id: 'a', media: { src: 'media/a.webp' } }, { id: 'b' }] });
   assert.deepEqual(usedMedia(c), ['media/a.webp']);
+});
+
+test('usedMedia includes a demo\'s logo, so publishing commits it too', () => {
+  const c = normalize({ works: [
+    { id: 'a', media: { src: 'media/a.webp' } },
+    { id: 'm', demo: 'memesh', replica: { logo: { src: 'media/logo.webp' } } },
+    { id: 't', demo: 'toto', replica: { logo: { src: 'media/no-logo-slot.webp' } } }
+  ] });
+  assert.deepEqual(usedMedia(c), ['media/a.webp', 'media/logo.webp'], 'only demos with a logo slot keep a logo');
+});
+
+test('every media file the live content points at is in the repo', () => {
+  const live = normalize(JSON.parse(readFileSync(new URL('../../content/site.json', import.meta.url), 'utf8')));
+  for (const path of usedMedia(live)) assert.ok(existsSync(new URL('../../' + path, import.meta.url)), path + ' is missing');
 });
 
 /* ---------- Watching a publish ---------- */

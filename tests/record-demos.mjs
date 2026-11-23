@@ -261,12 +261,80 @@ async function lorewire(page, mark) {
   await pause(2600);
 }
 
+/* ---------- Ad Intel: the gap, the ad, the trend, the board and a live scrape ---------- */
+
+async function adIntel(page, mark) {
+  const pause = (ms) => page.waitForTimeout(ms);
+  const to = async (target, opts = {}) => {
+    await target.scrollIntoViewIfNeeded();
+    const box = await target.boundingBox();
+    await page.mouse.move(box.x + box.width * (opts.x ?? 0.5), box.y + box.height / 2, { steps: 22 });
+    await pause(opts.wait ?? 240);
+  };
+  const click = async (target, opts) => { await to(target, opts); await target.click(); };
+
+  await page.mouse.move(820, 420);
+  await pause(800);
+  await mark('poster');
+  await pause(1800);
+
+  /* 1. The gap: pick our domain, show only what we're missing, longest running first. */
+  await to(page.locator('[data-our-domain]'));
+  await page.locator('[data-our-domain]').selectOption('ourhub.com');
+  await pause(1400);
+  await click(page.locator('[data-seg="our:missing"]'));
+  await pause(1300);
+  await click(page.locator('[data-sort="days"]'));
+  await pause(2000);
+
+  /* 2. One ad: the copy, the competitor's article, then the Workflow. */
+  await click(page.locator('tr[data-ad] td.col-headline').first());
+  await pause(1600);
+  await page.mouse.move(860, 520, { steps: 16 });
+  for (let i = 0; i < 6; i++) { await page.mouse.wheel(0, 140); await pause(90); }
+  await pause(900);
+  await click(page.locator('[data-status="idea"]'));
+  await pause(500);
+  await click(page.locator('[data-owner="rk"]'));
+  await pause(400);
+  await click(page.locator('[data-notes]'));
+  await page.keyboard.type('Angle worth copying: a checklist, not a sales pitch.', { delay: 28 });
+  await pause(500);
+  await click(page.locator('[data-draft]'));
+  await pause(2200);
+
+  /* 3. Trends, then the pipeline: drag a card from New to Idea. */
+  await click(page.locator('[data-tab="trends"]'));
+  await pause(2400);
+  await click(page.locator('[data-tab="pipeline"]'));
+  await pause(1400);
+  const card = page.locator('[data-col="new"] [data-card]').first();
+  const target = page.locator('[data-col="idea"] .col__body');
+  await to(card, { x: 0.4 });
+  const from = await card.boundingBox();
+  const drop = await target.boundingBox();
+  await page.mouse.down();
+  await page.mouse.move(drop.x + drop.width / 2, drop.y + 160, { steps: 40 });
+  await pause(250);
+  await page.mouse.up();
+  await pause(2000);
+
+  /* 4. Control Room: run a scrape and watch new ads come in. */
+  await click(page.locator('[data-tab="control"]'));
+  await pause(1000);
+  await click(page.locator('[data-run]'));
+  await pause(5200);
+  await page.mouse.move(from.x + 300, 300, { steps: 16 });
+  await pause(1600);
+}
+
 /* view is the page size; scale makes the frames sharper; width is the video's width. */
 const DEMOS = [
   { name: 'mega-uploader', run: megaUploader, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' },
   { name: 'toto-mundial', run: totoMundial, view: { width: 390, height: 844 }, scale: 2, width: 780, pointer: '.rec-pointer' },
   { name: 'memesh', run: memesh, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' },
-  { name: 'lorewire', run: lorewire, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' }
+  { name: 'lorewire', run: lorewire, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' },
+  { name: 'ad-intel', run: adIntel, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' }
 ];
 const ONLY = process.argv.slice(2);
 

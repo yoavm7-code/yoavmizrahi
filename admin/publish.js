@@ -128,9 +128,14 @@ export async function publish(gh, draftRaw, media, expectedBase, message, progre
   throw Object.assign(new Error('conflict'), { status: 409 });
 }
 
+/* Every uploaded file the content points at: a work's picture and a demo's logo. A file left out
+   here is not committed, and the page would point at nothing. */
 export function usedMedia(content) {
   var list = [];
-  content.works.forEach(function (w) { if (w.media && w.media.src) list.push(w.media.src); });
+  content.works.forEach(function (w) {
+    if (w.media && w.media.src) list.push(w.media.src);
+    if (w.replica && w.replica.logo && w.replica.logo.src) list.push(w.replica.logo.src);
+  });
   return list;
 }
 
