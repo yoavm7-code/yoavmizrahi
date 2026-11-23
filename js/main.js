@@ -242,34 +242,81 @@
     });
   }
 
-  /* ---------- Toto demo (shared state) ---------- */
-  var toto = { home: 2, away: 1, locked: false };
-  function renderToto() {
-    var score = toto.home + '–' + toto.away;
-    $$('[data-widget="toto"]').forEach(function (root) {
-      root.innerHTML =
-        '<div class="toto__match"><span class="label label--dark">DEMO MATCH</span>' +
-        '<div class="toto__teams"><span>Brazil</span><span class="toto__score">' + score + '</span><span>Argentina</span></div>' +
-        '<div class="toto__controls">' +
-          '<div class="toto__pair"><button class="btn round" type="button" data-t="home:-1" aria-label="Brazil score down">−</button><button class="btn round" type="button" data-t="home:1" aria-label="Brazil score up">+</button></div>' +
-          '<div class="toto__pair"><button class="btn round" type="button" data-t="away:-1" aria-label="Argentina score down">−</button><button class="btn round" type="button" data-t="away:1" aria-label="Argentina score up">+</button></div>' +
-        '</div></div>' +
-        (toto.locked
-          ? '<button class="btn toto__lock is-locked" type="button" data-t="unlock">Locked ✓ ' + score + ' · change</button>'
-          : '<button class="btn toto__lock" type="button" data-t="lock">Lock in prediction</button>');
+  /* ---------- Toto demo: a pocket match pick (all instances share state) ---------- */
+  /* The replica's main moment, small: Brazil vs Japan, + and - set the score, and it saves by itself
+     after a pause, with undo, as in the video. The dice picks a random score. */
+  var TOTO_TEAMS = ['Brazil', 'Japan'];
+  var toto = { pick: null, saved: null, undoTo: undefined, state: 'none', timer: null };
+  function totoScore(s) { return s[0] + '-' + s[1]; }
+  /* Builds a widget once, so focus stays on the button that was pressed and the status is announced. */
+  function buildToto(root) {
+    var card = document.createElement('div');
+    card.className = 'toto__card';
+    card.innerHTML = '<span class="toto__when">TODAY · 18:00</span>';
+    TOTO_TEAMS.forEach(function (name, side) {
+      var row = document.createElement('div');
+      row.className = 'toto__row';
+      row.innerHTML = '<span class="toto__name"></span>' +
+        '<button class="btn toto__step" type="button" data-t="' + side + ':-1">−</button>' +
+        '<b class="toto__goals" data-goals="' + side + '"></b>' +
+        '<button class="btn toto__step" type="button" data-t="' + side + ':1">+</button>';
+      row.querySelector('.toto__name').textContent = name;
+      row.querySelectorAll('[data-t]').forEach(function (btn, k) { btn.setAttribute('aria-label', name + (k ? ': one goal more' : ': one goal fewer')); });
+      card.appendChild(row);
     });
+    var foot = document.createElement('div');
+    foot.className = 'toto__foot';
+    foot.innerHTML = '<span class="toto__status" role="status" aria-live="polite"></span>' +
+      '<button class="btn toto__dice" type="button" data-t="dice" aria-label="Surprise me: a random score">🎲</button>';
+    root.replaceChildren(card, foot, Object.assign(document.createElement('span'), { className: 'toto__rule', textContent: 'EXACT +10 · DIRECTION +5' }));
+  }
+  function renderToto() {
+    var shown = toto.pick || [0, 0];
+    $$('[data-widget="toto"]').forEach(function (root) {
+      if (!$('.toto__card', root)) buildToto(root);
+      root.classList.toggle('is-empty', !toto.pick);
+      $$('[data-goals]', root).forEach(function (el) { el.textContent = String(shown[+el.getAttribute('data-goals')]); });
+      $$('[data-t$=":-1"]', root).forEach(function (btn) { btn.disabled = !toto.pick || shown[+btn.getAttribute('data-t').charAt(0)] === 0; });
+      var status = $('.toto__status', root);
+      if (toto.state === 'pending' || toto.state === 'saving') status.innerHTML = '<span class="toto__spin" aria-hidden="true"></span>Saving…';
+      else if (toto.state === 'saved') {
+        status.textContent = '✓ Saved ' + totoScore(toto.saved);
+        if (toto.undoTo !== undefined) status.insertAdjacentHTML('beforeend', ' <button class="toto__undo" type="button" data-t="undo">Undo</button>');
+      } else status.textContent = toto.state === 'removed' ? 'Pick removed' : 'No pick yet';
+    });
+  }
+  /* Every change waits a moment, then saves. The first change after a save remembers what to undo to. */
+  function setToto(pick) {
+    if (toto.state !== 'pending' && toto.state !== 'saving') toto.undoTo = toto.saved;
+    toto.pick = pick;
+    toto.state = 'pending';
+    clearTimeout(toto.timer);
+    toto.timer = setTimeout(function () {
+      toto.state = 'saving';
+      renderToto();
+      toto.timer = setTimeout(function () { toto.saved = toto.pick.slice(); toto.state = 'saved'; renderToto(); }, 450);
+    }, 600);
+    renderToto();
   }
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-t]');
     if (!b) return;
     var a = b.getAttribute('data-t');
-    if (a === 'lock') toto.locked = true;
-    else if (a === 'unlock') toto.locked = false;
-    else if (!toto.locked) {
+    if (a === 'undo') {
+      clearTimeout(toto.timer);
+      toto.pick = toto.undoTo ? toto.undoTo.slice() : null;
+      toto.saved = toto.pick;
+      toto.state = toto.pick ? 'saved' : 'removed';
+      toto.undoTo = undefined;
+      renderToto();
+    } else if (a === 'dice') {
+      setToto([Math.floor(Math.random() * 4), Math.floor(Math.random() * 4)]);
+    } else {
       var p = a.split(':');
-      toto[p[0]] = Math.max(0, Math.min(9, toto[p[0]] + parseInt(p[1], 10)));
+      var next = (toto.pick || [0, 0]).slice();
+      next[+p[0]] = Math.max(0, Math.min(9, next[+p[0]] + parseInt(p[1], 10)));
+      setToto(next);
     }
-    renderToto();
   });
   renderToto();
 

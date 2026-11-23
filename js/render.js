@@ -160,9 +160,9 @@ function deskWork(w, i, order, paths) {
   } else if (w.style === 'phone') {
     body = html`
         <div class="phone settle ${delay}">
-          <div class="phone__screen">
+          <div class="${'phone__screen' + (w.demo === 'toto' ? ' phone__screen--paper' : '')}">
             <span class="phone__notch" aria-hidden="true"></span>
-            <div class="stack-4"><span class="label label--dark">${label}</span><span class="phone__title">${w.title}</span></div>
+            <div class="stack-4"><span class="${'label' + (w.demo === 'toto' ? '' : ' label--dark')}">${label}</span><span class="phone__title">${w.title}</span></div>
             ${w.demo === 'toto' ? new Raw('<div class="toto" data-widget="toto"></div>') : html`<div class="frame frame--phone">${mediaEl(w.media, paths) || html`<span class="frame__empty mono">[ SCREENSHOT ]</span>`}</div>`}
           </div>
           <div class="phone__foot">${open}</div>
@@ -317,7 +317,7 @@ function stageObject(w, paths) {
         <div class="phone__screen">
           <span class="phone__notch" aria-hidden="true"></span>
           <span class="phone__title">${w.title}</span>
-          ${w.demo === 'toto' ? new Raw('<div class="toto" data-widget="toto"></div>') : html`<div class="frame frame--phone">${mediaEl(w.media, paths, true) || html`<span class="frame__empty mono">[ SCREENSHOT OR SCREEN RECORDING ]</span>`}</div>`}
+          <div class="frame frame--phone">${mediaEl(w.media, paths, true) || html`<span class="frame__empty mono">[ SCREENSHOT OR SCREEN RECORDING ]</span>`}</div>
         </div>
       </div>`;
   }

@@ -31,6 +31,7 @@ test.describe('the Toto Mundial replica', () => {
     await page.clock.install();
     const outside = watchRequests(page);
     await page.goto(APP);
+    await page.clock.pauseAt(Date.now() + 2000); /* only the test moves time, so slow clicks can't save early */
     await expect(page.locator('[data-upnext]')).toContainText(/Brazil vs Japan locks in 1h 4[67]m/);
 
     await page.locator('[data-upnext]').click();
