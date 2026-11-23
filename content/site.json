@@ -2,15 +2,21 @@
   "schemaVersion": 1,
   "site": {
     "name": "Yoav Mizrahi",
-    "title": "Yoav Mizrahi — Products & films, built with AI",
+    "title": "Yoav Mizrahi - Products & films, built with AI",
     "description": "Portfolio of Yoav Mizrahi: products and films, built with AI.",
     "tagline": "PRODUCTS & FILMS, BUILT WITH AI",
     "channel": "The Wide Silence",
     "url": "https://yoavmizrahi.com",
-    "email": "",
+    "email": "yoavm7@gmail.com",
     "links": [
-      { "label": "LinkedIn", "url": "" },
-      { "label": "YouTube", "url": "" }
+      {
+        "label": "LinkedIn",
+        "url": "https://www.linkedin.com/in/yoavmiz/"
+      },
+      {
+        "label": "YouTube",
+        "url": "https://youtube.com/channel/UCRoeN4jIaX6x7e4iE6H72RQ/"
+      }
     ]
   },
   "desk": {
@@ -20,10 +26,23 @@
       "hi": "Hi, I’m Yoav.",
       "line": "I build products & films with AI.",
       "small": "Everything on this desk works. Play with it — or open the menu.",
-      "x": 60, "y": 40, "r": -3
+      "x": 60,
+      "y": 40,
+      "r": -3
     },
-    "monitor": { "x": 800, "y": 40, "r": 0 },
-    "mobileOrder": ["note", "monitor", "tapes", "work:uploader", "work:toto", "work:memesh"]
+    "monitor": {
+      "x": 800,
+      "y": 40,
+      "r": 0
+    },
+    "mobileOrder": [
+      "note",
+      "monitor",
+      "tapes",
+      "work:uploader",
+      "work:toto",
+      "work:memesh"
+    ]
   },
   "works": [
     {
@@ -37,7 +56,12 @@
       "style": "device",
       "demo": "uploader",
       "media": null,
-      "desk": { "show": true, "x": 70, "y": 300, "r": 2 }
+      "desk": {
+        "show": true,
+        "x": 70,
+        "y": 300,
+        "r": 2
+      }
     },
     {
       "id": "toto",
@@ -50,7 +74,12 @@
       "style": "phone",
       "demo": "toto",
       "media": null,
-      "desk": { "show": true, "x": 450, "y": 40, "r": 4 }
+      "desk": {
+        "show": true,
+        "x": 450,
+        "y": 40,
+        "r": 4
+      }
     },
     {
       "id": "memesh",
@@ -63,22 +92,33 @@
       "style": "polaroid",
       "demo": null,
       "media": null,
-      "desk": { "show": true, "x": 770, "y": 520, "r": -6 }
+      "desk": {
+        "show": true,
+        "x": 770,
+        "y": 520,
+        "r": -6
+      }
     }
   ],
   "films": [
     {
       "id": "leviathan-1",
-      "title": "LEVIATHAN",
-      "part": "PART ONE",
-      "label": "LEVIATHAN — PART 1",
+      "title": "THE LAST WARNING",
+      "part": "",
+      "label": "THE LAST WARNING",
       "presents": "THE WIDE SILENCE PRESENTS",
       "genre": "SCI-FI SHORT",
-      "runtime": "[RUNTIME]",
-      "file": "LEVIATHAN_PT1.MOV",
-      "youtube": "",
+      "runtime": "13:01",
+      "file": "THE_LAST_WARNING.MOV",
+      "youtube": "5GAV8yWfhFk",
       "soon": false,
-      "tape": { "show": true, "label": "LEVIATHAN · PT 1", "x": 1010, "y": 520, "r": -4 }
+      "tape": {
+        "show": true,
+        "label": "THE LAST WARNING",
+        "x": 1010,
+        "y": 520,
+        "r": -4
+      }
     },
     {
       "id": "film-2",
@@ -91,7 +131,13 @@
       "file": "FILM_02.MOV",
       "youtube": "",
       "soon": false,
-      "tape": { "show": true, "label": "[FILM TITLE]", "x": 1190, "y": 600, "r": 7 }
+      "tape": {
+        "show": true,
+        "label": "[FILM TITLE]",
+        "x": 1190,
+        "y": 600,
+        "r": 7
+      }
     },
     {
       "id": "next",
@@ -104,7 +150,13 @@
       "file": "FILM_03.MOV",
       "youtube": "",
       "soon": true,
-      "tape": { "show": false, "label": "", "x": 1100, "y": 420, "r": 0 }
+      "tape": {
+        "show": false,
+        "label": "",
+        "x": 1100,
+        "y": 420,
+        "r": 0
+      }
     }
   ],
   "about": {
