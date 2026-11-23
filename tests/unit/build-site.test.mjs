@@ -5,7 +5,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { buildSite, LEFT_OUT } from '../../tools/build-site.mjs';
+import { buildSite, LEFT_OUT, leftOut } from '../../tools/build-site.mjs';
 
 let out;
 before(async () => { out = (await buildSite(join(await mkdtemp(join(tmpdir(), 'ym-site-')), '_site'))).out; });
@@ -22,6 +22,8 @@ test('everything the site and the admin load is included', () => {
 
 test('development files are left out', () => {
   for (const name of LEFT_OUT) assert.ok(!existsSync(join(out, name)), name + ' should not be deployed');
+  for (const name of ['memesh-replica-spec.md', 'toto-mundial-screenshots', 'memesh-admin-screenshots.zip']) assert.ok(leftOut(name), name + ' is a real-data tour');
+  for (const name of ['index.html', 'demos', 'screenshots.md']) assert.ok(!leftOut(name), name + ' is part of the site');
   assert.ok(!existsSync(join(out, 'worker', 'src', 'crypto.js')));
 });
 

@@ -7,7 +7,7 @@
 <title>Yoav Mizrahi - Products &amp; films, built with AI</title>
 <meta name="description" content="Portfolio of Yoav Mizrahi: products and films, built with AI.">
 <meta name="theme-color" content="#EDE9E1">
-<meta name="build" content="local-mwt9u52k">
+<meta name="build" content="local-mwtd3irz">
 <link rel="canonical" href="https://yoavmizrahi.com/">
 <meta property="og:url" content="https://yoavmizrahi.com/">
 <meta property="og:type" content="website">
@@ -77,7 +77,7 @@
       <!-- Memesh -->
       <div class="obj" data-obj="work:memesh" data-x="770" data-y="520" data-r="-6" data-m="6" data-cursor="drag">
         <div class="polaroid settle d3">
-          <div class="polaroid__img mono">[ SCREENSHOT ]</div>
+          <div class="polaroid__img mono"><img class="media" src="demos/memesh/poster.jpg" alt="Memesh, a screenshot of the replica" loading="lazy" decoding="async"></div>
           <span class="label">03 · CLIENT SYSTEM</span>
           <span class="polaroid__title">Memesh</span>
           <a class="uline mono-link" href="#/work/memesh">OPEN PROJECT →</a>
@@ -159,8 +159,8 @@
         <div class="card__cover"><div class="card__shot card__shot--phone grid-dark" aria-hidden="true"><img src="demos/toto-mundial/poster.jpg" alt="" loading="lazy" decoding="async"><video data-card-video data-src="demos/toto-mundial/demo.mp4" muted loop playsinline preload="none"></video></div><div class="card__inner"><span class="card__no">02</span><span class="card__title">Toto Mundial</span></div><span class="card__bar" aria-hidden="true"></span></div>
         <div class="card__meta mono"><span>TOTO MUNDIAL</span><span class="muted">WEB APP</span></div>
       </a>
-      <a class="card" href="#/work/memesh" data-cursor="view">
-        <div class="card__cover"><div class="card__inner grid-dark"><span class="card__no">03</span><span class="card__title">Memesh</span></div><span class="card__bar" aria-hidden="true"></span></div>
+      <a class="card card--shot" href="#/work/memesh" data-cursor="view">
+        <div class="card__cover"><div class="card__shot card__shot--app" aria-hidden="true"><img src="demos/memesh/poster.jpg" alt="" loading="lazy" decoding="async"><video data-card-video data-src="demos/memesh/demo.mp4" muted loop playsinline preload="none"></video></div><div class="card__inner"><span class="card__no">03</span><span class="card__title">Memesh</span></div><span class="card__bar" aria-hidden="true"></span></div>
         <div class="card__meta mono"><span>MEMESH</span><span class="muted">CLIENT SYSTEM</span></div>
       </a>
       <a class="card" href="#/films" data-cursor="view">
@@ -259,11 +259,25 @@
       <div><span class="label">MADE WITH</span><span class="strong">AI coding agents</span></div>
       <p>The operations system behind a real playground business. [One line: what it handles day to day.]</p>
     </div>
-    <div class="stage grid-surface grid-surface--deep up d3">
-      <span class="stage__label mono">ON THE DESK</span>
-      <div class="polaroid polaroid--big">
-        <div class="polaroid__img mono">[ SCREENSHOT OR SCREEN RECORDING ]</div>
-        <span class="polaroid__title">Memesh</span>
+    <div class="stage stage--replica grid-surface grid-surface--deep up d3">
+      <span class="stage__label mono">THE REAL THING · FULLY CLICKABLE</span>
+      <div class="replica" data-replica data-src="demos/memesh/" data-w="1440" data-h="900" data-frame="desktop" data-title="Memesh" data-mode="try">
+        <div class="replica__bar">
+          <span class="replica__title mono"><span class="replica__live" aria-hidden="true"></span>MEMESH · MADE-UP DATA</span>
+          <div class="replica__modes" role="group" aria-label="Demo or video">
+            <button class="btn replica__mode" type="button" data-replica-mode="try" aria-pressed="true">TRY IT</button>
+            <button class="btn replica__mode" type="button" data-replica-mode="watch" aria-pressed="false">WATCH IT</button>
+          </div>
+          <div class="replica__actions">
+            <button class="btn replica__act" type="button" data-replica-reset>↺ START OVER</button>
+            <a class="replica__act" href="demos/memesh/" data-replica-full>⤢ FULL SCREEN</a>
+          </div>
+        </div>
+        <div class="replica__screen">
+          <div class="replica__viewport" data-replica-viewport data-cursor-off></div>
+          <video class="replica__video" data-replica-video src="demos/memesh/demo.mp4" poster="demos/memesh/poster.jpg" muted loop playsinline controls preload="none" aria-label="A recorded walk through Memesh"></video>
+        </div>
+        <p class="replica__note mono">The clickable demo is built for a computer screen. <a class="uline" href="demos/memesh/">Open it anyway →</a></p>
       </div>
     </div>
     <a class="next" href="#/films" data-cursor="view"><span class="label">NEXT</span><span class="next__title uline">The films →</span></a>
