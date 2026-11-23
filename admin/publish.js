@@ -141,27 +141,75 @@ export function commitMessage(changes) {
 
 /* ---------- Watching the live site ---------- */
 
-/* Resolves true once the live index.html carries this build id, false after the time limit.
-   GitHub Pages usually takes about a minute. */
-export function waitForLive(build, onTick, limitMs) {
+/* Every push to main runs the Deploy check (.github/workflows/deploy.yml): tests first, then
+   GitHub Pages. Its result is public, so it is read without a key (60 requests per hour per IP). */
+var RUNS_API = 'https://api.github.com/repos/' + REPO.owner + '/' + REPO.name + '/actions/runs';
+var DEPLOY_WORKFLOW = '.github/workflows/deploy.yml';
+
+/* Poll timings in ms. Exported so the tests can shorten them. */
+export var WATCH = { first: 4000, fast: 5000, slow: 10000, fastFor: 60000, statusEvery: 15000, limit: 10 * 60 * 1000 };
+
+/* The Deploy check for one commit: { state, url }. state is 'pending' (not started or still
+   running), 'passed', 'failed', 'cancelled' (a newer publish took its place) or 'unknown'. */
+export async function deployStatus(commit) {
+  try {
+    var res = await fetch(RUNS_API + '?head_sha=' + encodeURIComponent(commit) + '&event=push&per_page=20', {
+      headers: { Accept: 'application/vnd.github+json' },
+      cache: 'no-store'
+    });
+    if (!res.ok) {
+      console.info('[admin publish] check status unavailable', { commit: commit, status: res.status });
+      return { state: 'unknown', url: '' };
+    }
+    var data = await res.json();
+    var run = (data.workflow_runs || []).filter(function (r) { return String(r.path || '').split('@')[0] === DEPLOY_WORKFLOW; })[0];
+    if (!run) return { state: 'pending', url: '' };
+    var url = String(run.html_url || '');
+    if (run.status !== 'completed') return { state: 'pending', url: url };
+    if (run.conclusion === 'success') return { state: 'passed', url: url };
+    if (run.conclusion === 'cancelled' || run.conclusion === 'skipped') return { state: 'cancelled', url: url };
+    return { state: 'failed', url: url };
+  } catch (e) {
+    console.info('[admin publish] check status unreachable', { commit: commit, error: String(e && e.message) });
+    return { state: 'unknown', url: '' };
+  }
+}
+
+/* Watches until the live index.html carries this build id, and the Deploy check for the commit
+   alongside it. Resolves { result, url }: 'live', 'blocked' (the check failed, the live site is
+   unchanged), 'replaced' (a newer publish went out instead) or 'slow' (the time limit passed). */
+export function waitForLive(build, commit, onTick, limitMs) {
   var started = Date.now();
-  limitMs = limitMs || 10 * 60 * 1000;
+  var lastStatus = started;
+  limitMs = limitMs || WATCH.limit;
   return new Promise(function (resolve) {
+    function done(result, url) {
+      console.info('[admin publish] watch finished', { build: build, commit: commit, result: result, ms: Date.now() - started });
+      resolve({ result: result, url: url || '' });
+    }
     async function poll() {
       try {
         var res = await fetch(SITE_ROOT + 'index.html?live=' + Date.now(), { cache: 'no-store' });
         if (res.ok) {
           var text = await res.text();
           var m = text.match(/<meta name="build" content="([^"]+)">/);
-          if (m && m[1] === build) { resolve(true); return; }
+          if (m && m[1] === build) { done('live'); return; }
         }
       } catch (e) { /* offline for a moment: keep trying */ }
       var elapsed = Date.now() - started;
+      if (commit && Date.now() - lastStatus >= WATCH.statusEvery) {
+        lastStatus = Date.now();
+        var status = await deployStatus(commit);
+        console.info('[admin publish] check status', { commit: commit, state: status.state, ms: elapsed });
+        if (status.state === 'failed') { done('blocked', status.url); return; }
+        if (status.state === 'cancelled') { done('replaced', status.url); return; }
+      }
       if (onTick) onTick(elapsed);
-      if (elapsed > limitMs) { resolve(false); return; }
-      setTimeout(poll, elapsed < 60000 ? 5000 : 10000);
+      if (elapsed > limitMs) { done('slow'); return; }
+      setTimeout(poll, elapsed < WATCH.fastFor ? WATCH.fast : WATCH.slow);
     }
-    setTimeout(poll, 4000);
+    console.info('[admin publish] watching', { build: build, commit: commit });
+    setTimeout(poll, WATCH.first);
   });
 }
 

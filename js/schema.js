@@ -92,6 +92,8 @@ function clampNum(v, min, max, fallback) {
   return Math.round(Math.max(min, Math.min(max, n)));
 }
 function str(v) { return typeof v === 'string' ? v : (v === null || v === undefined ? '' : String(v)); }
+/* A plain object to write into: anything else (missing, a number, a list) becomes a new one. */
+function obj(v) { return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; }
 /* Fields the design always shows in capitals (mono labels, film credits). Stored the same way. */
 function caps(v) { return str(v).trim().toUpperCase(); }
 
@@ -108,10 +110,10 @@ export function deskKeys(content) {
 /* ---------- Normalize: fill defaults, coerce types, repair order. Never throws. ---------- */
 
 export function normalize(input) {
-  var c = JSON.parse(JSON.stringify(input || {}));
+  var c = obj(JSON.parse(JSON.stringify(input || {})));
   c.schemaVersion = SCHEMA_VERSION;
 
-  var s = c.site = c.site || {};
+  var s = c.site = obj(c.site);
   ['name', 'title', 'description', 'channel', 'url', 'email'].forEach(function (k) { s[k] = str(s[k]).trim(); });
   s.tagline = caps(s.tagline);
   s.url = s.url.replace(/\/+$/, '');
@@ -119,12 +121,12 @@ export function normalize(input) {
     return { label: str(l && l.label).trim(), url: str(l && l.url).trim() };
   });
 
-  var d = c.desk = c.desk || {};
+  var d = c.desk = obj(c.desk);
   d.hint = caps(d.hint);
   d.hintMobile = caps(d.hintMobile);
-  d.note = d.note || {};
+  d.note = obj(d.note);
   ['hi', 'line', 'small'].forEach(function (k) { d.note[k] = str(d.note[k]); });
-  [d.note, d.monitor = d.monitor || {}].forEach(function (o) {
+  [d.note, d.monitor = obj(d.monitor)].forEach(function (o) {
     o.x = clampNum(o.x, 0, DESK.maxX, 60);
     o.y = clampNum(o.y, 0, DESK.maxY, 40);
     o.r = clampNum(o.r, -DESK.maxR, DESK.maxR, 0);
@@ -187,7 +189,7 @@ export function normalize(input) {
     };
   });
 
-  var a = c.about = c.about || {};
+  var a = c.about = obj(c.about);
   a.lead = str(a.lead).trim();
   a.before = (Array.isArray(a.before) ? a.before : []).map(function (l) { return str(l).trim(); }).filter(Boolean);
 
