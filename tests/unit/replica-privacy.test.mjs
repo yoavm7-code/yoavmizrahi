@@ -33,7 +33,21 @@ const BANNED = new Set([
   '00260e9b05ddcbe7', '1de1f84a98acf0fd', '40587f346de6362f', '36505755eb34f660', 'faf4e1efa54ef4a5', 'd576b445708ef98e',
   'd4ef93ae2b538012', '346cd2b49312f2f7', '02742e4df5e75dd5', 'b2068ae753f72424', '3bcd8ed3670d2539', '4d5d0ac3dbeb8ae0',
   'd8d0dedb4bda4204', '3b731d7620bf723f', 'a823bd31ca4166b2', '42d9972e972e4095', '3ea77fc339263dd3', 'ee14860f6bd0506d',
-  'b24dd49aca341e93', '3644cb1007be9e1b', 'c9666ca719574009', '57c03210be824f7a'
+  'b24dd49aca341e93', '3644cb1007be9e1b', 'c9666ca719574009', '57c03210be824f7a',
+  // Memesh: real customers' and staff names, phones, email names and ticket numbers from the tour.
+  'ae3eabbe0cd500ff', 'c0588ea74fbbe043', '560bd0366ea9f30d', 'a20e3dc4b09146f8', 'c63ae47c59484eaa', 'da60d78ee3eb530e',
+  'c3d1d49c5b326f01', 'cb08ccc084dc70c9', '7f636d143d2c409d', '58784e4ca300b052', '6a3b6e433a7ea523', 'c635386162cfa210',
+  'd975f3bec644e39d', '4f4666f40ffae0d5', 'e894ea465c5a5af1', '8df935aa5ef73e38', '130f10251eb60780', 'fbb962490f4f2486',
+  '8cb7f4cf4c886465', 'a7b4c1c3be1c6839', '6190f9e5dbb661b1', 'd09d88db9bb2d153', '6de2b98ab8d774a9', 'fd1564744f162e9d',
+  '96e7df83445279bf', '0503fe01bea645ab', '4cf30b6b63ed4d77', '3ae59459d65d9041', '403ee14e6183a23a', 'f7ef685a8400c9bd',
+  '01994822efdc77f1', '9ca289c839df6a22', 'c6b4663930d7bac5', '45b7db0463b03067', '44b1fbd6ac3aacde', '32012b6cb3f894b0',
+  '48640d0e33197fb8', 'da3be600ed1e2cf2', 'd248189597520193', '3e8923f0ddba6d91', 'd2daff53c4b86a16', '339f7ebc54a213a6',
+  '4c783e83f1f569a2', '126b6d7404f541d5', '43469f52359412cb', '61d1f185e3dc6d40', '22054ead3f1d5d2a', '909c5ac142c2dbd1',
+  '738e37b42cf1416c', '4fd6206bf27186a4', 'df8d8ef96bb60d92', '42fb95f7d87e8d7a', '467ddf673df6ad99', '181a68011b543c28',
+  '3cfc7352d36e2dee', '0eb4d3f2e82ffa0d', '5d037d214008d1d7', 'eb342817dca5fbb0', '9e53aed9fab7a012', '92d7243b217bb578',
+  '201917f0174bb711', '1bfe65d00f469f59', '75b96d6761d45a9c', 'b62f519507624b6c', '7cad3dbe9b18ebc6', '479cdb5974e303e7',
+  '2da55b46972224ee', '676754736988d613', 'd8e04b3dc957bb89', '00e6c637eaf06318', 'b581e323b55c7511', 'dccce57ffe89f9df',
+  'ad3e3ad89cb9fb68'
 ]);
 
 function digest(text) { return createHash('sha256').update(text).digest('hex').slice(0, 16); }

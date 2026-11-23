@@ -40,6 +40,18 @@ export const DEMOS = {
       height: 844,
       frame: 'phone'
     }
+  },
+  memesh: {
+    name: 'Memesh replica',
+    style: 'polaroid',
+    replica: {
+      title: 'Memesh',
+      src: 'demos/memesh/',
+      video: 'demos/memesh/demo.mp4',
+      poster: 'demos/memesh/poster.jpg',
+      width: 1440,
+      height: 900
+    }
   }
 };
 

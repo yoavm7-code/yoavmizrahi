@@ -176,7 +176,7 @@ function deskWork(w, i, order, paths) {
   } else {
     body = html`
         <div class="polaroid settle ${delay}">
-          <div class="polaroid__img mono">${mediaEl(w.media, paths) || '[ SCREENSHOT ]'}</div>
+          <div class="polaroid__img mono">${mediaEl(w.media, paths) || replicaPoster(w, paths) || '[ SCREENSHOT ]'}</div>
           <span class="label">${label}</span>
           <span class="polaroid__title">${w.title}</span>
           <a class="uline mono-link" href="${href}">OPEN PROJECT →</a>
@@ -340,6 +340,12 @@ function stageObject(w, paths) {
    to fit. A desktop replica gives phones and tablets the video, with a link to open it anyway; a phone
    replica sits in a phone-shaped device and stays clickable on every screen. */
 function replicaOf(w) { return w.demo && DEMOS[w.demo].replica || null; }
+
+/* A replica's poster as a desk picture, for desk objects that show an image (the polaroid). */
+function replicaPoster(w, paths) {
+  var r = replicaOf(w);
+  return r ? html`<img class="media" src="${paths.asset(r.poster)}" alt="${r.title + ', a screenshot of the replica'}" loading="lazy" decoding="async">` : '';
+}
 
 function replicaStage(r, paths) {
   var full = paths.asset(r.src);

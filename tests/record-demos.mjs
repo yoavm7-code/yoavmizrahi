@@ -138,10 +138,80 @@ async function totoMundial(page, mark) {
   await pause(2600);
 }
 
+/* ---------- Memesh: one story across the three apps ---------- */
+
+async function memesh(page, mark) {
+  const pause = (ms) => page.waitForTimeout(ms);
+  const click = async (target, opts = {}) => {
+    await target.scrollIntoViewIfNeeded();
+    const box = await target.boundingBox();
+    await page.mouse.move(box.x + box.width * (opts.x ?? 0.5), box.y + box.height / 2, { steps: 22 });
+    await pause(opts.wait ?? 240);
+    await target.click();
+  };
+
+  await page.mouse.move(720, 450);
+  await pause(1800);
+
+  /* 1. The parent books tonight's evening round from a punch card. */
+  await click(page.locator('[data-book]').first());
+  await pause(1400);
+  await click(page.locator('[data-round="evening"]'));
+  await pause(700);
+  await click(page.locator('.stepper-row .step').last());
+  await pause(500);
+  await click(page.locator('.companion input'));
+  await pause(1100);
+  await click(page.locator('[data-confirm]'));
+  await pause(1300);
+  await click(page.locator('.rule__head').nth(1), { x: 0.6 });
+  await pause(1400);
+  await click(page.locator('[data-rules-ok]'));
+  await pause(2600);
+
+  /* 2. At the desk: hold that ticket to the camera and confirm the entry. */
+  await click(page.locator('[data-role="desk"]'));
+  await pause(1600);
+  await click(page.locator('[data-tile="scan"]'));
+  await pause(1300);
+  await click(page.locator('[data-hold^="R-"]'));
+  await pause(1500);
+  await click(page.locator('[data-checkin]'));
+  await pause(1600);
+  await click(page.locator('[data-dtab="rounds"]'));
+  await pause(900);
+  await click(page.locator('[data-arrivals="evening"]'));
+  await pause(2200);
+
+  /* 3. The manager's dashboard: the round fills, a walk-in is added by hand, the feed shows it all. */
+  await click(page.locator('[data-role="manager"]'));
+  await pause(1500);
+  await mark('poster');
+  await click(page.locator('[data-manage="evening"]'));
+  await pause(1000);
+  await click(page.locator('[data-add]'));
+  await pause(500);
+  await page.keyboard.type('Yon', { delay: 120 });
+  await pause(700);
+  await click(page.locator('[data-pick]').first());
+  await pause(1800);
+  await page.mouse.move(720, 600, { steps: 10 });
+  for (let i = 0; i < 10; i++) { await page.mouse.wheel(0, 120); await pause(70); }
+  await pause(2200);
+  for (let i = 0; i < 10; i++) { await page.mouse.wheel(0, 120); await pause(70); }
+  await pause(2400);
+
+  /* 4. The same system in English. */
+  await click(page.locator('[data-lang-toggle]'));
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await pause(2600);
+}
+
 /* view is the page size; scale makes the frames sharper; width is the video's width. */
 const DEMOS = [
   { name: 'mega-uploader', run: megaUploader, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' },
-  { name: 'toto-mundial', run: totoMundial, view: { width: 390, height: 844 }, scale: 2, width: 780, pointer: '.rec-pointer' }
+  { name: 'toto-mundial', run: totoMundial, view: { width: 390, height: 844 }, scale: 2, width: 780, pointer: '.rec-pointer' },
+  { name: 'memesh', run: memesh, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' }
 ];
 const ONLY = process.argv.slice(2);
 
