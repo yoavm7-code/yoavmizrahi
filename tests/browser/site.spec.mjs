@@ -159,21 +159,30 @@ test('a work card plays its video only on hover, and loads nothing before', asyn
   expect(await video.evaluate((v) => v.paused)).toBe(true);
 });
 
-test('the score picker on the desk changes, locks, and unlocks', async ({ page }) => {
+test('the match pick on the desk saves by itself, undoes, and rolls the dice', async ({ page }) => {
+  await page.clock.install();
   await page.goto('/#/');
+  await page.clock.pauseAt(Date.now() + 2000); /* only the test moves time, so slow clicks can't save early */
   const demo = page.locator('.page.is-active [data-widget="toto"]');
-  const score = demo.locator('.toto__score');
-  await expect(score).toHaveText('2–1');
-  await demo.getByRole('button', { name: 'Brazil score up' }).click();
-  await demo.getByRole('button', { name: 'Argentina score down' }).click();
-  await demo.getByRole('button', { name: 'Argentina score down' }).click();
-  await expect(score).toHaveText('3–0');
-  await demo.getByRole('button', { name: 'Lock in prediction' }).click();
-  await demo.getByRole('button', { name: 'Brazil score up' }).click();
-  await expect(score).toHaveText('3–0');
-  await expect(demo.locator('.toto__lock')).toHaveText('Locked ✓ 3–0 · change');
-  await demo.locator('.toto__lock').click();
-  await expect(demo.getByRole('button', { name: 'Lock in prediction' })).toBeVisible();
+  const goals = demo.locator('.toto__goals');
+  const status = demo.locator('.toto__status');
+  await expect(status).toHaveText('No pick yet');
+  await expect(goals).toHaveText(['0', '0']);
+  await expect(demo.getByRole('button', { name: 'Brazil: one goal fewer' })).toBeDisabled();
+  await demo.getByRole('button', { name: 'Brazil: one goal more' }).click();
+  await demo.getByRole('button', { name: 'Brazil: one goal more' }).click();
+  await demo.getByRole('button', { name: 'Japan: one goal more' }).click();
+  await expect(goals).toHaveText(['2', '1']);
+  await page.clock.runFor(700);
+  await expect(status).toContainText('Saving…');
+  await page.clock.runFor(600);
+  await expect(status).toContainText('Saved 2-1');
+  await demo.getByRole('button', { name: 'Undo' }).click();
+  await expect(status).toHaveText('Pick removed');
+  await expect(goals).toHaveText(['0', '0']);
+  await demo.getByRole('button', { name: /Surprise me/ }).click();
+  await page.clock.runFor(1200);
+  await expect(status).toContainText(/Saved \d-\d/);
 });
 
 /* ---------- Films ---------- */
