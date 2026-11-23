@@ -119,15 +119,44 @@ test('desk objects drag on wide screens and stay put on narrow ones', async ({ p
 
 /* ---------- Demos ---------- */
 
-test('the upload demo on the desk runs to 100% and resets', async ({ page }) => {
+test('the uploader on the desk runs live: four go live, Credit Cards fails, then it runs again', async ({ page }) => {
   await page.goto('/#/');
   const demo = page.locator('.page.is-active [data-widget="uploader"]');
-  await demo.getByRole('button', { name: 'UPLOAD 3 SAMPLE FILES' }).click();
-  await expect(demo.locator('.u-file')).toHaveCount(3);
-  await expect(demo.getByRole('button', { name: 'DONE · RUN AGAIN' })).toBeVisible({ timeout: 10000 });
-  await expect(demo.locator('.u-file__row span:last-child')).toHaveText(['100%', '100%', '100%']);
-  await demo.getByRole('button', { name: 'DONE · RUN AGAIN' }).click();
-  await expect(demo.getByRole('button', { name: 'UPLOAD 3 SAMPLE FILES' })).toBeVisible();
+  await expect(demo.locator('.u-sum')).toHaveText('5 campaigns ready');
+  await demo.getByRole('button', { name: 'RUN LIVE' }).click();
+  await expect(demo.getByRole('button', { name: 'RUNNING…' })).toBeDisabled();
+  await expect(demo.locator('.u-row.is-running')).toHaveCount(1);
+  await expect(demo.getByRole('button', { name: 'RUN AGAIN' })).toBeVisible({ timeout: 10000 });
+  await expect(demo.locator('.u-sum')).toHaveText('4 live · 1 failed');
+  await expect(demo.locator('.u-row.is-failed')).toContainText('AU · Credit Cards');
+  await expect(demo.locator('.u-row.is-failed .u-state')).toHaveText('policy');
+  await demo.getByRole('button', { name: 'RUN AGAIN' }).click();
+  await expect(demo.locator('.u-sum')).toHaveText('0 live · 0 failed');
+  await expect(demo.locator('.u-row.is-live')).toHaveCount(0);
+});
+
+test('the uploader stays clear of the objects around it on the desk', async ({ page }) => {
+  test.skip(isNarrow(page), 'narrow screens stack the desk');
+  await page.goto('/#/');
+  const link = page.locator('.page.is-active .obj[data-obj="work:uploader"] .device__foot a');
+  await link.click();
+  await expect(page.locator('.page.is-active')).toHaveAttribute('data-route', '/work/uploader');
+});
+
+test('a work card plays its video only on hover, and loads nothing before', async ({ page }) => {
+  test.skip(isNarrow(page), 'touch screens keep the still poster');
+  await page.goto('/#/work');
+  const card = page.locator('.page.is-active .card--shot').first();
+  const video = card.locator('[data-card-video]');
+  await page.mouse.move(5, 5);
+  await expect(card.locator('img')).toBeVisible();
+  expect(await video.getAttribute('src')).toBeNull();
+  await card.hover();
+  await expect(card).toHaveClass(/is-playing/);
+  await expect.poll(() => video.evaluate((v) => !v.paused && v.currentTime > 0), { timeout: 10000 }).toBe(true);
+  await page.mouse.move(5, 5);
+  await expect(card).not.toHaveClass(/is-playing/);
+  expect(await video.evaluate((v) => v.paused)).toBe(true);
 });
 
 test('the score picker changes, locks, and unlocks', async ({ page }) => {

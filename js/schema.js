@@ -35,7 +35,7 @@ export const SIZES = {
   note: { w: 300, h: 250 },
   monitor: { w: 560, h: 400 },
   tape: { w: 210, h: 124 },
-  device: { w: 330, h: 300 },
+  device: { w: 330, h: 400 },
   phone: { w: 260, h: 590 },
   polaroid: { w: 220, h: 280 },
   screen: { w: 420, h: 330 }

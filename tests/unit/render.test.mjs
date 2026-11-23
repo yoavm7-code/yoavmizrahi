@@ -117,9 +117,33 @@ test('a work whose demo has a replica gets the replica stage instead of the desk
   assert.ok(page.includes('data-src="' + r.src + '" data-w="' + r.width + '" data-h="' + r.height + '"'));
   assert.ok(page.includes('src="' + r.video + '" poster="' + r.poster + '"'));
   assert.ok(page.includes('href="' + r.src + '" data-replica-full'));
-  assert.ok(!page.includes('data-upload-total'), 'the old upload widget stage is gone from the project page');
-  assert.equal(count(page, 'data-widget="uploader"'), 1, 'the desk keeps its upload widget');
+  assert.equal(count(page, 'data-widget="uploader"'), 1, 'the desk keeps its Run live widget, the project page does not');
   assert.ok(page.includes('ON THE DESK</span>'), 'a work without a replica keeps the desk stage');
+});
+
+test('a work card shows the replica poster with a video that loads only on hover', () => {
+  const raw = base();
+  raw.works = [{ id: 'up', title: 'Up', demo: 'uploader' }];
+  const page = renderSite(raw);
+  const r = DEMOS.uploader.replica;
+  const card = page.slice(page.indexOf('<a class="card card--shot" href="#/work/up"'));
+  assert.ok(card.length, 'the card is marked as a picture card');
+  assert.ok(card.includes('<img src="' + r.poster + '" alt="" loading="lazy"'));
+  assert.ok(card.includes('<video data-card-video data-src="' + r.video + '" muted loop playsinline preload="none">'));
+  assert.ok(!card.slice(0, card.indexOf('</a>')).includes(' src="' + r.video + '"'), 'no video src until hover');
+});
+
+test('a work card uses the work\'s own picture, or stays plain ink without one', () => {
+  const raw = base();
+  raw.works = [
+    { id: 'pic', title: 'Pic', style: 'polaroid', media: { type: 'image', src: 'media/shot.webp', alt: 'Shot' } },
+    { id: 'none', title: 'None', style: 'polaroid' }
+  ];
+  const page = renderSite(raw);
+  assert.ok(page.includes('<a class="card card--shot" href="#/work/pic"'));
+  assert.ok(page.includes('<div class="card__shot"><img class="media" src="media/shot.webp" alt="Shot"'));
+  assert.ok(page.includes('<a class="card" href="#/work/none"'));
+  assert.ok(page.includes('<div class="card__inner grid-dark"><span class="card__no">02</span><span class="card__title">None</span>'));
 });
 
 test('replica paths follow the root option, for the admin preview', () => {

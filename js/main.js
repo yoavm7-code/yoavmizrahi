@@ -166,44 +166,81 @@
     });
   }
 
-  /* ---------- Uploader demo (all instances share state) ---------- */
-  var up = { files: [], running: false, timer: null };
-  var upNames = ['launch-video.mp4', 'cover-image.png', 'captions.srt'];
+  /* ---------- Uploader demo: a pocket Run live (all instances share state) ---------- */
+  /* The rows are campaigns from the replica's recorded run (demos/mega-uploader), so the desk matches the
+     video. Credit Cards fails on the financial claims policy there too. */
+  var upRows = [
+    { name: 'CA · Smart Home' }, { name: 'FR · Meal Kits' }, { name: 'IT · Language Apps' },
+    { name: 'AU · Credit Cards', fails: true }, { name: 'NL · Pet Food' }
+  ];
+  var upText = { ready: 'ready', running: 'uploading', live: 'live', failed: 'policy' };
+  var up = { done: 0, running: false, timer: null };
+  function upState(i) {
+    if (i < up.done) return upRows[i].fails ? 'failed' : 'live';
+    return up.running && i === up.done ? 'running' : 'ready';
+  }
+  /* Builds a widget's rows once, so the polite summary stays the same node and is announced. */
+  function buildUploader(root) {
+    var list = document.createElement('ul');
+    list.className = 'u-rows';
+    upRows.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = 'u-row';
+      li.innerHTML = '<span class="u-dot" aria-hidden="true"></span><span class="u-name"></span><span class="u-state"></span>';
+      $('.u-name', li).textContent = r.name;
+      list.appendChild(li);
+    });
+    var foot = document.createElement('div');
+    foot.className = 'u-foot';
+    foot.innerHTML = '<button class="btn u-btn" type="button" data-u-start></button><span class="u-sum" aria-live="polite"></span>';
+    root.replaceChildren(list, foot);
+  }
   function renderUploader() {
-    var total = up.files.length ? Math.round(up.files.reduce(function (a, f) { return a + f.pct; }, 0) / up.files.length) : 0;
-    $$('[data-upload-total]').forEach(function (el) { el.textContent = total + '%'; });
+    var live = 0, failed = 0;
+    upRows.forEach(function (r, i) { var st = upState(i); if (st === 'live') live++; if (st === 'failed') failed++; });
+    var started = up.running || up.done > 0;
     $$('[data-upload-led]').forEach(function (el) { el.classList.toggle('is-on', up.running); });
     $$('[data-widget="uploader"]').forEach(function (root) {
-      var html = '';
-      if (!up.files.length) {
-        html = '<button class="btn u-btn" type="button" data-u-start>UPLOAD 3 SAMPLE FILES</button>';
-      } else {
-        up.files.forEach(function (f) {
-          html += '<div class="u-file"><div class="u-file__row"><span>' + f.name + '</span><span>' + f.pct + '%</span></div>' +
-                  '<div class="u-bar"><span></span></div></div>';
-        });
-        if (!up.running) html += '<button class="btn u-btn u-btn--ghost" type="button" data-u-reset>DONE · RUN AGAIN</button>';
-      }
-      root.innerHTML = html;
-      $$('.u-bar > span', root).forEach(function (bar, k) { bar.style.width = up.files[k].pct + '%'; });
+      if (!$('.u-rows', root)) buildUploader(root);
+      $$('.u-row', root).forEach(function (li, i) {
+        var st = upState(i);
+        li.className = 'u-row is-' + st;
+        $('.u-state', li).textContent = upText[st];
+      });
+      var btn = $('[data-u-start]', root);
+      btn.textContent = up.running ? 'RUNNING…' : started ? 'RUN AGAIN' : 'RUN LIVE';
+      btn.disabled = up.running;
+      $('.u-sum', root).textContent = started ? live + ' live · ' + failed + ' failed' : upRows.length + ' campaigns ready';
     });
   }
   document.addEventListener('click', function (e) {
-    if (e.target.closest('[data-u-start]')) {
-      clearInterval(up.timer);
-      up.files = upNames.map(function (n) { return { name: n, pct: 0 }; });
-      up.running = true;
+    if (!e.target.closest('[data-u-start]') || up.running) return;
+    clearInterval(up.timer);
+    up.done = 0;
+    up.running = true;
+    renderUploader();
+    up.timer = setInterval(function () {
+      up.done++;
+      if (up.done >= upRows.length) { up.running = false; clearInterval(up.timer); }
       renderUploader();
-      up.timer = setInterval(function () {
-        up.files.forEach(function (f) { f.pct = Math.min(100, f.pct + Math.ceil(Math.random() * 11)); });
-        if (up.files.every(function (f) { return f.pct >= 100; })) { up.running = false; clearInterval(up.timer); }
-        renderUploader();
-      }, 140);
-    } else if (e.target.closest('[data-u-reset]')) {
-      clearInterval(up.timer); up.files = []; up.running = false; renderUploader();
-    }
+    }, 520);
   });
   renderUploader();
+
+  /* ---------- Work cards: the product's video plays on hover ---------- */
+  /* Nothing loads until the first hover. Touch screens and reduced motion keep the still poster. */
+  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches && !reduceMotion) {
+    $$('[data-card-video]').forEach(function (video) {
+      var card = video.closest('.card');
+      card.addEventListener('mouseenter', function () {
+        if (!video.src) video.src = video.getAttribute('data-src');
+        var played = video.play();
+        if (played && played.catch) played.catch(function () {});
+        card.classList.add('is-playing');
+      });
+      card.addEventListener('mouseleave', function () { video.pause(); card.classList.remove('is-playing'); });
+    });
+  }
 
   /* ---------- Toto demo (shared state) ---------- */
   var toto = { home: 2, away: 1, locked: false };
