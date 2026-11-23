@@ -414,9 +414,11 @@ function updateTop() {
   else if (st.syncing) text = 'Saving draft…';
   else if (st.syncError && dirty) text = 'Draft saved on this device';
   else if (dirty) text = 'Draft saved';
+  else if (liveState === 'blocked') text = 'Check failed';
   else text = 'All published';
   shell.status.textContent = text;
-  shell.status.className = 'status' + (liveState === 'waiting' ? ' is-busy' : dirty ? ' is-draft' : ' is-clean');
+  shell.status.title = liveState === 'blocked' ? 'The site check stopped the last publish. The live site still shows the previous version.' : '';
+  shell.status.className = 'status' + (liveState === 'waiting' ? ' is-busy' : dirty ? ' is-draft' : liveState === 'blocked' ? ' is-error' : ' is-clean');
   shell.undo.disabled = !store.canUndo();
   shell.redo.disabled = !store.canRedo();
   shell.publish.disabled = !dirty;
@@ -610,20 +612,33 @@ async function runPublish(message, force) {
     note.textContent = 'Saved. GitHub is putting it live, which usually takes about a minute. You can close this and keep working.';
     dlg.foot.appendChild(button('Keep working', { kind: 'ghost', onClick: dlg.close }));
     dlg.el.appendChild(dlg.foot);
-    var live = await waitForLive(res.build, function (ms) {
-      note.textContent = 'Saved. Going live… (' + Math.round(ms / 1000) + 's). You can close this and keep working.';
+    var watch = await waitForLive(res.build, res.commit, function (ms) {
+      note.textContent = 'Saved. Checking the site and going live… (' + Math.round(ms / 1000) + 's). You can close this and keep working.';
     });
-    liveState = null;
+    liveState = watch.result === 'blocked' ? 'blocked' : null;
     updateTop();
-    if (live) {
+    if (watch.result === 'live') {
       steps.live.className = 'is-done';
       dlg.el.querySelector('.dialog__title').textContent = 'Your changes are live';
       note.textContent = 'Live. Some visitors may see the old version for up to 10 minutes while their browser catches up.';
       clear(dlg.foot).appendChild(h('a.btn.btn--primary', { href: SITE_ROOT, target: '_blank', rel: 'noopener' }, icon('external'), h('span', 'Open the site')));
       dlg.foot.appendChild(button('Done', { kind: 'ghost', onClick: dlg.close }));
       toast('Your changes are live.');
+    } else if (watch.result === 'blocked') {
+      steps.live.className = 'is-error';
+      dlg.el.querySelector('.dialog__title').textContent = 'The site check stopped this publish';
+      note.textContent = 'Your changes are saved, but the live site still shows the previous version. The automatic check found a problem in the site itself, so nothing broken went live. This needs a fix in the code, not in your content.';
+      clear(dlg.foot);
+      if (watch.url) dlg.foot.appendChild(h('a.btn.btn--ghost', { href: watch.url, target: '_blank', rel: 'noopener' }, icon('external'), h('span', 'See what failed')));
+      dlg.foot.appendChild(button('Close', { kind: 'primary', onClick: dlg.close }));
+      if (!dlg.el.isConnected) toast('The site check stopped your last publish. The live site is unchanged.', 'error');
+    } else if (watch.result === 'replaced') {
+      steps.live.className = 'is-done';
+      dlg.el.querySelector('.dialog__title').textContent = 'A newer publish went live instead';
+      note.textContent = 'Someone published again before this one went out, so GitHub skipped straight to the newer version. Nothing to do.';
+      clear(dlg.foot).appendChild(button('Done', { kind: 'primary', onClick: dlg.close }));
     } else {
-      note.textContent = 'Your changes are saved on GitHub, but the site has not updated after 10 minutes. Check that GitHub Pages is turned on (repository Settings, Pages, branch main).';
+      note.textContent = 'Your changes are saved on GitHub, but the site has not updated after 10 minutes. Check the Actions tab of the repository on GitHub, and that Pages is set to deploy with GitHub Actions (repository Settings, Pages).';
     }
   } catch (e) {
     dlg.close();

@@ -120,6 +120,7 @@ code { font-family: var(--mono); font-size: .9em; background: var(--paper-deep);
 .status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #5C9E6E; }
 .status.is-draft::before { background: var(--accent); }
 .status.is-busy::before { background: var(--accent); animation: pulse .6s var(--ease) infinite alternate; }
+.status.is-error::before { background: var(--danger); }
 .publish { position: relative; margin-left: 6px; }
 .publish:disabled { opacity: 1; background: transparent; border-color: rgba(237,233,225,.18); color: #8E8A80; }
 .publish__count:empty { display: none; }
@@ -295,6 +296,8 @@ textarea.input { resize: vertical; min-height: 90px; }
 .progress li.is-active::before { border-color: var(--accent); background: var(--accent); animation: pulse .6s var(--ease) infinite alternate; }
 .progress li.is-done { color: var(--ink); }
 .progress li.is-done::before { background: var(--ink); border-color: var(--ink); }
+.progress li.is-error { color: var(--danger); font-weight: 600; }
+.progress li.is-error::before { background: var(--danger); border-color: var(--danger); }
 
 /* ---------- Preview ---------- */
 

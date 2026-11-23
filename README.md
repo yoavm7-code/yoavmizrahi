@@ -44,6 +44,27 @@ node tools/generate.mjs
 python -m http.server
 ```
 
-## Publish on GitHub Pages
+## Tests
 
-Repository → Settings → Pages → Source: *Deploy from a branch* → `main` / root.
+The test tools live in `tests/` and are never deployed.
+
+```
+cd tests
+npm test              # content rules, page generator, generated files in sync, admin, login server
+npm install           # once, for the browser tests
+npx playwright install chromium
+npm run test:browser  # the built site in Chromium at 390, 820 and 1180 px
+```
+
+## Deploys
+
+Repository → Settings → Pages → Source: *GitHub Actions*.
+
+- `.github/workflows/deploy.yml`: every push to `main` (including each publish from the admin) runs
+  `npm test`, then deploys. If a test fails, nothing is deployed and the live site keeps the last good
+  version. The admin shows this as "The site check stopped this publish".
+- `.github/workflows/checks.yml`: every pull request and every push to `main` runs the fast tests and
+  the browser tests. Code changes go through a pull request so this runs before they reach `main`.
+- `tools/build-site.mjs` collects what goes live into `_site/`, leaving out dev files (`worker/`,
+  `tests/`, `tools/`, `_plans/`, `CLAUDE.md`).
+- Rollback: Settings → Pages → Source: *Deploy from a branch* → `main` / root.

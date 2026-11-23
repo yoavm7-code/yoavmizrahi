@@ -1,0 +1,14 @@
+{
+  "name": "yoavmizrahi-tests",
+  "private": true,
+  "description": "Tests for the portfolio. Never deployed. See README.md (Tests).",
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"unit/*.test.mjs\" \"../worker/test/*.test.js\"",
+    "test:browser": "node ../tools/build-site.mjs && playwright test",
+    "test:all": "npm test && npm run test:browser"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1"
+  }
+}

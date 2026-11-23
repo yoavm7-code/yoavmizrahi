@@ -10,7 +10,7 @@ The personal portfolio site of **Yoav Mizrahi**: a showcase of the products he b
 - **The work must be interactive, not screenshots.** Visitors should be able to *use* the products in the page.
 - **The "wow" should be crafted, not overwhelming.** Polish lives in small details: motion, consistency, feel.
 
-Repo: `github.com/yoavm7-code/yoavmizrahi` · Hosting: GitHub Pages (deploy from `main`, root).
+Repo: `github.com/yoavm7-code/yoavmizrahi` · Hosting: GitHub Pages, deployed by GitHub Actions from `main` only after the tests pass (see "Tests and deploys").
 
 ## About the owner (how to work with him)
 
@@ -58,6 +58,9 @@ css/style.css       design tokens, components, motion, responsive, reduced-motio
 js/main.js          behavior only: router, wipe, menu, cursor, desk, monitor/tapes, demos, reel
 admin/              the admin (see below)
 tools/generate.mjs  regenerates index.html + share pages locally: node tools/generate.mjs
+tools/build-site.mjs collects the files that go live into _site/ (used by the deploy and the browser tests)
+tests/              unit tests (node:test) and browser tests (Playwright). Own package.json, never deployed
+.github/workflows/  deploy.yml (tests, then Pages) and checks.yml (tests + browser, on PRs and main)
 _plans/             approved plans
 README.md           short public readme
 .nojekyll           tells GitHub Pages to serve files as they are
@@ -74,6 +77,14 @@ README.md           short public readme
 - Uploaded images are re-encoded through a canvas (strips GPS/EXIF), max 2400px, WebP, named by content hash in `media/`. Media is never deleted, so restores always work.
 - Strict CSP in `admin/index.html`, no third-party scripts, all content inserted as text. The preview is the real site rendered into a blob iframe; `data-mode="arrange"` turns on desk arranging (positions sent back with postMessage).
 - Files: `app.js` (shell, sign-in screens, routing, publish UI), `panels.js` (editor screens), `store.js` (draft, undo, sync), `auth.js` (login server calls), `publish.js`, `preview.js`, `github.js`, `media.js`, `ui.js`, `config.js`.
+
+## Tests and deploys
+
+- **Every push to `main` deploys only if `npm test` passes** (`.github/workflows/deploy.yml`). That includes admin publishes. A failure leaves the last good version live, and the admin says "The site check stopped this publish" with a link to the failed run (it reads the public Actions API, no key).
+- **Broken code on `main` blocks every admin publish until it is fixed, and Yoav cannot fix code.** So code changes go through a pull request, where `checks.yml` runs the browser suite too. Wait for it to be green before merging.
+- `tests/unit/generated.test.mjs` fails if `index.html`, `w/` or `f/` don't match `render.js` + `site.json`. Fix: `node tools/generate.mjs`.
+- The admin finds the deploy run by the workflow path `.github/workflows/deploy.yml`. Don't rename it.
+- Rollback of the pipeline itself: Settings → Pages → Source: *Deploy from a branch* (`main`, root).
 
 ## How it works
 
@@ -114,6 +125,7 @@ Other works Yoav has built that could join later: **Ad Intel** and **LoreWire**.
 - **No invented facts.** Don't make up stats, clients, testimonials or project details. Use `[PLACEHOLDER]` and ask.
 - **Accessibility basics:** real `<button>` and `<a>` elements, `aria-label` on icon-only buttons, touch targets of 44px or more, and text contrast of 4.5:1 or better.
 - **Test before saying done:**
+  - Run the suites: `cd tests && npm test && npm run test:browser`. Add or update tests for every change.
   - Serve the folder (`npx serve .` or `python -m http.server`).
   - Click through every route.
   - Drag a tape into the monitor.
