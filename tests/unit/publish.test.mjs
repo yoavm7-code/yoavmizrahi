@@ -73,6 +73,17 @@ test('usedMedia lists the media files the content points at', () => {
   assert.deepEqual(usedMedia(c), ['media/a.webp']);
 });
 
+test('usedMedia includes the stills of every film, so publishing commits them too', () => {
+  const c = normalize({ works: [{ id: 'a', media: { src: 'media/a.webp' } }], films: [{ id: 'f', stills: ['media/s1.webp', 'media/s2.webp'] }, { id: 'g' }] });
+  assert.deepEqual(usedMedia(c), ['media/a.webp', 'media/s1.webp', 'media/s2.webp']);
+});
+
+test('changing the stills of a film is an edit to that film', () => {
+  const draft = base();
+  draft.films[0].stills = ['media/s1.webp'];
+  assert.deepEqual(describeChanges(base(), draft), ['Edited film "FILM"']);
+});
+
 test('usedMedia includes a demo\'s logo, so publishing commits it too', () => {
   const c = normalize({ works: [
     { id: 'a', media: { src: 'media/a.webp' } },

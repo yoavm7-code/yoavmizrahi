@@ -266,6 +266,18 @@ function cardShot(w, paths) {
   return media ? html`<div class="card__shot">${media}</div>` : '';
 }
 
+/* The Films card: every film's stills in a row of film frames that runs like a strip through a
+   projector (css/style.css). The frames are listed twice so the loop never shows a seam. */
+function filmStrip(c, paths) {
+  var frames = [];
+  c.films.forEach(function (f) { f.stills.forEach(function (src) { if (paths.media(src)) frames.push(paths.media(src)); }); });
+  if (!frames.length) return '';
+  var cells = frames.concat(frames).map(function (url) {
+    return html`<span class="strip__frame"><img src="${url}" alt="" loading="lazy" decoding="async"></span>`;
+  });
+  return html`<div class="card__shot card__shot--strip" aria-hidden="true"><div class="strip">${cells}</div></div>`;
+}
+
 function pageWork(c, paths) {
   var cards = c.works.map(function (w, i) {
     var shot = cardShot(w, paths);
@@ -276,9 +288,10 @@ function pageWork(c, paths) {
         <div class="card__meta mono"><span>${upper(w.title)}</span><span class="muted">${w.kind}</span></div>
       </a>`;
   });
+  var strip = filmStrip(c, paths);
   cards.push(html`
-      <a class="card" href="#/films" data-cursor="view">
-        <div class="card__cover"><div class="card__inner grid-dark"><span class="card__no">${pad2(c.works.length + 1)}</span><span class="card__title">Films</span></div><span class="card__bar" aria-hidden="true"></span></div>
+      <a class="${'card' + (strip ? ' card--shot card--films' : '')}" href="#/films" data-cursor="view">
+        <div class="card__cover">${strip}<div class="card__inner${strip ? '' : ' grid-dark'}"><span class="card__no">${pad2(c.works.length + 1)}</span><span class="card__title">Films</span></div><span class="card__bar" aria-hidden="true"></span></div>
         <div class="card__meta mono"><span>FILMS</span><span class="muted">${upper(c.site.channel)}</span></div>
       </a>`);
   return html`
