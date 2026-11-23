@@ -51,8 +51,7 @@ test.describe('the Memesh replica', () => {
     await page.locator('[data-confirm]').click();
     const rules = page.getByRole('dialog');
     await expect(rules.locator('.rule')).toHaveCount(6);
-    await rules.locator('.rule__head').first().click();
-    await expect(rules.locator('.rule__more')).toHaveCount(1);
+    await expect(rules.locator('.rule').first()).toContainText('גיל 6');
     await rules.locator('[data-rules-ok]').click();
     await expect(page.locator('.toast')).toContainText('נקלטו');
     const booking = page.locator('.booking.is-open');
