@@ -49,7 +49,7 @@
       "id": "uploader",
       "title": "Mega Uploader",
       "kind": "PRODUCTION TOOL",
-      "year": "[Year]",
+      "year": "2026",
       "madeWith": "AI coding agents",
       "description": "[One line: what it uploads, and for whom.] Built with AI agents and running in production.",
       "link": "",
@@ -124,7 +124,7 @@
       "id": "film-2",
       "title": "LEVIATHAN",
       "part": "PART 1",
-      "label": "LEVIATHAN: PART 1",
+      "label": "LEVIATHAN · PART 1",
       "presents": "THE WIDE SILENCE PRESENTS",
       "genre": "SCI-FI",
       "runtime": "11:13",
@@ -133,7 +133,7 @@
       "soon": false,
       "tape": {
         "show": true,
-        "label": "LEVIATHAN: PART 1",
+        "label": "LEVIATHAN · PART 1",
         "x": 1190,
         "y": 600,
         "r": 7
