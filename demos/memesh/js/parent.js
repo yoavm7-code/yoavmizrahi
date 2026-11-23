@@ -263,22 +263,16 @@ export function createParent(app) {
 
   function line(label, value) { return h('span.summary__line', h('span.muted', { text: label + ': ' }), h('span', { text: value })); }
 
-  /* The rules popup. It explains, it doesn't book: "I've read it" books. */
+  /* The rules popup. It explains, it doesn't book: "I've read it" books. Each row shows its title and
+     the one-line summary the real product shows; the real rows open to full policy text, which this
+     demo doesn't reproduce, so nothing here is made up about the real business. */
   function rules(k, r, f) {
-    var openRow = null;
-    var list = h('div.rules__list');
-    function paint() {
-      list.replaceChildren.apply(list, RULES.map(function (key) {
-        var on = openRow === key;
-        return h('div.rule' + (on ? '.is-open' : ''),
-          h('button.rule__head', { type: 'button', 'aria-expanded': String(on), onclick: function () { openRow = on ? null : key; paint(); } },
-            h('span.rule__dot', { 'aria-hidden': 'true' }),
-            h('span.rule__txt', h('b', { text: t('rule.' + key) }), h('small.muted', { text: t('rule.' + key + '.short') })),
-            icon(on ? 'up' : 'down', 14)),
-          on ? h('p.rule__more', { text: t('rule.' + key + '.more') }) : null);
-      }));
-    }
-    paint();
+    var list = h('div.rules__list', RULES.map(function (key) {
+      return h('div.rule',
+        h('span.rule__head',
+          h('span.rule__dot', { 'aria-hidden': 'true' }),
+          h('span.rule__txt', h('b', { text: t('rule.' + key) }), h('small.muted', { text: t('rule.' + key + '.short') }))));
+    }));
     modal(h('div.rules',
       h('div.rules__head', h('b', { text: t('rules.title') }), h('button.icon-btn.icon-btn--light', { type: 'button', 'aria-label': t('common.close'), onclick: closeModal }, icon('x', 16))),
       list,

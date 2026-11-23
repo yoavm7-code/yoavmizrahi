@@ -164,8 +164,8 @@ async function memesh(page, mark) {
   await pause(1100);
   await click(page.locator('[data-confirm]'));
   await pause(1300);
-  await click(page.locator('.rule__head').nth(1), { x: 0.6 });
-  await pause(1400);
+  await page.mouse.move(720, 420, { steps: 18 });
+  await pause(1800);
   await click(page.locator('[data-rules-ok]'));
   await pause(2600);
 
