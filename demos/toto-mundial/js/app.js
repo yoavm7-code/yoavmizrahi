@@ -4,7 +4,8 @@
 
 import { PEOPLE, ME, UPCOMING, LIVE, TOURNAMENT } from './data.js';
 import { demoNow, liveMinute, isFinished, projected } from './logic.js';
-import { setLang, t } from './i18n.js';
+import { setLang, applyWording, t } from './i18n.js';
+import { loadSettings } from './settings.js';
 import { h, icon, closeSheet, log } from './dom.js';
 import { createShell } from './shell.js';
 import { createHome } from './home.js';
@@ -14,6 +15,7 @@ import { createLive } from './live.js';
 
 var params = new URLSearchParams(location.search);
 var embedded = window.self !== window.top;
+applyWording((await loadSettings('toto')).strings);
 var LIVE_MS_PER_MINUTE = 1200;
 
 var app = {

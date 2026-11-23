@@ -14,7 +14,9 @@ export const STYLES = {
 /* Hand-built interactive demos. Only the works that own them can use them.
    A demo with a replica also gets the full product on its project page: an interactive copy
    (demos/<name>/, rendered at width x height and scaled to fit) and a recorded video of it.
-   frame 'phone' puts a phone app in a phone-shaped device, which phones can use too. */
+   frame 'phone' puts a phone app in a phone-shaped device, which phones can use too.
+   editable lists what the admin may change in a replica: its wording (the replica's i18n module,
+   per language) and, for some, its logo. The replica reads these from the published content. */
 export const DEMOS = {
   uploader: {
     name: 'Upload demo',
@@ -38,7 +40,8 @@ export const DEMOS = {
       poster: 'demos/toto-mundial/poster.jpg',
       width: 390,
       height: 844,
-      frame: 'phone'
+      frame: 'phone',
+      editable: { strings: 'demos/toto-mundial/js/i18n.js', languages: ['en', 'he'] }
     }
   },
   memesh: {
@@ -50,7 +53,8 @@ export const DEMOS = {
       video: 'demos/memesh/demo.mp4',
       poster: 'demos/memesh/poster.jpg',
       width: 1440,
-      height: 900
+      height: 900,
+      editable: { logo: true, strings: 'demos/memesh/js/i18n.js', languages: ['he', 'en'] }
     }
   }
 };
@@ -147,6 +151,28 @@ export function deskKeys(content) {
 
 /* ---------- Normalize: fill defaults, coerce types, repair order. Never throws. ---------- */
 
+/* A replica's admin settings: a logo (an uploaded image) and wording overrides per language.
+   Keys must look like the replica's own keys; values are plain text, shown with textContent. */
+const STRING_KEY_RE = /^[A-Za-z][\w.]{0,60}$/;
+export const REPLICA_LIMITS = { strings: 800, text: 600 };
+
+function replicaSettings(input, editable) {
+  var r = obj(input);
+  var logo = obj(r.logo);
+  var out = { logo: editable.logo && isMediaPath(logo.src) && !/\.(mp4|webm)$/.test(logo.src) ? { src: logo.src } : null, strings: {} };
+  var given = obj(r.strings);
+  editable.languages.forEach(function (lang) {
+    var map = obj(given[lang]);
+    var clean = {};
+    Object.keys(map).slice(0, REPLICA_LIMITS.strings).forEach(function (k) {
+      var v = str(map[k]).trim();
+      if (STRING_KEY_RE.test(k) && v) clean[k] = v.slice(0, REPLICA_LIMITS.text);
+    });
+    out.strings[lang] = clean;
+  });
+  return out;
+}
+
 export function normalize(input) {
   var c = obj(JSON.parse(JSON.stringify(input || {})));
   c.schemaVersion = SCHEMA_VERSION;
@@ -191,6 +217,8 @@ export function normalize(input) {
       }
     };
     if (out.demo) out.style = DEMOS[out.demo].style;
+    var editable = out.demo && DEMOS[out.demo].replica && DEMOS[out.demo].replica.editable;
+    if (editable) out.replica = replicaSettings(w.replica, editable);
     if (w.media && w.media.src) {
       out.media = {
         type: w.media.type === 'video' ? 'video' : 'image',

@@ -99,6 +99,7 @@ h1, h2, h3, p { margin: 0; }
 .logo__word { font: 700 38px/1 "Rubik", var(--font); color: var(--peach); letter-spacing: -1px; }
 .logo__dots { position: absolute; bottom: -2px; inset-inline-end: 22px; display: flex; gap: 3px; }
 .logo__dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--peach); }
+.logo__img { display: block; height: 48px; width: auto; }
 .home-pill { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border: 1px solid var(--peach-line); border-radius: var(--r-btn); background: var(--peach-tint); color: var(--muted); font-size: 14px; }
 .main { padding: 30px 20px 60px; }
 

@@ -3,7 +3,8 @@
    still leaves the page. ?role=desk|manager and ?lang=en open elsewhere; ?record adds a visible
    pointer for the video. */
 
-import { setLang, t } from './i18n.js';
+import { setLang, applyWording, t } from './i18n.js';
+import { loadSettings } from './settings.js';
 import { h, icon, closeModal, log } from './dom.js';
 import { createShell } from './shell.js';
 import { createParent } from './parent.js';
@@ -12,9 +13,12 @@ import { createManager } from './manager.js';
 
 var params = new URLSearchParams(location.search);
 var embedded = window.self !== window.top;
+var settings = await loadSettings('memesh');
+applyWording(settings.strings);
 
 var app = {
   recording: params.has('record'),
+  logo: settings.logo,
   lang: params.get('lang') === 'en' ? 'en' : 'he',
   role: '',
   views: {},

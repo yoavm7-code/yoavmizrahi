@@ -26,7 +26,7 @@ export function createShell(app) {
       h('button.demo-lang', { type: 'button', 'data-lang-toggle': '', 'aria-label': t('demo.langSwitch'), onclick: function () { app.setLang(app.lang === 'he' ? 'en' : 'he'); } }, icon('globe', 14), h('span', { text: t('demo.langShort') })));
 
     header.replaceChildren(
-      logo(),
+      logo(app.logo),
       app.role === 'parent'
         ? h('button.home-pill', { type: 'button', onclick: function () { toast(t('toast.mainSite')); } }, icon('home', 15), h('span', { text: t('p.mainSite') }))
         : h('button.btn.btn--ghost.btn--sm', { type: 'button', onclick: function () { toast(t('toast.signout')); } }, t('common.signout')));
@@ -35,8 +35,9 @@ export function createShell(app) {
   return { el: root, main: main, render: render };
 }
 
-/* The Memesh wordmark. The real logo file replaces this when it arrives (assets/logo.svg). */
-function logo() {
+/* The Memesh logo: the image uploaded in the admin, or a text wordmark until then. */
+function logo(src) {
+  if (src) return h('img.logo__img', { src: src, alt: 'Memesh' });
   return h('span.logo', { role: 'img', 'aria-label': 'Memesh' },
     h('span.logo__word', { text: 'ממש', 'aria-hidden': 'true' }),
     h('span.logo__dots', { 'aria-hidden': 'true' }, h('i'), h('i'), h('i')));
