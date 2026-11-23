@@ -7,7 +7,7 @@
 <title>Yoav Mizrahi - Products &amp; films, built with AI</title>
 <meta name="description" content="Portfolio of Yoav Mizrahi: products and films, built with AI.">
 <meta name="theme-color" content="#EDE9E1">
-<meta name="build" content="local-mwt6m4gp">
+<meta name="build" content="local-mwt8z9oc">
 <link rel="canonical" href="https://yoavmizrahi.com/">
 <meta property="og:url" content="https://yoavmizrahi.com/">
 <meta property="og:type" content="website">
@@ -155,8 +155,8 @@
         <div class="card__cover"><div class="card__shot card__shot--app" aria-hidden="true"><img src="demos/mega-uploader/poster.jpg" alt="" loading="lazy" decoding="async"><video data-card-video data-src="demos/mega-uploader/demo.mp4" muted loop playsinline preload="none"></video></div><div class="card__inner"><span class="card__no">01</span><span class="card__title">Mega Uploader</span></div><span class="card__bar" aria-hidden="true"></span></div>
         <div class="card__meta mono"><span>MEGA UPLOADER</span><span class="muted">PRODUCTION TOOL</span></div>
       </a>
-      <a class="card" href="#/work/toto" data-cursor="view">
-        <div class="card__cover"><div class="card__inner grid-dark"><span class="card__no">02</span><span class="card__title">Toto Mundial</span></div><span class="card__bar" aria-hidden="true"></span></div>
+      <a class="card card--shot card--phone" href="#/work/toto" data-cursor="view">
+        <div class="card__cover"><div class="card__shot card__shot--phone grid-dark" aria-hidden="true"><img src="demos/toto-mundial/poster.jpg" alt="" loading="lazy" decoding="async"><video data-card-video data-src="demos/toto-mundial/demo.mp4" muted loop playsinline preload="none"></video></div><div class="card__inner"><span class="card__no">02</span><span class="card__title">Toto Mundial</span></div><span class="card__bar" aria-hidden="true"></span></div>
         <div class="card__meta mono"><span>TOTO MUNDIAL</span><span class="muted">WEB APP</span></div>
       </a>
       <a class="card" href="#/work/memesh" data-cursor="view">
@@ -186,7 +186,7 @@
     </div>
     <div class="stage stage--replica grid-surface grid-surface--deep up d3">
       <span class="stage__label mono">THE REAL THING · FULLY CLICKABLE</span>
-      <div class="replica" data-replica data-src="demos/mega-uploader/" data-w="1440" data-h="900" data-title="Mega Uploader" data-mode="try">
+      <div class="replica" data-replica data-src="demos/mega-uploader/" data-w="1440" data-h="900" data-frame="desktop" data-title="Mega Uploader" data-mode="try">
         <div class="replica__bar">
           <span class="replica__title mono"><span class="replica__live" aria-hidden="true"></span>MEGA UPLOADER · MADE-UP DATA</span>
           <div class="replica__modes" role="group" aria-label="Demo or video">
@@ -222,13 +222,23 @@
       <div><span class="label">MADE WITH</span><span class="strong">AI coding agents</span></div>
       <p>A World Cup 2026 prediction pool for friends. Call the score, lock it in, argue about it later.</p>
     </div>
-    <div class="stage grid-surface grid-surface--deep up d3">
-      <span class="stage__label mono">ON THE DESK · TRY IT</span>
-      <div class="phone phone--big">
-        <div class="phone__screen">
-          <span class="phone__notch" aria-hidden="true"></span>
-          <span class="phone__title">Toto Mundial</span>
-          <div class="toto" data-widget="toto"></div>
+    <div class="stage stage--replica grid-surface grid-surface--deep up d3">
+      <span class="stage__label mono">THE REAL THING · FULLY CLICKABLE</span>
+      <div class="replica replica--phone" data-replica data-src="demos/toto-mundial/" data-w="390" data-h="844" data-frame="phone" data-title="Toto Mundial" data-mode="try">
+        <div class="replica__bar">
+          <span class="replica__title mono"><span class="replica__live" aria-hidden="true"></span>TOTO MUNDIAL · MADE-UP DATA</span>
+          <div class="replica__modes" role="group" aria-label="Demo or video">
+            <button class="btn replica__mode" type="button" data-replica-mode="try" aria-pressed="true">TRY IT</button>
+            <button class="btn replica__mode" type="button" data-replica-mode="watch" aria-pressed="false">WATCH IT</button>
+          </div>
+          <div class="replica__actions">
+            <button class="btn replica__act" type="button" data-replica-reset>↺ START OVER</button>
+            <a class="replica__act" href="demos/toto-mundial/" data-replica-full>⤢ FULL SCREEN</a>
+          </div>
+        </div>
+        <div class="replica__screen">
+          <div class="replica__viewport" data-replica-viewport data-cursor-off></div>
+          <video class="replica__video" data-replica-video src="demos/toto-mundial/demo.mp4" poster="demos/toto-mundial/poster.jpg" muted loop playsinline controls preload="none" aria-label="A recorded walk through Toto Mundial"></video>
         </div>
       </div>
     </div>

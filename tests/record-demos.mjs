@@ -1,6 +1,7 @@
 // Records the example video and poster for each replica by driving it in a real browser.
 // The video shows only the replica's made-up data, so nothing real can end up in it.
 //   cd tests && npm run record:demos      (needs ffmpeg on the PATH)
+//   cd tests && npm run record:demos -- toto-mundial    (just one demo)
 // Writes demos/<name>/demo.mp4 and demos/<name>/poster.jpg. Commit both.
 import { chromium } from '@playwright/test';
 import { spawn, spawnSync } from 'node:child_process';
@@ -11,8 +12,6 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const PORT = 4174;
-const VIEW = { width: 1440, height: 900 };
-const SCALE = 4 / 3; /* frames come out at 1920 x 1200 */
 
 function log(msg, values) { console.log('[record] ' + msg, values ? JSON.stringify(values) : ''); }
 
@@ -76,14 +75,82 @@ async function megaUploader(page, mark) {
   await pause(2400);
 }
 
-const DEMOS = [{ name: 'mega-uploader', run: megaUploader }];
+/* ---------- Toto Mundial: a phone app, recorded at phone size ---------- */
+
+async function totoMundial(page, mark) {
+  const pause = (ms) => page.waitForTimeout(ms);
+  const tap = async (target, opts = {}) => {
+    const box = await target.boundingBox();
+    await page.mouse.move(box.x + box.width * (opts.x ?? 0.5), box.y + box.height / 2, { steps: 18 });
+    await pause(opts.wait ?? 220);
+    await target.click();
+  };
+  const scroll = async (dy, steps = 8) => {
+    await page.mouse.move(195, 420);
+    for (let i = 0; i < steps; i++) { await page.mouse.wheel(0, dy / steps); await pause(40); }
+  };
+
+  await page.mouse.move(195, 600);
+  await pause(800);
+  await mark('poster');
+  await pause(1600);
+
+  /* 1. Home says a match locks soon; one tap opens the pick. + and - set it, and it saves by itself. */
+  await scroll(520);
+  await pause(1400);
+  await tap(page.locator('[data-upnext]'));
+  await pause(1200);
+  const brazil = page.locator('[data-match="u1"]');
+  await tap(brazil.locator('[data-step="0:1"]'), { wait: 160 });
+  await tap(brazil.locator('[data-step="0:1"]'), { wait: 160 });
+  await tap(brazil.locator('[data-step="1:1"]'), { wait: 160 });
+  await page.locator('[data-match="u1"] .save--saved').waitFor();
+  await pause(1500);
+  await tap(page.locator('[data-match="u2"] [data-dice]'));
+  await page.locator('[data-match="u2"] .save--saved').waitFor();
+  await pause(1400);
+
+  /* 2. Past results with the points they earned. */
+  await tap(page.locator('[data-tab-id="time-past"]'));
+  await pause(1200);
+  await scroll(360);
+  await pause(1600);
+
+  /* 3. The leaderboard: the pot split, the Monkey, and your own row opened up. */
+  await tap(page.locator('[data-tab="leaders"]'));
+  await pause(1200);
+  await scroll(700, 12);
+  await pause(1200);
+  await scroll(520, 10);
+  await pause(600);
+  await tap(page.locator('[data-person="me"] .lb__main'), { x: 0.4 });
+  await pause(2400);
+
+  /* 4. Live: the match runs, a goal goes in, and "Right now" turns from +5 into +10. */
+  await tap(page.locator('[data-tab="live"]'));
+  await page.locator('[data-projected]', { hasText: '+10' }).waitFor({ timeout: 30000 });
+  await pause(2600);
+
+  /* 5. The same app in Hebrew, right to left. */
+  await tap(page.locator('[data-lang-toggle]'));
+  await pause(1600);
+  await tap(page.locator('[data-tab="home"]'));
+  await pause(2600);
+}
+
+/* view is the page size; scale makes the frames sharper; width is the video's width. */
+const DEMOS = [
+  { name: 'mega-uploader', run: megaUploader, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' },
+  { name: 'toto-mundial', run: totoMundial, view: { width: 390, height: 844 }, scale: 2, width: 780, pointer: '.rec-pointer' }
+];
+const ONLY = process.argv.slice(2);
 
 /* ---------- Recording ---------- */
 
 async function record(browser, demo) {
   const dir = join(ROOT, 'demos', demo.name);
   const frames = await mkdtemp(join(tmpdir(), 'demo-frames-'));
-  const page = await browser.newPage({ viewport: VIEW, deviceScaleFactor: SCALE });
+  const page = await browser.newPage({ viewport: demo.view, deviceScaleFactor: demo.scale });
   page.on('pageerror', (e) => { throw e; });
   await page.goto('http://127.0.0.1:' + PORT + '/demos/' + demo.name + '/?record');
   await page.evaluate(() => document.fonts.ready);
@@ -95,11 +162,11 @@ async function record(browser, demo) {
     shots.push({ data, t: metadata.timestamp });
     await cdp.send('Page.screencastFrameAck', { sessionId }).catch(() => {});
   });
-  await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: 1920, maxHeight: 1200 });
+  await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: Math.round(demo.view.width * demo.scale), maxHeight: Math.round(demo.view.height * demo.scale) });
 
   await demo.run(page, async (what) => {
     if (what === 'poster') {
-      const pointer = page.locator('.rec-cursor');
+      const pointer = page.locator(demo.pointer);
       await pointer.evaluate((el) => { el.style.visibility = 'hidden'; });
       await page.screenshot({ path: join(dir, 'poster.jpg'), type: 'jpeg', quality: 80, scale: 'css' });
       await pointer.evaluate((el) => { el.style.visibility = ''; });
@@ -124,7 +191,7 @@ async function record(browser, demo) {
   const out = join(dir, 'demo.mp4');
   const ff = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', 'list.txt',
     '-fps_mode', 'cfr', '-r', '30', '-c:v', 'libx264', '-preset', 'slow', '-crf', '26', '-pix_fmt', 'yuv420p',
-    '-vf', 'scale=1440:-2', '-movflags', '+faststart', '-an', out], { cwd: frames, stdio: 'inherit' });
+    '-vf', 'scale=' + demo.width + ':-2', '-movflags', '+faststart', '-an', out], { cwd: frames, stdio: 'inherit' });
   await rm(frames, { recursive: true, force: true });
   if (ff.status !== 0) throw new Error('ffmpeg failed for ' + demo.name);
   log('video written', { demo: demo.name, path: out, bytes: (await stat(out)).size });
@@ -134,7 +201,7 @@ const server = spawn(process.execPath, [join(ROOT, 'tests', 'serve.mjs'), String
 try {
   await new Promise((r) => setTimeout(r, 600));
   const browser = await chromium.launch();
-  for (const demo of DEMOS) await record(browser, demo);
+  for (const demo of DEMOS) if (!ONLY.length || ONLY.includes(demo.name)) await record(browser, demo);
   await browser.close();
 } finally {
   server.kill();

@@ -13,7 +13,8 @@ export const STYLES = {
 
 /* Hand-built interactive demos. Only the works that own them can use them.
    A demo with a replica also gets the full product on its project page: an interactive copy
-   (demos/<name>/, rendered at width x height and scaled to fit) and a recorded video of it. */
+   (demos/<name>/, rendered at width x height and scaled to fit) and a recorded video of it.
+   frame 'phone' puts a phone app in a phone-shaped device, which phones can use too. */
 export const DEMOS = {
   uploader: {
     name: 'Upload demo',
@@ -27,7 +28,19 @@ export const DEMOS = {
       height: 900
     }
   },
-  toto: { name: 'Score picker demo', style: 'phone' }
+  toto: {
+    name: 'Score picker demo',
+    style: 'phone',
+    replica: {
+      title: 'Toto Mundial',
+      src: 'demos/toto-mundial/',
+      video: 'demos/toto-mundial/demo.mp4',
+      poster: 'demos/toto-mundial/poster.jpg',
+      width: 390,
+      height: 844,
+      frame: 'phone'
+    }
+  }
 };
 
 /* Approximate size of each desk object in px, used to size the desk and to place new objects. */

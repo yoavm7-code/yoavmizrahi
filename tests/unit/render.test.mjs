@@ -126,8 +126,9 @@ test('a work card shows the replica poster with a video that loads only on hover
   raw.works = [{ id: 'up', title: 'Up', demo: 'uploader' }];
   const page = renderSite(raw);
   const r = DEMOS.uploader.replica;
-  const card = page.slice(page.indexOf('<a class="card card--shot" href="#/work/up"'));
-  assert.ok(card.length, 'the card is marked as a picture card');
+  const at = page.indexOf('<a class="card card--shot" href="#/work/up"');
+  assert.ok(at >= 0, 'the card is marked as a picture card');
+  const card = page.slice(at);
   assert.ok(card.includes('<img src="' + r.poster + '" alt="" loading="lazy"'));
   assert.ok(card.includes('<video data-card-video data-src="' + r.video + '" muted loop playsinline preload="none">'));
   assert.ok(!card.slice(0, card.indexOf('</a>')).includes(' src="' + r.video + '"'), 'no video src until hover');
@@ -144,6 +145,21 @@ test('a work card uses the work\'s own picture, or stays plain ink without one',
   assert.ok(page.includes('<div class="card__shot"><img class="media" src="media/shot.webp" alt="Shot"'));
   assert.ok(page.includes('<a class="card" href="#/work/none"'));
   assert.ok(page.includes('<div class="card__inner grid-dark"><span class="card__no">02</span><span class="card__title">None</span>'));
+});
+
+test('a phone replica sits in a phone-shaped device and its card shows a standing phone', () => {
+  const raw = base();
+  raw.works = [{ id: 'up', title: 'Up', demo: 'uploader' }, { id: 'tm', title: 'Tm', demo: 'toto' }];
+  const page = renderSite(raw);
+  const r = DEMOS.toto.replica;
+  assert.equal(r.frame, 'phone');
+  assert.ok(page.includes('<div class="replica replica--phone" data-replica data-src="' + r.src + '" data-w="390" data-h="844" data-frame="phone"'));
+  assert.ok(page.includes('<div class="replica" data-replica data-src="' + DEMOS.uploader.replica.src + '" data-w="1440" data-h="900" data-frame="desktop"'));
+  assert.ok(!/<[^>]+ style="/.test(page), 'no inline styles: the admin preview blocks them');
+  assert.equal(count(page, 'class="replica__note'), 1, 'only the desktop replica says it is built for a computer');
+  assert.ok(page.includes('<a class="card card--shot card--phone" href="#/work/tm"'));
+  assert.ok(page.includes('<div class="card__shot card__shot--phone grid-dark" aria-hidden="true"><img src="' + r.poster + '"'));
+  assert.equal(count(page, 'data-widget="toto"'), 1, 'the desk keeps its score picker, the project page does not');
 });
 
 test('replica paths follow the root option, for the admin preview', () => {

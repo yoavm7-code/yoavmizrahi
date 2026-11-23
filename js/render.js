@@ -259,11 +259,13 @@ ${deskNote(c, order('note'))}${works}${deskMonitor(c, order('monitor'))}${deskTa
 /* ---------- Work ---------- */
 
 /* What a work card shows behind its title: the replica's poster, with its video loaded and played only
-   on hover (js/main.js), else the work's own picture, else nothing and the card stays plain ink. */
+   on hover (js/main.js), else the work's own picture, else nothing and the card stays plain ink.
+   A phone replica stands as a phone on the ink card instead of filling it. */
 function cardShot(w, paths) {
   var replica = replicaOf(w);
   if (replica) {
-    return html`<div class="card__shot card__shot--app" aria-hidden="true"><img src="${paths.asset(replica.poster)}" alt="" loading="lazy" decoding="async"><video data-card-video data-src="${paths.asset(replica.video)}" muted loop playsinline preload="none"></video></div>`;
+    var phone = replica.frame === 'phone';
+    return html`<div class="${'card__shot ' + (phone ? 'card__shot--phone grid-dark' : 'card__shot--app')}" aria-hidden="true"><img src="${paths.asset(replica.poster)}" alt="" loading="lazy" decoding="async"><video data-card-video data-src="${paths.asset(replica.video)}" muted loop playsinline preload="none"></video></div>`;
   }
   var media = mediaEl(w.media, paths);
   return media ? html`<div class="card__shot">${media}</div>` : '';
@@ -272,8 +274,9 @@ function cardShot(w, paths) {
 function pageWork(c, paths) {
   var cards = c.works.map(function (w, i) {
     var shot = cardShot(w, paths);
+    var phone = replicaOf(w) && replicaOf(w).frame === 'phone';
     return html`
-      <a class="card${shot ? ' card--shot' : ''}" href="${'#/work/' + w.id}" data-cursor="view">
+      <a class="${'card' + (shot ? ' card--shot' : '') + (phone ? ' card--phone' : '')}" href="${'#/work/' + w.id}" data-cursor="view">
         <div class="card__cover">${shot}<div class="card__inner${shot ? '' : ' grid-dark'}"><span class="card__no">${pad2(i + 1)}</span><span class="card__title">${w.title}</span></div><span class="card__bar" aria-hidden="true"></span></div>
         <div class="card__meta mono"><span>${upper(w.title)}</span><span class="muted">${w.kind}</span></div>
       </a>`;
@@ -334,15 +337,17 @@ function stageObject(w, paths) {
 
 /* The full product on its project page: an ink device holding the interactive replica (TRY IT) and a
    recorded video of it (WATCH IT). js/main.js loads the replica only when the page opens and scales it
-   to fit; phones and tablets get the video, with a link to open the replica anyway. */
+   to fit. A desktop replica gives phones and tablets the video, with a link to open it anyway; a phone
+   replica sits in a phone-shaped device and stays clickable on every screen. */
 function replicaOf(w) { return w.demo && DEMOS[w.demo].replica || null; }
 
 function replicaStage(r, paths) {
   var full = paths.asset(r.src);
+  var phone = r.frame === 'phone';
   return html`
     <div class="stage stage--replica grid-surface grid-surface--deep up d3">
       <span class="stage__label mono">THE REAL THING · FULLY CLICKABLE</span>
-      <div class="replica" data-replica data-src="${full}" data-w="${r.width}" data-h="${r.height}" data-title="${r.title}" data-mode="try">
+      <div class="${'replica' + (phone ? ' replica--phone' : '')}" data-replica data-src="${full}" data-w="${r.width}" data-h="${r.height}" data-frame="${phone ? 'phone' : 'desktop'}" data-title="${r.title}" data-mode="try">
         <div class="replica__bar">
           <span class="replica__title mono"><span class="replica__live" aria-hidden="true"></span>${upper(r.title)} · MADE-UP DATA</span>
           <div class="replica__modes" role="group" aria-label="Demo or video">
@@ -358,7 +363,7 @@ function replicaStage(r, paths) {
           <div class="replica__viewport" data-replica-viewport data-cursor-off></div>
           <video class="replica__video" data-replica-video src="${paths.asset(r.video)}" poster="${paths.asset(r.poster)}" muted loop playsinline controls preload="none" aria-label="${'A recorded walk through ' + r.title}"></video>
         </div>
-        <p class="replica__note mono">The clickable demo is built for a computer screen. <a class="uline" href="${full}">Open it anyway →</a></p>
+        ${phone ? '' : html`<p class="replica__note mono">The clickable demo is built for a computer screen. <a class="uline" href="${full}">Open it anyway →</a></p>`}
       </div>
     </div>`;
 }

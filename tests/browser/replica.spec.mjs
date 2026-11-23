@@ -1,19 +1,9 @@
 // The Mega Uploader replica: on its work page (the device, the video, phone fallback, the Back button)
 // and on its own (the whole golden path a visitor takes, plus the side tools). Nothing may leave the
 // machine except the font request, which the fixtures answer locally.
-import { test, expect } from './fixtures.mjs';
+import { test, expect, watchRequests } from './fixtures.mjs';
 
 function isNarrow(page) { return page.viewportSize().width <= 900; }
-
-/* Fails the test if the page asks any host other than this server or Google Fonts for anything. */
-function watchRequests(page) {
-  const outside = [];
-  page.on('request', (r) => {
-    const host = new URL(r.url()).hostname;
-    if (!['127.0.0.1', 'fonts.googleapis.com', 'fonts.gstatic.com'].includes(host) && !r.url().startsWith('blob:') && !r.url().startsWith('data:')) outside.push(r.url());
-  });
-  return outside;
-}
 
 /* ---------- On the work page ---------- */
 
@@ -30,7 +20,7 @@ test('the work page shows the clickable replica on wide screens and the video on
     return;
   }
   await expect(box).toHaveAttribute('data-mode', 'try');
-  const frame = page.frameLocator('.replica__frame');
+  const frame = page.frameLocator('.page.is-active .replica__frame');
   await expect(frame.locator('.ws-head')).toContainText('Spring launch');
   await expect(frame.locator('.backlink')).toHaveCount(0);
   const scale = await box.locator('.replica__frame').evaluate((f) => new DOMMatrix(getComputedStyle(f).transform).a);
@@ -48,10 +38,10 @@ test('the work page shows the clickable replica on wide screens and the video on
 test('START OVER puts the replica back to its first state', async ({ page }) => {
   test.skip(isNarrow(page), 'the replica is not embedded on narrow screens');
   await page.goto('/#/work/uploader');
-  const frame = page.frameLocator('.replica__frame');
+  const frame = page.frameLocator('.page.is-active .replica__frame');
   await frame.locator('.nav__item', { hasText: 'Dashboard' }).first().click();
   await expect(frame.locator('.dash h1')).toHaveText('Dashboard');
-  await page.locator('[data-replica-reset]').click();
+  await page.locator('.page.is-active [data-replica-reset]').click();
   await expect(frame.locator('.ws-head')).toContainText('Spring launch');
 });
 
@@ -59,7 +49,7 @@ test('clicking around the replica never traps the Back button', async ({ page })
   test.skip(isNarrow(page), 'the replica is not embedded on narrow screens');
   await page.goto('/#/about');
   await page.goto('/#/work/uploader');
-  const frame = page.frameLocator('.replica__frame');
+  const frame = page.frameLocator('.page.is-active .replica__frame');
   await frame.locator('.nav__item', { hasText: 'Run history' }).first().click();
   await frame.locator('.nav__item', { hasText: 'Dashboard' }).first().click();
   await expect(frame.locator('.dash h1')).toHaveText('Dashboard');
@@ -69,7 +59,7 @@ test('clicking around the replica never traps the Back button', async ({ page })
 
 test('leaving the work page pauses the video', async ({ page }) => {
   await page.goto('/#/work/uploader');
-  const video = page.locator('[data-replica-video]');
+  const video = page.locator('section[data-page="work-uploader"] [data-replica-video]');
   if (!isNarrow(page)) await page.getByRole('button', { name: 'WATCH IT' }).click();
   await expect.poll(() => video.evaluate((v) => !v.paused || v.readyState === 0)).toBe(true);
   await page.goto('/#/about');
