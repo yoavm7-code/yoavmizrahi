@@ -48,8 +48,11 @@ export function describeChanges(liveRaw, draftRaw) {
   });
 
   if (differs(live.about, draft.about)) out.push('Edited the About page');
-  return out;
+  /* Removals come first, so they are never the ones hidden behind "and N more". */
+  return out.filter(isRemoval).concat(out.filter(function (c) { return !isRemoval(c); }));
 }
+
+export function isRemoval(change) { return change.indexOf('Removed ') === 0; }
 
 function find(list, id) { return list.filter(function (x) { return x.id === id; })[0]; }
 
@@ -77,8 +80,8 @@ export function check(draft) { return validate(normalize(draft)); }
 /* Saves the draft to main as one commit. progress(step) is called with
    'checking' | 'building' | 'saving' | 'saved'. Returns { commit, build, content }.
    expectedBase: the main commit the draft started from. If main moved since then, throws
-   { moved: true, head } before saving anything, unless force is set. */
-export async function publish(gh, draftRaw, media, expectedBase, message, progress, force) {
+   { moved: true, head } before saving anything, so the draft can catch up first (store.catchUp). */
+export async function publish(gh, draftRaw, media, expectedBase, message, progress) {
   var content = normalize(draftRaw);
   var result = validate(content);
   if (result.errors.length) throw Object.assign(new Error('invalid'), { invalid: result.errors });
@@ -87,7 +90,7 @@ export async function publish(gh, draftRaw, media, expectedBase, message, progre
     progress('checking');
     var ref = await gh.getRef(REPO.main);
     var head = ref.object.sha;
-    if (!force && expectedBase && head !== expectedBase && attempt === 0) throw Object.assign(new Error('moved'), { moved: true, head: head });
+    if (expectedBase && head !== expectedBase && attempt === 0) throw Object.assign(new Error('moved'), { moved: true, head: head });
     var headCommit = await gh.getCommit(head);
     var tree = await gh.getTree(headCommit.tree.sha, true);
     var existing = {};

@@ -9,9 +9,13 @@ export const RUN_URL = 'https://github.com/yoavm7-code/yoavmizrahi/actions/runs/
 export const SITE_JSON = readFileSync(new URL('../../content/site.json', import.meta.url), 'utf8');
 
 /* Fakes the login server and GitHub. deploy: what the Deploy run reports, or null for no run yet.
-   goLive: serve the published index.html once it has been saved. */
-export async function fakeBackend(page, { deploy, goLive }) {
-  const saved = { index: null };
+   goLive: serve the published index.html once it has been saved.
+   versions: site.json text at other commits ({ sha: text }), for drafts started from an older version.
+   heads: the main commit for each read of main in turn, the last one repeating (default: MAIN).
+   Returns what was saved: { index, content } (the published index.html and site.json). */
+export async function fakeBackend(page, { deploy, goLive, versions, heads }) {
+  const saved = { index: null, content: null };
+  let headReads = 0;
   await page.route(/workers\.dev\//, async (route) => {
     const req = route.request();
     const url = new URL(req.url());
@@ -23,14 +27,23 @@ export async function fakeBackend(page, { deploy, goLive }) {
     const path = url.pathname.slice(('/gh' + REPO).length);
     const method = req.method();
     if (method === 'GET' && path === '') return json({ permissions: { push: true } });
-    if (method === 'GET' && path === '/git/ref/heads/main') return json({ object: { sha: MAIN } });
+    if (method === 'GET' && path === '/git/ref/heads/main') {
+      const list = heads || [MAIN];
+      return json({ object: { sha: list[Math.min(headReads++, list.length - 1)] } });
+    }
     if (method === 'GET' && path === '/git/ref/heads/drafts') return json({ message: 'Not Found' }, 404);
-    if (method === 'GET' && path === '/contents/content/site.json') return route.fulfill({ status: 200, contentType: 'text/plain', body: SITE_JSON });
+    if (method === 'GET' && path === '/contents/content/site.json') {
+      const ref = url.searchParams.get('ref');
+      return route.fulfill({ status: 200, contentType: 'text/plain', body: (versions && versions[ref]) || SITE_JSON });
+    }
     if (method === 'GET' && path.startsWith('/git/commits/')) return json({ sha: path.slice(13), tree: { sha: 'a'.repeat(40) } });
     if (method === 'GET' && path.startsWith('/git/trees/')) return json({ tree: [{ path: 'index.html', type: 'blob' }, { path: 'content/site.json', type: 'blob' }] });
     if (method === 'POST' && path === '/git/trees') {
-      const entry = req.postDataJSON().tree.find((e) => e.path === 'index.html');
+      const tree = req.postDataJSON().tree;
+      const entry = tree.find((e) => e.path === 'index.html');
+      const content = tree.find((e) => e.path === 'content/site.json');
       if (entry) saved.index = entry.content;
+      if (content) saved.content = JSON.parse(content.content);
       return json({ sha: 'b'.repeat(40) });
     }
     if (method === 'POST' && path === '/git/commits') return json({ sha: NEW_COMMIT });
@@ -45,4 +58,5 @@ export async function fakeBackend(page, { deploy, goLive }) {
     if (goLive && saved.index) return route.fulfill({ status: 200, contentType: 'text/html', body: saved.index });
     return route.continue();
   });
+  return saved;
 }
