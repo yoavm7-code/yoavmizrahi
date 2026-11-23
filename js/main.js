@@ -442,8 +442,10 @@
 
   var offsets = {};      // key -> { dx, dy } added by dragging
   var sizes = {};        // key -> { w, h } measured before any tilt
+  var layers = {};       // key -> the object's stacking layer at home, in page order
   objs.forEach(function (o, i) {
     offsets[keyOf(o)] = { dx: 0, dy: 0 };
+    layers[keyOf(o)] = i + 1;
     o.style.zIndex = i + 1;
   });
 
@@ -459,6 +461,8 @@
     var off = offsets[keyOf(o)];
     o.style.transform = (off.dx || off.dy ? 'translate(' + off.dx + 'px,' + off.dy + 'px) ' : '') + 'rotate(' + lean(o) + 'deg)';
   }
+  /* Back on its home layer, so a pile of tapes stacks the same way it did before anything moved. */
+  function layerHome(o) { o.style.zIndex = layers[keyOf(o)]; }
   function measure(o) {
     var key = keyOf(o);
     if (!sizes[key] && o.offsetWidth) sizes[key] = { w: o.offsetWidth, h: o.offsetHeight };
@@ -551,6 +555,7 @@
     rest(o);
     showTidy();
     var off = offsets[keyOf(o)];
+    if (!off.dx && !off.dy) layerHome(o);
     console.info('[desk drag]', { key: keyOf(o), dx: off.dx, dy: off.dy });
     if (o.hasAttribute('data-tape')) {
       var t = o.getBoundingClientRect(), m = monitorObj.getBoundingClientRect();
@@ -606,7 +611,9 @@
     var count = 0;
     objs.forEach(function (o) {
       var off = offsets[keyOf(o)];
-      if ((!off.dx && !off.dy) || o.classList.contains('is-inserted')) return;
+      if (o.classList.contains('is-inserted')) return;
+      layerHome(o);
+      if (!off.dx && !off.dy) return;
       var delay = count++ * 40;
       setOffset(o, 0, 0);
       if (!reduceMotion) {
@@ -643,6 +650,7 @@
   function returnTape(tape) {
     tape.classList.remove('is-inserted');
     setOffset(tape, 0, 0);
+    layerHome(tape);
     rest(tape);
     showTidy();
   }

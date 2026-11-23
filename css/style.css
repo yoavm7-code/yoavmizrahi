@@ -548,7 +548,7 @@ body.menu-open .mlink:nth-child(1) .mlink__in { transition-delay: .3s; }
 body.menu-open .mlink:nth-child(2) .mlink__in { transition-delay: .38s; }
 body.menu-open .mlink:nth-child(3) .mlink__in { transition-delay: .46s; }
 body.menu-open .mlink:nth-child(4) .mlink__in { transition-delay: .54s; }
-.mlink__num { display: inline-block; min-width: 2.6em; font-family: var(--mono); font-size: 14px; font-weight: 400; color: #8E8A80; margin-right: 22px; vertical-align: top; transition: color .3s ease; }
+.mlink__num { display: inline-block; min-width: 2.6em; font-family: var(--mono); font-size: 14px; font-weight: 400; letter-spacing: .1em; color: #8E8A80; margin-right: 22px; vertical-align: top; transition: color .3s ease; }
 .mlink:hover .mlink__num { color: var(--accent); }
 .menu__foot { padding: 0 40px 28px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-size: 11px; letter-spacing: .14em; color: #8E8A80; }
 

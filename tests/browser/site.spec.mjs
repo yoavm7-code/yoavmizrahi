@@ -154,6 +154,49 @@ test('anything on the desk drags anywhere, and Tidy up puts it back', async ({ p
   await expect.poll(async () => { const b = await note.boundingBox(); return Math.hypot(b.x - before.x, b.y - before.y); }, { timeout: 3000 }).toBeLessThan(2);
 });
 
+test('after Tidy up, or a click that moves nothing, the tapes stack in their pile order again', async ({ page }) => {
+  test.skip(isNarrow(page), 'checked with a mouse on wide screens');
+  await page.goto('/#/');
+  await expect(page.locator('.desk.is-laid')).toBeVisible();
+  const layers = () => page.locator('.desk .obj').evaluateAll((els) => els.map((o) => o.style.zIndex));
+  const home = await layers();
+  const tape = page.locator('[data-tape]').nth(1);
+  await tape.scrollIntoViewIfNeeded();
+
+  /* A click lifts the tape, and putting it down where it was sends it back to its layer. */
+  let box = await tape.boundingBox();
+  await page.mouse.move(box.x + 50, box.y + 25);
+  await page.mouse.down();
+  await page.mouse.up();
+  expect(await layers()).toEqual(home);
+
+  /* Dragged away it stays on top; Tidy up puts it back in the pile, under the tape that follows it. */
+  await page.mouse.move(box.x + 50, box.y + 25);
+  await page.mouse.down();
+  await page.mouse.move(box.x - 150, box.y + 200, { steps: 8 });
+  await page.mouse.up();
+  expect(Number(await tape.evaluate((o) => o.style.zIndex))).toBeGreaterThan(Math.max(...home.map(Number)));
+  await page.getByRole('button', { name: 'Tidy up' }).click();
+  expect(await layers()).toEqual(home);
+});
+
+test('the menu numbers keep their own letter spacing, so the digits never overlap', async ({ page }) => {
+  await page.goto('/#/');
+  await page.locator('.site-header [data-menu-toggle]').click();
+  const nums = page.locator('#menu .mlink__num');
+  await expect(nums).toHaveCount(4);
+  /* The second digit starts at least half a character after the first (the big heading's tight
+     spacing, inherited, used to pull it about 5px back over the first). */
+  for (const step of await nums.evaluateAll((els) => els.map((el) => {
+    const range = document.createRange();
+    const text = el.firstChild;
+    range.setStart(text, 0); range.setEnd(text, 1);
+    const first = range.getBoundingClientRect().left;
+    range.setStart(text, 1); range.setEnd(text, 2);
+    return (range.getBoundingClientRect().left - first) / parseFloat(getComputedStyle(el).fontSize);
+  }))) expect(step).toBeGreaterThan(0.5);
+});
+
 test('nothing can be dragged off the desk', async ({ page }) => {
   test.skip(isNarrow(page), 'checked with a mouse on wide screens');
   await page.goto('/#/');
