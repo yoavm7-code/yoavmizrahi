@@ -354,6 +354,28 @@ body[data-theme="dark"] .site-header { border-color: var(--ink-line); }
 .proj-meta__link { align-self: flex-end; }
 .stage { position: relative; min-height: 600px; border-radius: 18px; overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 56px 28px; }
 .stage__label { position: absolute; left: 24px; top: 20px; font-size: 11px; letter-spacing: .14em; color: var(--muted); }
+
+/* The real product: an ink device (same family as the desk objects) holding the replica or its video. */
+.stage--replica { display: block; min-height: 0; padding: 60px 40px 44px; }
+.replica { max-width: 1320px; margin: 0 auto; padding: 10px 12px 12px; background: var(--ink); border: 1px solid var(--ink-line); border-radius: 22px; filter: drop-shadow(0 18px 24px rgba(0,0,0,.25)); }
+.replica__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 2px 4px 12px; }
+.replica__title { flex: 1 1 auto; display: flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: .14em; color: var(--muted-dark); }
+.replica__live { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.replica__modes { display: flex; padding: 3px; border: 1px solid var(--ink-line); border-radius: 999px; }
+.replica__mode { min-height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: var(--muted-dark); font-family: var(--mono); font-size: 11px; letter-spacing: .12em; }
+.replica__mode[aria-pressed="true"] { background: var(--paper); color: var(--ink); }
+.replica__actions { display: flex; gap: 6px; }
+.replica__act { display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border: 1px solid var(--ink-line); border-radius: 999px; background: transparent; color: var(--paper); font-family: var(--mono); font-size: 11px; letter-spacing: .1em; transition: border-color .2s ease; }
+.replica__act:hover { border-color: var(--muted-dark); }
+.replica__screen { position: relative; overflow: hidden; border-radius: 12px; background: #F6F6F4; }
+.replica__viewport { position: relative; width: 100%; aspect-ratio: 16 / 10; overflow: hidden; }
+.replica__viewport::before { content: "LOADING THE DEMO…"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11px; letter-spacing: .14em; color: var(--muted); }
+.replica__frame { position: absolute; left: 0; top: 0; display: block; border: 0; transform-origin: 0 0; }
+.replica__video { display: none; width: 100%; aspect-ratio: 16 / 10; background: var(--ink); }
+.replica[data-mode="watch"] .replica__viewport, .replica[data-mode="watch"] [data-replica-reset] { display: none; }
+.replica[data-mode="watch"] .replica__video { display: block; }
+.replica__note { display: none; margin: 12px 4px 2px; font-size: 11px; line-height: 1.7; letter-spacing: .06em; color: var(--muted-dark); }
+.replica__note a { color: var(--paper); }
 .next { display: flex; flex-direction: column; gap: 10px; padding: 70px 0 90px; border-top: 1px solid var(--line); }
 .next__title { align-self: flex-start; font-family: var(--display); font-weight: 800; font-size: clamp(48px, 7vw, 112px); line-height: .95; letter-spacing: -0.04em; padding-bottom: 6px; }
 .next:hover .next__title { background-size: 100% 1.5px; }
@@ -476,6 +498,7 @@ body.menu-open .mlink:nth-child(4) .mlink__in { transition-delay: .54s; }
   transition: width .3s var(--ease), height .3s var(--ease), margin .3s var(--ease), background .3s ease;
 }
 .has-cursor .cursor { display: flex; }
+.cursor-off .cursor { opacity: 0; } /* over an embedded replica, which shows its own pointer */
 .cursor span { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; color: var(--ink); opacity: 0; transition: opacity .2s ease; }
 .cursor.is-big { width: 72px; height: 72px; margin: -36px 0 0 -36px; background: var(--accent); }
 .cursor.is-big span { opacity: 1; }
@@ -505,6 +528,11 @@ body.menu-open .mlink:nth-child(4) .mlink__in { transition-delay: .54s; }
   .tape__play { position: relative; }
   .tape__play::after { content: ""; position: absolute; inset: -8px; }
   .eject { min-height: 44px; padding: 8px 14px; }
+
+  /* Replicas: the video plays here; the clickable demo is one link away. */
+  .replica__modes, [data-replica-reset] { display: none; }
+  .replica__note { display: block; }
+  .replica__act { min-height: 44px; }
 }
 
 @media (max-width: 720px) {
@@ -535,6 +563,8 @@ body.menu-open .mlink:nth-child(4) .mlink__in { transition-delay: .54s; }
   .proj-meta p { flex-basis: 100%; font-size: 18px; }
   .proj-meta__link { align-self: auto; }
   .stage { min-height: 0; padding: 56px 12px 28px; }
+  .replica { padding: 8px 8px 10px; border-radius: 18px; }
+  .replica__title { font-size: 10px; letter-spacing: .1em; }
   .next { padding: 48px 0 64px; }
   .about { gap: 32px; }
   .about__side { flex-basis: 100%; }

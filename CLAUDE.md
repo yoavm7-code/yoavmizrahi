@@ -57,6 +57,7 @@ w/, f/              GENERATED share pages (link previews for each work and film)
 css/style.css       design tokens, components, motion, responsive, reduced-motion
 js/main.js          behavior only: router, wipe, menu, cursor, desk, monitor/tapes, demos, reel
 admin/              the admin (see below)
+demos/<name>/       replicas: a clickable copy of a work with made-up data, plus its demo.mp4 and poster.jpg (see "Replicas")
 tools/generate.mjs  regenerates index.html + share pages locally: node tools/generate.mjs
 tools/build-site.mjs collects the files that go live into _site/ (used by the deploy and the browser tests)
 tests/              unit tests (node:test) and browser tests (Playwright). Own package.json, never deployed
@@ -98,6 +99,10 @@ README.md           short public readme
 - **Demos** share state across all their instances (desk and project page):
   - `[data-widget="uploader"]`: simulated upload of 3 sample files.
   - `[data-widget="toto"]`: score picker plus lock. They're rendered by `renderUploader()` and `renderToto()`.
+- **Replicas** (`demos/<name>/`): a clickable copy of the real product, with its own look and made-up data. A `DEMOS` entry in `js/schema.js` with a `replica` block puts it on the work's project page in place of the desk object: an ink device with TRY IT (the copy, loaded by `main.js` only when the page opens and scaled from its real size to fit) and WATCH IT (the recorded video). Up to 900px wide the video plays and the copy is one link away.
+  - Mega Uploader: `demos/mega-uploader/`. `js/data.js` holds every name and number (all invented), `js/logic.js` the rules (pure, unit tested), the rest is UI. Screens switch in memory, never through the URL, so the portfolio's Back button still works.
+  - **Privacy:** never copy real names, partners, IDs, numbers or times from the product. `tests/unit/replica-privacy.test.mjs` fails on known real terms, stored only as hashes (it explains how to add one). Screenshots of the real product stay out of the repo.
+  - **Video:** after changing a replica, run `cd tests && npm run record:demos` (needs ffmpeg) and commit the new `demo.mp4` and `poster.jpg`. The script in `tests/record-demos.mjs` drives the replica with a visible pointer.
 - **Film reel:** each `[data-clip]` has `data-start`/`data-end` (0–1 along the track) plus title, part, presents, meta, file and youtube. The reel plays across 150 "seconds" of timecode; clicking a clip, scrubbing the ruler, or prev/next jumps.
 - **YouTube:** put the video id in `data-youtube="..."` on a clip or a tape. The player is embedded with `youtube-nocookie.com`. If the id is empty, a placeholder shows instead.
 

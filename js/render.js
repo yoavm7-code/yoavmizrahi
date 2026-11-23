@@ -3,7 +3,7 @@
    Every value is escaped by the html`` tag, so content can never inject markup.
    Plain ES module, no dependencies, works in the browser and in Node. */
 
-import { normalize, runtimeSeconds, isSafeUrl, isMediaPath, SIZES, DESK } from './schema.js';
+import { normalize, runtimeSeconds, isSafeUrl, isMediaPath, SIZES, DESK, DEMOS } from './schema.js';
 
 /* ---------- Safe templating ---------- */
 
@@ -329,11 +329,43 @@ function stageObject(w, paths) {
       </div>`;
 }
 
+/* The full product on its project page: an ink device holding the interactive replica (TRY IT) and a
+   recorded video of it (WATCH IT). js/main.js loads the replica only when the page opens and scales it
+   to fit; phones and tablets get the video, with a link to open the replica anyway. */
+function replicaOf(w) { return w.demo && DEMOS[w.demo].replica || null; }
+
+function replicaStage(r, paths) {
+  var full = paths.asset(r.src);
+  return html`
+    <div class="stage stage--replica grid-surface grid-surface--deep up d3">
+      <span class="stage__label mono">THE REAL THING · FULLY CLICKABLE</span>
+      <div class="replica" data-replica data-src="${full}" data-w="${r.width}" data-h="${r.height}" data-title="${r.title}" data-mode="try">
+        <div class="replica__bar">
+          <span class="replica__title mono"><span class="replica__live" aria-hidden="true"></span>${upper(r.title)} · MADE-UP DATA</span>
+          <div class="replica__modes" role="group" aria-label="Demo or video">
+            <button class="btn replica__mode" type="button" data-replica-mode="try" aria-pressed="true">TRY IT</button>
+            <button class="btn replica__mode" type="button" data-replica-mode="watch" aria-pressed="false">WATCH IT</button>
+          </div>
+          <div class="replica__actions">
+            <button class="btn replica__act" type="button" data-replica-reset>↺ START OVER</button>
+            <a class="replica__act" href="${full}" data-replica-full>⤢ FULL SCREEN</a>
+          </div>
+        </div>
+        <div class="replica__screen">
+          <div class="replica__viewport" data-replica-viewport data-cursor-off></div>
+          <video class="replica__video" data-replica-video src="${paths.asset(r.video)}" poster="${paths.asset(r.poster)}" muted loop playsinline controls preload="none" aria-label="${'A recorded walk through ' + r.title}"></video>
+        </div>
+        <p class="replica__note mono">The clickable demo is built for a computer screen. <a class="uline" href="${full}">Open it anyway →</a></p>
+      </div>
+    </div>`;
+}
+
 function pageProject(c, w, i, paths) {
   var next = c.works[i + 1];
   var nextHref = next ? '#/work/' + next.id : '#/films';
   var nextTitle = next ? next.title + ' →' : 'The films →';
   var link = safeHref(w.link);
+  var replica = replicaOf(w);
   return html`
 <!-- ============ PROJECT: ${upper(w.title)} ============ -->
 <section class="page page--project" data-page="${'work-' + w.id}" data-route="${'/work/' + w.id}" data-label="${w.title}" data-name="${'WORK / ' + upper(w.title)}" aria-label="${w.title}">
@@ -349,9 +381,9 @@ function pageProject(c, w, i, paths) {
       ${w.description ? html`<p>${w.description}</p>` : ''}
       ${link ? html`<a class="uline mono-link proj-meta__link" href="${link}" target="_blank" rel="noopener">VISIT THE LIVE PRODUCT ↗</a>` : ''}
     </div>
-    <div class="stage grid-surface grid-surface--deep up d3">
+    ${replica ? replicaStage(replica, paths) : html`<div class="stage grid-surface grid-surface--deep up d3">
       <span class="stage__label mono">${w.demo ? 'ON THE DESK · TRY IT' : 'ON THE DESK'}</span>${stageObject(w, paths)}
-    </div>
+    </div>`}
     <a class="next" href="${nextHref}" data-cursor="view"><span class="label">NEXT</span><span class="next__title uline">${nextTitle}</span></a>
   </div>
 </section>
@@ -546,7 +578,8 @@ export function renderSharePages(content) {
   var base = c.site.url ? c.site.url + '/' : '';
   var pages = [];
   c.works.forEach(function (w) {
-    var image = w.media && w.media.type === 'image' && base ? base + w.media.src : '';
+    var replica = replicaOf(w);
+    var image = !base ? '' : w.media && w.media.type === 'image' ? base + w.media.src : replica ? base + replica.poster : '';
     pages.push({ path: 'w/' + w.id + '/index.html', html: sharePage(c, w.title, w.description, '#/work/' + w.id, image) });
   });
   c.films.forEach(function (f) {

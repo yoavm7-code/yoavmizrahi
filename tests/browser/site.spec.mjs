@@ -119,13 +119,13 @@ test('desk objects drag on wide screens and stay put on narrow ones', async ({ p
 
 /* ---------- Demos ---------- */
 
-test('the upload demo runs to 100% and resets', async ({ page }) => {
-  await page.goto('/#/work/uploader');
+test('the upload demo on the desk runs to 100% and resets', async ({ page }) => {
+  await page.goto('/#/');
   const demo = page.locator('.page.is-active [data-widget="uploader"]');
   await demo.getByRole('button', { name: 'UPLOAD 3 SAMPLE FILES' }).click();
   await expect(demo.locator('.u-file')).toHaveCount(3);
   await expect(demo.getByRole('button', { name: 'DONE · RUN AGAIN' })).toBeVisible({ timeout: 10000 });
-  await expect(page.locator('.page.is-active [data-upload-total]')).toHaveText('100%');
+  await expect(demo.locator('.u-file__row span:last-child')).toHaveText(['100%', '100%', '100%']);
   await demo.getByRole('button', { name: 'DONE · RUN AGAIN' }).click();
   await expect(demo.getByRole('button', { name: 'UPLOAD 3 SAMPLE FILES' })).toBeVisible();
 });
