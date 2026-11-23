@@ -197,6 +197,17 @@ export const STRINGS = {
 
 var lang = 'he';
 
+/* Wording changes from the admin replace the defaults key by key, only for keys this replica has. */
+export function applyWording(map) {
+  Object.keys(STRINGS).forEach(function (l) {
+    var given = map && map[l];
+    if (!given || typeof given !== 'object') return;
+    Object.keys(given).forEach(function (k) {
+      if (STRINGS[l][k] !== undefined && typeof given[k] === 'string' && given[k].trim()) STRINGS[l][k] = given[k];
+    });
+  });
+}
+
 export function getLang() { return lang; }
 export function setLang(next) {
   lang = next === 'en' ? 'en' : 'he';

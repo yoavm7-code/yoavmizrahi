@@ -361,8 +361,19 @@ export function renderWork(ctx, el, id) {
 
   var pic = section('Picture', w.demo ? null : 'A screenshot or a short screen recording. It shows on the desk object and the project page.');
   if (w.demo) pic.body.appendChild(h('p.callout', 'This work shows its built-in live demo (' + DEMOS[w.demo].name + ') instead of a picture.'));
-  else pic.body.appendChild(mediaPicker(ctx, id, p));
+  else pic.body.appendChild(mediaPicker(ctx, {
+    path: p + '.media', video: true, alt: true,
+    title: 'Choose a screenshot or video', hint: 'JPG, PNG, WebP or a short MP4. Or drop a file here.',
+    get: function (x) { return x.works[workIndex(ctx, id)].media; },
+    set: function (x, res) {
+      var work = x.works[workIndex(ctx, id)];
+      work.media = res ? { type: res.type, src: res.path, alt: (work.media && work.media.alt) || '', width: res.width, height: res.height } : null;
+    }
+  }));
   el.appendChild(pic);
+
+  var editable = w.demo && DEMOS[w.demo].replica && DEMOS[w.demo].replica.editable;
+  if (editable) el.appendChild(replicaSection(ctx, id, p, editable));
 
   var look = section('On the desk');
   look.body.appendChild(choiceCards({
@@ -417,18 +428,20 @@ function addressField(ctx, kind, id, p) {
   return f;
 }
 
-/* Upload, replace or remove the picture of a work. */
-function mediaPicker(ctx, id, p) {
-  var box = h('div.media-pick', { 'data-path': p + '.media' });
-  var fileInput = h('input', { type: 'file', accept: ACCEPT, hidden: true });
+/* Upload, replace or remove a picture: a work's screenshot or video, or a replica's logo.
+   opts: path (for messages), get(draft) -> the current value, set(draft, upload result or null),
+   video (videos allowed), alt (ask for a description), title and hint (the empty drop zone). */
+function mediaPicker(ctx, opts) {
+  var box = h('div.media-pick', { 'data-path': opts.path });
+  var fileInput = h('input', { type: 'file', accept: opts.video ? ACCEPT : IMAGES, hidden: true });
   var status = h('p.media-pick__status', { 'aria-live': 'polite' });
   box.appendChild(fileInput);
 
-  function work() { return draft(ctx).works[workIndex(ctx, id)]; }
+  function current() { return opts.get(draft(ctx)); }
 
   function draw() {
     Array.prototype.slice.call(box.children).forEach(function (c) { if (c !== fileInput) c.remove(); });
-    var m = work().media;
+    var m = current();
     if (m) {
       var url = ctx.mediaUrl(m.src);
       box.appendChild(h('div.media-pick__preview', m.type === 'video'
@@ -437,21 +450,23 @@ function mediaPicker(ctx, id, p) {
       box.appendChild(h('div.row-gap',
         button('Replace', { icon: 'image', onClick: function () { fileInput.click(); } }),
         button('Remove', { kind: 'ghost', icon: 'trash', onClick: function () {
-          ctx.store.update(function (x) { x.works[workIndex(ctx, id)].media = null; });
+          ctx.store.update(function (x) { opts.set(x, null); });
           draw();
         } })
       ));
-      box.appendChild(bound(ctx, {
-        label: m.type === 'video' ? 'What the video shows' : 'Describe the picture',
-        hint: 'For people using screen readers, and for search engines.',
-        path: p + '.media.alt', max: LIMITS.line,
-        get: function (x) { var mm = x.works[workIndex(ctx, id)].media; return mm ? mm.alt : ''; },
-        set: function (x, v) { var mm = x.works[workIndex(ctx, id)].media; if (mm) mm.alt = v; }
-      }));
+      if (opts.alt) {
+        box.appendChild(bound(ctx, {
+          label: m.type === 'video' ? 'What the video shows' : 'Describe the picture',
+          hint: 'For people using screen readers, and for search engines.',
+          path: opts.path + '.alt', max: LIMITS.line,
+          get: function (x) { var mm = opts.get(x); return mm ? mm.alt : ''; },
+          set: function (x, v) { var mm = opts.get(x); if (mm) mm.alt = v; }
+        }));
+      }
     } else {
       var drop = h('button.media-pick__drop', { type: 'button', on: { click: function () { fileInput.click(); } } },
-        icon('image'), h('strong', 'Choose a screenshot or video'), h('span', 'JPG, PNG, WebP or a short MP4. Or drop a file here.'),
-        h('span', 'Photos are cleaned of hidden location data. Videos are uploaded as they are, so use screen recordings rather than phone videos.'));
+        icon('image'), h('strong', opts.title), h('span', opts.hint),
+        h('span', 'Photos are cleaned of hidden location data.' + (opts.video ? ' Videos are uploaded as they are, so use screen recordings rather than phone videos.' : '')));
       ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('is-over'); }); });
       ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function () { drop.classList.remove('is-over'); }); });
       drop.addEventListener('drop', function (e) { e.preventDefault(); if (e.dataTransfer.files[0]) upload(e.dataTransfer.files[0]); });
@@ -465,8 +480,9 @@ function mediaPicker(ctx, id, p) {
     status.className = 'media-pick__status';
     try {
       var res = await ctx.uploadMedia(file, function (step) { status.textContent = step; });
+      if (!opts.video && res.type !== 'image') throw new Error('Please choose an image (PNG, JPG or WebP).');
       ctx.store.update(function (x, st) {
-        x.works[workIndex(ctx, id)].media = { type: res.type, src: res.path, alt: (work().media && work().media.alt) || '', width: res.width, height: res.height };
+        opts.set(x, res);
         st.media[res.path] = res.sha;
       });
       status.textContent = '';
@@ -479,6 +495,103 @@ function mediaPicker(ctx, id, p) {
   }
   fileInput.addEventListener('change', function () { if (fileInput.files[0]) upload(fileInput.files[0]); fileInput.value = ''; });
   draw();
+  return box;
+}
+
+/* ---------- Replica settings ---------- */
+/* A replica's logo and wording. The replica reads them from the published content when it loads,
+   so changes show in the clickable demo after publishing (the preview runs the live demo). */
+
+var IMAGES = 'image/png,image/jpeg,image/webp';
+var LANG_NAMES = { he: 'Hebrew', en: 'English' };
+var PAGE_SIZE = 40;
+
+function replicaSection(ctx, id, p, editable) {
+  var sec = section(editable.logo ? 'Demo logo and wording' : 'Demo wording', 'Changes show in the clickable demo after you publish.');
+  function settings(x) { var work = x.works[workIndex(ctx, id)]; work.replica = work.replica || { logo: null, strings: {} }; return work.replica; }
+  if (editable.logo) {
+    sec.body.appendChild(h('h3.subhead', 'Logo'));
+    sec.body.appendChild(mediaPicker(ctx, {
+      path: p + '.replica.logo', video: false, alt: false,
+      title: 'Choose the logo', hint: 'A PNG with a transparent background works best. Shown in the demo\'s top bar.',
+      get: function (x) { return settings(x).logo ? { type: 'image', src: settings(x).logo.src } : null; },
+      set: function (x, res) { settings(x).logo = res ? { src: res.path } : null; }
+    }));
+  }
+  sec.body.appendChild(h('h3.subhead', 'Wording'));
+  sec.body.appendChild(wordingEditor(ctx, editable, settings));
+  return sec;
+}
+
+/* Every line of the demo's text, searchable. Type over a line to change it; Reset brings the
+   original back. Lines keep their {placeholders}, which the demo fills in (a number, a name). */
+function wordingEditor(ctx, editable, settings) {
+  var box = h('div.wording');
+  var state = { lang: editable.languages[0], q: '', shown: PAGE_SIZE, defaults: null };
+  var list = h('div.wording__list');
+  var count = h('p.muted-text');
+  var search = h('input.input', { type: 'search', placeholder: 'Search the wording…', 'aria-label': 'Search the wording', on: { input: function () { state.q = search.value; state.shown = PAGE_SIZE; paint(); } } });
+  var tabs = h('div.row-gap', { role: 'group', 'aria-label': 'Language' });
+
+  import('../' + editable.strings).then(function (mod) {
+    state.defaults = mod.STRINGS;
+    paint();
+  }).catch(function () {
+    clear(list).appendChild(h('p.callout', 'The demo\'s wording could not be loaded. Refresh the page and try again.'));
+  });
+
+  function overrides(x) { var st = settings(x).strings; st[state.lang] = st[state.lang] || {}; return st[state.lang]; }
+  function vars(text) { return (String(text).match(/\{\w+\}/g) || []).sort().join(' '); }
+
+  function paint() {
+    clear(tabs);
+    editable.languages.forEach(function (l) {
+      tabs.appendChild(button(LANG_NAMES[l] || l, { small: true, kind: state.lang === l ? 'primary' : 'ghost', onClick: function () { state.lang = l; state.shown = PAGE_SIZE; paint(); } }));
+    });
+    if (!state.defaults) { clear(list).appendChild(h('p.muted-text', 'Loading the wording…')); return; }
+    var base = state.defaults[state.lang];
+    var other = state.defaults[editable.languages.filter(function (l) { return l !== state.lang; })[0]] || {};
+    var changed = overrides(draft(ctx));
+    var q = state.q.trim().toLowerCase();
+    var keys = Object.keys(base).filter(function (k) {
+      var now = changed[k] !== undefined ? changed[k] : base[k];
+      return !q || (k + ' ' + base[k] + ' ' + now + ' ' + (other[k] || '')).toLowerCase().indexOf(q) !== -1;
+    });
+    count.textContent = keys.length + (keys.length === 1 ? ' line' : ' lines') + ' · ' + Object.keys(changed).length + ' changed';
+    clear(list);
+    keys.slice(0, state.shown).forEach(function (k) { list.appendChild(row(k, base[k], other[k], changed[k])); });
+    if (keys.length > state.shown) list.appendChild(button('Show ' + Math.min(PAGE_SIZE, keys.length - state.shown) + ' more', { small: true, onClick: function () { state.shown += PAGE_SIZE; paint(); } }));
+    if (!keys.length) list.appendChild(h('p.muted-text', 'No line matches "' + state.q + '".'));
+  }
+
+  function row(key, original, reference, override) {
+    var value = override !== undefined ? override : original;
+    var warn = h('p.wording__warn');
+    var area = h('textarea.input.wording__text', { rows: String(Math.min(4, Math.ceil(original.length / 60) || 1)), dir: state.lang === 'he' ? 'rtl' : 'ltr', 'aria-label': key, value: value, 'data-key': key });
+    function check() { warn.textContent = vars(area.value) !== vars(original) ? 'Keep ' + vars(original) + ' in the text: the demo fills it in.' : ''; }
+    area.addEventListener('input', check);
+    area.addEventListener('change', function () {
+      var v = area.value.trim();
+      ctx.store.update(function (x) {
+        var map = overrides(x);
+        if (!v || v === original) delete map[key]; else map[key] = v;
+      });
+      paint();
+    });
+    check();
+    return h('div.wording__row' + (override !== undefined ? '.is-changed' : ''),
+      h('div.wording__head', h('code', key), override !== undefined ? button('Reset', { small: true, kind: 'ghost', onClick: function () {
+        ctx.store.update(function (x) { delete overrides(x)[key]; });
+        paint();
+      } }) : null),
+      reference ? h('p.muted-text.wording__ref', { dir: 'auto' }, reference) : null,
+      area, warn);
+  }
+
+  box.appendChild(h('div.row-gap.wording__bar', tabs, search));
+  box.appendChild(count);
+  box.appendChild(list);
+  paint();
   return box;
 }
 

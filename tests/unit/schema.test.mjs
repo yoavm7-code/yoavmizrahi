@@ -231,3 +231,16 @@ test('a shown tape needs a label', () => {
   raw.films[0].tape.label = 'x'.repeat(25);
   assert.deepEqual(errorsOf(raw), ['films.0.tape.label']);
 });
+
+test('replica settings: a logo only where allowed, wording only as plain text under valid keys', () => {
+  const c = normalize({ works: [
+    { id: 'm', demo: 'memesh', replica: { logo: { src: 'media/abc-1.webp' }, strings: { he: { 'p.bookings': ' שלי ', 'bad key!': 'x', 'p.cards': '   ' }, en: { 'p.cards': 'Cards' }, fr: { a: 'b' } } } },
+    { id: 't', demo: 'toto', replica: { logo: { src: 'media/abc-2.webp' }, strings: { en: { 'nav.home': 'Start' } } } },
+    { id: 'u', demo: 'uploader', replica: { strings: { en: { a: 'b' } } } },
+    { id: 'v', demo: 'memesh', replica: { logo: { src: '../secret.png' } } }
+  ] });
+  assert.deepEqual(c.works[0].replica, { logo: { src: 'media/abc-1.webp' }, strings: { he: { 'p.bookings': 'שלי' }, en: { 'p.cards': 'Cards' } } });
+  assert.deepEqual(c.works[1].replica, { logo: null, strings: { en: { 'nav.home': 'Start' }, he: {} } }, 'Toto has no logo slot');
+  assert.equal(c.works[2].replica, undefined, 'Mega Uploader has no editable settings');
+  assert.equal(c.works[3].replica.logo, null, 'a logo must be an uploaded image');
+});
