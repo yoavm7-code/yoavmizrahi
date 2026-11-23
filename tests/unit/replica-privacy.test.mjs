@@ -22,7 +22,12 @@ const BANNED = new Set([
   'a0a0744da9bc6edb', '8b8a46881470c41d', 'b49dcfcefda6ef18', 'accdac1d24bf71be', '6942363884789100', 'd4530d4b0c79498c',
   'f3b76812f443539e', 'c0b48ffb5613f5ce', '716d53a45744608e', '2e13608f1d3676f7', '5145213af65934c9', '4c7a44beb8f38580',
   '00cfad8f69d0e970', '10973be83a0f680f', '18c6b6f840407250', 'd70731bc81fa0b06', '47c027fea18f72ba', '885f8c2b4df7f9f7',
-  '8a2ce3d29ea75e65', '213f6505c6c2a611', '299ae77a4ef350ae', '162e3973ecf8a776', '43a70ba6b21894cd'
+  '8a2ce3d29ea75e65', '213f6505c6c2a611', '299ae77a4ef350ae', '162e3973ecf8a776', '43a70ba6b21894cd',
+  // Terms that give away how the real tool works (its business model, internal pages, partner fields
+  // and ad network mix), even though they are not names. Removed 2026-11-23, see _plans/.
+  '401f8cb366ef4de6', 'f020ead6e950fdb6', 'c1bf0c9314b15d33', '9fb23fa85d269a8e', '04af46a1e0b08994', '3860edac0ccb7475',
+  'ae91ac8d24ba0c9f', '71dd76e4bc275d3e', '033a1236a77e9cef', '784c9715cab9dad0', '25b220238ec7eed9', '6ee77a60b623a6cc',
+  '5fc745a4c505583f', '08d0398647a13b8f'
 ]);
 
 function digest(text) { return createHash('sha256').update(text).digest('hex').slice(0, 16); }

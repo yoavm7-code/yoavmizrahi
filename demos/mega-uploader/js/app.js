@@ -2,7 +2,7 @@
    Screens switch in memory, never through the URL, so inside the portfolio's frame the Back button
    still leaves the page instead of stepping through the demo. */
 
-import { RUNS } from './data.js';
+import { RUNS, WORKSPACE } from './data.js';
 import { h, icon, closePopover, closeModal, log } from './dom.js';
 import { createShell } from './shell.js';
 import { createDashboard } from './dashboard.js';
@@ -16,7 +16,7 @@ var app = {
   now: new Date(),
   recording: params.has('record'),
   screen: '',
-  platform: 'outbrain',
+  platform: WORKSPACE.platform,
   theme: 'light',
   runs: RUNS.slice(),
   shell: null,

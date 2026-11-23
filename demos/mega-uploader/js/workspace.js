@@ -1,12 +1,12 @@
 /* Mega Uploader demo: the Workspace (batch builder). A spreadsheet of campaigns to create.
-   Fill it (by hand or with the Data tools), resolve partner links, then Run live and watch the log.
+   Fill it (by hand or with the Data tools), create tracking links, then Run live and watch the log.
    Everything is simulated in the page: nothing is sent anywhere. */
 
-import { FEEDS, WORKSPACE, USER } from './data.js';
+import { BRANDS, WORKSPACE, USER } from './data.js';
 import {
-  COLUMNS, RESOLVED, columnLetter, blankRow, copyRow, isReady, isResolved, canResolve, missing, cellValue,
+  COLUMNS, RESOLVED, columnLetter, blankRow, copyRow, isReady, isResolved, canResolve, missing, cellValue, accountFor,
   resolveFields, exampleRow, autoAsset, assetUrl, assetColor, autoHeadline, autoKeywords, fixGrammar, hasPlaceholders,
-  fillPlaceholders, planRun, runSummary, runFromPlan, platformById, shortDate, clockSeconds, toCsv, isBlank
+  fillPlaceholders, planRun, runSummary, runFromPlan, platformById, daysBefore, shortDate, clockSeconds, toCsv, isBlank
 } from './logic.js';
 import { h, icon, dot, clear, replace, toast, notInDemo, popover, closePopover, menu, menuButton, modal, closeModal, download, copyText, log } from './dom.js';
 
@@ -30,7 +30,7 @@ export function createWorkspace(app) {
     busy: false,
     running: false,
     saved: true,
-    runOpts: { articles: false, notify: false },
+    runOpts: { notify: false },
     colorByTask: true,
     guideOpen: true,
     done: { fill: false, creatives: false, run: false, history: false },
@@ -40,7 +40,7 @@ export function createWorkspace(app) {
   /* ---------- Model ---------- */
 
   function blankRows(n) { var r = []; for (var i = 0; i < n; i++) r.push(blankRow()); return r; }
-  function feed() { return FEEDS.filter(function (f) { return f.id === WORKSPACE.feed; })[0]; }
+  function brand() { return BRANDS.filter(function (b) { return b.id === WORKSPACE.brand; })[0]; }
   function tab() { return ws.tabs[ws.active]; }
   function rows() { return tab().rows; }
   function ctx() { return { platform: app.platform, now: app.now }; }
@@ -55,24 +55,24 @@ export function createWorkspace(app) {
   function columns() {
     return COLUMNS.filter(function (c) {
       if (ws.hidden[c.key]) return false;
-      if (ws.simple && (RESOLVED.indexOf(c.key) !== -1 || ['comments', 'kwList', 'cpa', 'roas', 'cv'].indexOf(c.key) !== -1)) return false;
+      if (ws.simple && (RESOLVED.indexOf(c.key) !== -1 || ['notes', 'kwList', 'cpa', 'roas'].indexOf(c.key) !== -1)) return false;
       return true;
     });
   }
   function readyCount() { return rows().filter(isReady).length; }
   function resolveCount() { return rows().filter(canResolve).length; }
-  function staleCount() { return rows().filter(function (r) { return r.stale; }).length; }
 
-  /* The first row comes filled in, built and resolved on an earlier day. */
+  /* The first row comes filled in, with its link made and its last run done on an earlier day. */
   (function seed() {
     var first = rows()[0];
     var f = WORKSPACE.firstRow;
     Object.keys(f).forEach(function (k) { if (k !== 'resolved') first[k] = f[k]; });
     Object.assign(first, f.resolved);
+    var then = { platform: app.platform, now: daysBefore(WORKSPACE.lastRun.daysAgo, app.now) };
     ws.panel = {
       state: 'done', date: shortDate(WORKSPACE.lastRun.daysAgo, app.now), uploaded: 1, failed: 0, total: 1, open: false, collapsed: false, runId: null,
-      lines: planRun([first], ctx())[0].lines.map(function (l) {
-        return { time: WORKSPACE.lastRun.time, name: cellValue(first, 'name', ctx()), step: l.step, msg: l.msg, bad: l.bad };
+      lines: planRun([first], then)[0].lines.map(function (l) {
+        return { time: WORKSPACE.lastRun.time, name: cellValue(first, 'name', then), step: l.step, msg: l.msg, bad: l.bad };
       })
     };
   })();
@@ -222,7 +222,7 @@ export function createWorkspace(app) {
       { label: 'Generate keywords from title (all rows)', icon: 'trend', run: function () { fillKeywords(4); } },
       { label: 'Auto-generate headlines…', icon: 'trend', run: fillHeadlines },
       { label: 'Generate all missing headlines…', icon: 'trend', run: fillHeadlines },
-      { label: 'Headlines from article…', icon: 'file', run: function () { notInDemo('Headlines from an article'); } },
+      { label: 'Headlines from landing page…', icon: 'file', run: function () { notInDemo('Headlines from a landing page'); } },
       { label: 'Fix headline grammar', icon: 'check', run: fixHeadlines },
       { label: 'Remove placeholders like {city}', icon: 'minus', run: removePlaceholders },
       { sep: true },
@@ -233,25 +233,18 @@ export function createWorkspace(app) {
     ]);
   }
 
-  /* ---------- Resolve ---------- */
+  /* ---------- Tracking links ---------- */
 
   function resolve(then) {
     var targets = rows().filter(canResolve);
     if (!targets.length) {
-      toast(rows().some(isResolved) ? 'Every row with Geo, Website URL and Offer ID is already resolved.' : 'Nothing to resolve yet. A row needs Geo, Website URL and Offer ID first.');
+      toast(rows().some(isResolved) ? 'Every row with Geo, Landing page and Product ID already has its link.' : 'No links to make yet. A row needs Geo, Landing page and Product ID first.');
       return;
     }
-    animateFill('resolve', targets, function (r) { Object.assign(r, resolveFields(r)); r.stale = false; }, function (n) {
-      toast('Resolved ' + n + (n === 1 ? ' row. Its' : ' rows. Their') + ' Northwind links are in the grid.');
+    animateFill('resolve', targets, function (r) { Object.assign(r, resolveFields(r)); }, function (n) {
+      toast('Made ' + n + (n === 1 ? ' tracking link. It is' : ' tracking links. They are') + ' in the grid.');
       if (then) then();
     });
-  }
-  function rebuild() {
-    var n = staleCount();
-    commit('rebuild for today', function () {
-      rows().forEach(function (r) { if (r.stale) { Object.assign(r, resolveFields(Object.assign({}, r, { id: r.id + 1000 }))); r.stale = false; } });
-    });
-    toast('Rebuilt ' + n + (n === 1 ? ' row' : ' rows') + ' with links dated for today.');
   }
 
   /* ---------- Run live ---------- */
@@ -262,7 +255,7 @@ export function createWorkspace(app) {
     var plan = planRun(rows(), ctx());
     if (!plan.length) {
       var anyLive = rows().some(function (r) { return r.status === 'live'; });
-      toast(anyLive ? 'Every ready row is already live. Add rows, or start a new workspace with +.' : 'No rows are ready yet. Fill Geo, Website URL, Offer ID, Asset 1 URL and Headline, or use Data → Fill example data.');
+      toast(anyLive ? 'Every ready row is already live. Add rows, or start a new workspace with +.' : 'No rows are ready yet. Fill Geo, Landing page, Product ID, Image and Headline, or use Data → Fill example data.');
       log('run', 'nothing to run', { ready: readyCount(), live: anyLive });
       return;
     }
@@ -271,7 +264,7 @@ export function createWorkspace(app) {
     var notify = h('input', { type: 'checkbox', checked: ws.runOpts.notify });
     modal(h('div.confirm',
       h('h2', { text: 'Go live with ' + s.campaigns + (s.campaigns === 1 ? ' campaign?' : ' campaigns?') }),
-      h('p.sub', { text: p.name + ' · ' + feed().name + ' · ' + tab().name }),
+      h('p.sub', { text: p.name + ' · ' + brand().name + ' · ' + tab().name }),
       h('div.kv',
         kv('Campaigns', String(s.campaigns)),
         kv('Accounts', s.accounts + ' (all checked ✓)'),
@@ -307,7 +300,6 @@ export function createWorkspace(app) {
             if (!isResolved(r)) Object.assign(r, resolveFields(r));
             r.status = p.ok ? 'live' : 'failed';
             r.error = p.error;
-            r.stale = false;
             paintRow(r.id);
           }
           if (p.ok) ws.panel.uploaded++; else ws.panel.failed++;
@@ -326,7 +318,7 @@ export function createWorkspace(app) {
     function finish() {
       var secs = Math.max(1, Math.round((Date.now() - started) / 1000));
       var run = runFromPlan(plan, {
-        id: app.nextRunId(), platform: app.platform, feedName: feed().name, user: USER.name.split(' ')[0].toLowerCase(),
+        id: app.nextRunId(), platform: app.platform, brand: brand().name, user: USER.name.split(' ')[0].toLowerCase(),
         workspace: tab().id, took: secs + 's', now: new Date()
       });
       app.addRun(run);
@@ -348,18 +340,18 @@ export function createWorkspace(app) {
 
   function render() {
     closePopover();
-    var f = feed();
+    var b = brand();
     var t = tab();
     var p = platformById(app.platform);
 
-    parts.feedbar = h('div.feedbar',
-      h('span.feedbar__label', { text: 'Batch builder' }),
-      FEEDS.map(function (fd) {
-        var on = fd.id === WORKSPACE.feed;
-        return h('button.feed-chip' + (on ? '.is-active' : ''), {
-          type: 'button', title: 'Show ' + fd.name + ' workspaces', 'aria-pressed': String(on),
-          onclick: function () { if (!on) toast('This demo only has ' + f.short + ' workspaces. The real app has one set per feed.'); }
-        }, dot(fd.color), h('span', { text: fd.name }), fd.count ? h('small', { text: String(fd.count) }) : null);
+    parts.brandbar = h('div.brandbar',
+      h('span.brandbar__label', { text: 'Batch builder' }),
+      BRANDS.map(function (bd) {
+        var on = bd.id === WORKSPACE.brand;
+        return h('button.brand-chip' + (on ? '.is-active' : ''), {
+          type: 'button', title: 'Show ' + bd.name + ' workspaces', 'aria-pressed': String(on),
+          onclick: function () { if (!on) toast('This demo only has ' + b.short + ' workspaces. Every brand gets its own set.'); }
+        }, dot(bd.color), h('span', { text: bd.name }), bd.count ? h('small', { text: String(bd.count) }) : null);
       }));
 
     parts.tabs = h('div.tabstrip',
@@ -372,14 +364,14 @@ export function createWorkspace(app) {
       h('span.tabstrip__fill'),
       parts.saved = h('span.saved', {}),
       h('span.split',
-        h('button.btn.btn--sm' + (ws.focus ? '.is-on' : ''), { type: 'button', 'aria-pressed': String(ws.focus), title: 'Fold the feed bar, toolbar and run panel away', onclick: function () { ws.focus = !ws.focus; log('ui', 'focus', { on: ws.focus }); render(); } }, icon('focus', 13), 'Focus'),
+        h('button.btn.btn--sm' + (ws.focus ? '.is-on' : ''), { type: 'button', 'aria-pressed': String(ws.focus), title: 'Fold the brand bar, toolbar and run panel away', onclick: function () { ws.focus = !ws.focus; log('ui', 'focus', { on: ws.focus }); render(); } }, icon('focus', 13), 'Focus'),
         h('button.btn.btn--sm.split__caret', { type: 'button', 'aria-label': 'Choose what to fold', onclick: function () { notInDemo('Choosing what to fold'); } }, icon('down', 12))));
 
     var ready = readyCount();
     parts.head = h('div.ws-head',
       dot(t.color, 'dot--sq'),
       h('b', { text: t.name }),
-      h('span.muted', { text: p.name + ' · ' + f.name }),
+      h('span.muted', { text: p.name + ' · ' + b.name }),
       h('button.id-chip', { type: 'button', title: 'Workspace ID ' + t.id + ': click to copy, then send it to support', onclick: function () { copyText(String(t.id), 'Copied workspace ID ' + t.id); } }, h('span.mono', { text: 'ID' }), h('b', { text: String(t.id) }), icon('copy', 12)),
       parts.ready = h('span.ws-head__ready', { text: ready + (ready === 1 ? ' campaign ready' : ' campaigns ready') }),
       h('span.tabstrip__fill'),
@@ -389,10 +381,10 @@ export function createWorkspace(app) {
 
     var nRes = resolveCount();
     var dataBtn = h('button.btn.btn--sm', { type: 'button', 'aria-haspopup': 'menu', 'data-tool': 'data', onclick: function () { openData(dataBtn); } }, icon('grid', 13), 'Data', icon('down', 12));
-    var resolveCaret = h('button.btn.btn--sm.split__caret', { type: 'button', 'aria-label': 'Resolve options', 'aria-haspopup': 'menu', onclick: function () {
+    var resolveCaret = h('button.btn.btn--sm.split__caret', { type: 'button', 'aria-label': 'Tracking link options', 'aria-haspopup': 'menu', onclick: function () {
       menuButton(resolveCaret, [
-        { label: 'Resolve only · ' + nRes, icon: 'check', title: 'Get the Northwind links. Upload later with Run live.', run: function () { resolve(); } },
-        { label: 'Resolve & upload… · ' + nRes, icon: 'upload', title: 'Get the links, then go live as they come in.', run: function () { resolve(openRun); } }
+        { label: 'Create links only · ' + nRes, icon: 'check', title: 'Make the tracking links. Upload later with Run live.', run: function () { resolve(); } },
+        { label: 'Create links & upload… · ' + nRes, icon: 'upload', title: 'Make the links, then go live as they come in.', run: function () { resolve(openRun); } }
       ]);
     } }, icon('down', 12));
     var moreBtn = h('button.btn.btn--sm.btn--blue', { type: 'button', 'aria-haspopup': 'menu', onclick: function () { openMore(moreBtn); } }, 'More', icon('down', 12));
@@ -412,7 +404,7 @@ export function createWorkspace(app) {
       h('span.split', h('button.btn.btn--sm', { type: 'button', title: 'Add a number of blank rows', onclick: function () { addRows(addN.value); } }, icon('plus', 13), 'Add rows'), addN),
       dataBtn,
       h('span.split',
-        h('button.btn.btn--sm' + (nRes ? '' : '.is-quiet'), { type: 'button', 'data-tool': 'resolve', title: 'Create ' + nRes + ' Northwind campaigns, one per row, and fill the links', onclick: function () { resolve(); } }, icon('check', 13), 'Resolve Northwind Links · ' + nRes),
+        h('button.btn.btn--sm' + (nRes ? '' : '.is-quiet'), { type: 'button', 'data-tool': 'resolve', title: 'Make ' + nRes + ' tracking links, one per row, and fill the link columns', onclick: function () { resolve(); } }, icon('check', 13), 'Create tracking links · ' + nRes),
         resolveCaret),
       h('label.tool-search', icon('search', 13), search),
       iconBtnSm('bookmark', 'Saved searches: keep the row searches you retype', function () { notInDemo('Saved searches'); }),
@@ -426,7 +418,6 @@ export function createWorkspace(app) {
       iconBtnSm('help', 'How Run live works', function () { app.shell.ask.toggle(true); }));
 
     parts.strip = h('div.strip',
-      staleCount() ? h('button.pill-btn.pill-btn--amber', { type: 'button', title: staleCount() + ' resolved row is out of date (built earlier). Rebuild re-creates it, dated for today.', onclick: rebuild }, icon('clock', 12), 'Rebuild for today · ' + staleCount()) : null,
       parts.hint = h('span.strip__hint', {}),
       h('button.btn.btn--xs', { type: 'button', onclick: shortcuts }, 'Shortcuts'),
       h('span.tabstrip__fill'),
@@ -452,7 +443,7 @@ export function createWorkspace(app) {
       h('div.add-foot', h('button.btn.btn--sm', { type: 'button', onclick: function () { addRows(footN.value); } }, icon('plus', 13), 'Add rows'), footN, h('span.muted', 'at the bottom · '), h('button.link', { type: 'button', onclick: shortcuts }, 'Ctrl+/ shortcuts')));
 
     var view = h('div.ws__in' + (ws.focus ? '.is-focus' : ''),
-      ws.focus ? null : parts.feedbar,
+      ws.focus ? null : parts.brandbar,
       parts.tabs, parts.head,
       ws.focus ? null : parts.toolbar,
       ws.focus ? null : parts.strip,
@@ -576,10 +567,8 @@ export function createWorkspace(app) {
   function openRunOptions(anchor) {
     menuButton(anchor, [
       { label: 'Check accounts & geos', icon: 'check', title: 'Check every campaign\'s account and geo before running', run: checkRows },
-      { label: 'Resolve accounts', icon: 'users', title: 'Fill each row\'s Account with the exact account it will upload to', run: resolveAccounts },
-      { label: 'Create articles', icon: 'file', toggle: ws.runOpts.articles, run: function () { ws.runOpts.articles = !ws.runOpts.articles; } },
+      { label: 'Pick accounts', icon: 'users', title: 'Fill each row\'s Account with the exact account it will upload to', run: resolveAccounts },
       { label: 'Notify when done', icon: 'bell', toggle: ws.runOpts.notify, run: function () { ws.runOpts.notify = !ws.runOpts.notify; } },
-      { label: 'Self Heal', icon: 'heal', run: function () { notInDemo('Self Heal'); } },
       { label: 'Schedule…', icon: 'calendar', run: function () { notInDemo('Scheduling a run'); } }
     ], { align: 'right' });
   }
@@ -594,8 +583,7 @@ export function createWorkspace(app) {
   function resolveAccounts() {
     var targets = rows().filter(function (r) { return r.geo && r.account === 'Auto'; });
     if (!targets.length) { toast('Every row with a Geo already has an account.'); return; }
-    var map = { en: 'Northwind EN 3', de: 'Northwind DE 2', fr: 'Northwind FR 1', es: 'Northwind ES 4' };
-    animateFill('resolve accounts', targets, function (r) { r.account = map[r.lang] || 'Northwind EU 5'; }, function (n) { toast('Picked an account for ' + n + (n === 1 ? ' row.' : ' rows.')); });
+    animateFill('pick accounts', targets, function (r) { r.account = accountFor(r); }, function (n) { toast('Picked an account for ' + n + (n === 1 ? ' row.' : ' rows.')); });
   }
   function openColumns(anchor) {
     popover(anchor, h('div.panel.panel--cols',
@@ -757,7 +745,7 @@ export function createWorkspace(app) {
   function cellEl(r, c) {
     var v = cellValue(r, c.key, ctx());
     var empty = v === '' || v === undefined || v === null;
-    var td = h('td.cell.cell--' + c.kind + (c.required && empty ? '.is-missing' : '') + (c.mono ? '.mono' : '') + (r.stale && c.key === 'nwId' ? '.is-stale' : ''), {
+    var td = h('td.cell.cell--' + c.kind + (c.required && empty ? '.is-missing' : '') + (c.mono ? '.mono' : ''), {
       'data-key': c.key, role: 'gridcell',
       onmousedown: function (e) { if (e.target.closest('select, button')) return; select(r.id, c.key); },
       ondblclick: function () { startEdit(r.id, c.key); }
@@ -788,11 +776,11 @@ export function createWorkspace(app) {
     } else {
       td.appendChild(h('span.cell__txt', { text: v, title: v }));
     }
-    if (c.key === 'url' || c.key === 'bid' || c.key === 'comments') {
+    if (c.key === 'url' || c.key === 'bid' || c.key === 'notes') {
       td.appendChild(h('button.cell__tool', {
         type: 'button', tabindex: '-1',
-        'aria-label': c.key === 'url' ? 'Choose article' : c.key === 'bid' ? 'Suggest a bid from performance data' : 'Open Comments builder',
-        title: c.key === 'url' ? 'Choose article' : c.key === 'bid' ? 'Suggest a value from your performance data (by geo, vertical, language…)' : 'Open Comments builder',
+        'aria-label': c.key === 'url' ? 'Choose a landing page' : c.key === 'bid' ? 'Suggest a bid from performance data' : 'Open the notes',
+        title: c.key === 'url' ? 'Choose a landing page' : c.key === 'bid' ? 'Suggest a value from your performance data (by geo, vertical, language…)' : 'Open the notes',
         onclick: function (e) { e.stopPropagation(); cellTool(r, c); }
       }, icon(c.key === 'url' ? 'search' : c.key === 'bid' ? 'chart' : 'comment', 11)));
     }
@@ -805,8 +793,8 @@ export function createWorkspace(app) {
       var suggestion = (0.03 + (r.id % 6) / 100).toFixed(2);
       setCell(r.id, 'bid', suggestion);
       toast('Suggested ' + suggestion + ' from ' + r.geo + (r.vertical ? ' · ' + r.vertical : '') + ' performance.');
-    } else if (c.key === 'url') notInDemo('The article picker');
-    else notInDemo('The comments builder');
+    } else if (c.key === 'url') notInDemo('The landing page picker');
+    else notInDemo('Row notes');
   }
 
   function isEditable(c) { return ['text', 'link', 'asset', 'headline', 'keywords', 'number'].indexOf(c.kind) !== -1; }
@@ -818,7 +806,7 @@ export function createWorkspace(app) {
     commit('edit ' + key, function () {
       r[key] = value;
       if (key === 'geo' && value && !r.lang) r.lang = { DE: 'de', FR: 'fr', IT: 'it', ES: 'es', MX: 'es', NL: 'nl' }[value] || 'en';
-      if (['geo', 'url', 'offer'].indexOf(key) !== -1 && isResolved(r)) { RESOLVED.forEach(function (k) { r[k] = ''; }); }
+      if (['geo', 'url', 'product'].indexOf(key) !== -1 && isResolved(r)) { RESOLVED.forEach(function (k) { r[k] = ''; }); }
       if (r.status === 'failed' && key === 'headline') { r.status = 'new'; r.error = ''; }
     }, { render: false });
     paintRow(id);
@@ -852,7 +840,7 @@ export function createWorkspace(app) {
     if (!c || !r) return;
     if (!isEditable(c)) {
       if (c.kind === 'select') { var s = grid.body.querySelector('tr[data-row="' + id + '"] td[data-key="' + key + '"] select'); if (s) s.focus(); }
-      else toast(c.kind === 'resolved' ? 'Resolve fills this column. Use Resolve Northwind Links.' : 'This column builds itself from the others.');
+      else toast(c.kind === 'resolved' ? 'Create tracking links fills this column.' : 'This column builds itself from the others.');
       return;
     }
     var td = grid.body.querySelector('tr[data-row="' + id + '"] td[data-key="' + key + '"]');
@@ -926,7 +914,7 @@ export function createWorkspace(app) {
     if (parts.ready) { var n = readyCount(); parts.ready.textContent = n + (n === 1 ? ' campaign ready' : ' campaigns ready'); }
     if (parts.undo) { parts.undo.disabled = !ws.undo.length; parts.redo.disabled = !ws.redo.length; }
     var res = el.querySelector('[data-tool="resolve"]');
-    if (res) { var k = resolveCount(); res.lastChild.textContent = 'Resolve Northwind Links · ' + k; res.classList.toggle('is-quiet', !k); }
+    if (res) { var k = resolveCount(); res.lastChild.textContent = 'Create tracking links · ' + k; res.classList.toggle('is-quiet', !k); }
     paintGuide();
   }
   function paintSaved() { if (parts.saved) parts.saved.textContent = ws.saved ? 'All changes saved' : 'Saving…'; }

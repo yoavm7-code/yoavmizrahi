@@ -113,7 +113,7 @@ export function createHistory(app) {
       type: 'button', role: 'option', 'data-run': String(r.id),
       onclick: function () { view.selected = r.id; view.filter = 'all'; view.open = {}; log('history', 'select run', { run: r.id }); paintSelection(); paintDetail(); }
     },
-    h('span.runcard__l1', h('b.blue', { text: '#' + r.id }), dot(p.color), h('span', { text: p.name }), h('span.muted', { text: '· ' + r.feed })),
+    h('span.runcard__l1', h('b.blue', { text: '#' + r.id }), dot(p.color), h('span', { text: p.name }), h('span.muted', { text: '· ' + r.brand })),
     h('span.runcard__l2',
       h('span.avatar.avatar--xs', { text: r.user.slice(0, 2).toUpperCase() }),
       h('span', { text: r.user }),
@@ -145,7 +145,7 @@ export function createHistory(app) {
     replace(detailEl, h('div.detail__in',
       h('div.detail__head',
         h('div',
-          h('div.detail__title', h('b', { text: 'Run #' + r.id }), dot(p.color), h('span', { text: p.name + (r.platform === 'tiktok' ? ' Ads Manager' : '') }), h('span.muted', { text: '· ' + r.feed })),
+          h('div.detail__title', h('b', { text: 'Run #' + r.id }), dot(p.color), h('span', { text: p.name }), h('span.muted', { text: '· ' + r.brand })),
           h('div.detail__meta.muted',
             h('span.avatar.avatar--xs', { text: r.user.slice(0, 2).toUpperCase() }),
             h('span', { text: r.user + ' · ' + (r.daysAgo === 0 ? 'Today' : r.daysAgo === 1 ? 'Yesterday' : r.daysAgo + ' days ago') + ' ' + r.time + ' · took ' + r.took + ' · Workspace ' }),
@@ -177,7 +177,7 @@ export function createHistory(app) {
     var row = h('div.crow' + (c.ok ? '' : '.is-bad') + (open ? '.is-open' : ''),
       h('button.crow__main', { type: 'button', 'aria-expanded': String(open), onclick: function () { if (open) delete view.open[idx]; else view.open[idx] = true; paintDetail(); } },
         h('span.crow__chev', icon(open ? 'down' : 'right', 12)),
-        h('span.crow__name', h('b.mono', { text: c.name }), h('small.muted', { text: 'semi · ' + c.vertical + ' · row ' + c.rowNo })),
+        h('span.crow__name', h('b.mono', { text: c.name, title: c.name }), h('small.muted', { text: c.strategy + ' · ' + c.vertical + ' · row ' + c.rowNo })),
         h('span', { text: c.account || '—' }),
         h('span.mono', { text: c.geo }),
         h('span.mono', { text: c.task || '—' }),
@@ -186,8 +186,8 @@ export function createHistory(app) {
         h('span.crow__out' + (c.ok ? '' : '.is-bad'), { title: c.ok ? '' : 'Show the full error', text: c.ok ? 'Campaign ' + c.campaignId : c.error })));
     if (!open) return row;
     row.appendChild(h('div.crow__more',
-      h('p.kvline', ['Account ' + (c.account || '—'), 'Geo ' + c.geo, 'Vertical ' + c.vertical, 'Type semi', 'Bid ' + c.bid, 'Budget ' + c.budget, 'Keywords ' + c.keywords, c.campaignId ? 'Campaign id ' + c.campaignId : null, 'Northwind ' + (c.nwId || '—')].filter(Boolean).join('   ')),
-      h('p.kvline', 'Article ', h('span.blue', { text: c.article })),
+      h('p.kvline', ['Account ' + (c.account || '—'), 'Geo ' + c.geo, 'Vertical ' + c.vertical, 'Strategy ' + c.strategy, 'Bid ' + c.bid, 'Budget ' + c.budget, 'Keywords ' + c.keywords, c.campaignId ? 'Campaign id ' + c.campaignId : null, 'Link ' + (c.linkId || '—')].filter(Boolean).join('   ')),
+      h('p.kvline', 'Landing page ', h('span.blue', { text: c.landing })),
       c.ok ? h('div',
         h('p.cap', { text: 'CREATIVES · ' + c.creatives + ' OF ' + c.creativesTotal + ' UP · ' + c.creativesTotal + ' × ' + c.creativesTotal + ' IMAGES × 1 HEADLINE × 1 DESCRIPTION' }),
         Array.apply(null, Array(c.creatives)).map(function (x, k) { return h('p.creative', h('span.pill.pill--ok', icon('check', 10), 'Live'), h('span.mono', { text: 'Creative ' + c.campaignId + '-' + (k + 1) })); })) : h('p.err', { text: c.error }),
@@ -216,8 +216,8 @@ export function createHistory(app) {
   }
   function exportCsv() {
     var list = runs();
-    download('run-history.csv', toCsv(['Run', 'Platform', 'Feed', 'User', 'Campaigns', 'Live', 'Failed', 'Status', 'Time'],
-      list.map(function (r) { return [r.id, platformById(r.platform).name, r.feed, r.user, r.campaigns, r.live, r.failed, STATUS[runStatus(r)].label, r.time]; })), 'text/csv');
+    download('run-history.csv', toCsv(['Run', 'Platform', 'Brand', 'User', 'Campaigns', 'Live', 'Failed', 'Status', 'Time'],
+      list.map(function (r) { return [r.id, platformById(r.platform).name, r.brand, r.user, r.campaigns, r.live, r.failed, STATUS[runStatus(r)].label, r.time]; })), 'text/csv');
     toast('Exported ' + list.length + (list.length === 1 ? ' run.' : ' runs.'));
   }
 

@@ -1,8 +1,8 @@
-/* Mega Uploader demo: the Dashboard. Every platform at a glance: library size, money, profit per
+/* Mega Uploader demo: the Dashboard. Every platform at a glance: library size, launches per
    platform and run activity. All figures come from data.js and are totalled in logic.js. */
 
 import { DASHBOARD } from './data.js';
-import { profitTotals, dashboardKpis, platformById, fmtInt, fmtMoney, dateLabel } from './logic.js';
+import { launchTotals, dashboardKpis, platformById, fmtInt, dateLabel } from './logic.js';
 import { h, icon, dot, menuButton, notInDemo, toast } from './dom.js';
 
 export function createDashboard(app) {
@@ -10,44 +10,44 @@ export function createDashboard(app) {
   var platformFilter = '';
 
   function render() {
-    var totals = profitTotals(DASHBOARD);
+    var totals = launchTotals(DASHBOARD);
     var kpi = dashboardKpis(DASHBOARD);
     var rows = DASHBOARD.platformRows.filter(function (r) { return !platformFilter || r.platform === platformFilter; });
-    var maxProfit = Math.max.apply(null, DASHBOARD.profit.map(function (p) { return p.value; }));
+    var maxLaunched = Math.max.apply(null, DASHBOARD.launched.map(function (p) { return p.live + p.failed; }));
     var filterLabel = platformFilter ? platformById(platformFilter).name : 'All Platforms';
     var filterBtn = h('button.btn.btn--select', { type: 'button', 'aria-haspopup': 'menu', onclick: function () { openFilter(filterBtn); } },
       dot(platformFilter ? platformById(platformFilter).color : 'currentColor'), h('span', { text: filterLabel }), icon('down', 13));
 
     var view = h('div.screen__in',
       h('div.page-head',
-        h('div', h('h1', { text: 'Dashboard' }), h('p.sub', { text: (platformFilter ? filterLabel : 'All platforms') + ' · your whole portfolio at a glance.' })),
+        h('div', h('h1', { text: 'Dashboard' }), h('p.sub', { text: (platformFilter ? filterLabel : 'All platforms') + ' · every launch at a glance.' })),
         h('div.page-head__actions',
           filterBtn,
           h('button.btn', { type: 'button', onclick: function () { notInDemo('Editing the dashboard'); } }, icon('sun', 14), 'Edit dashboard'),
           h('button.btn.btn--ghost', { type: 'button', onclick: function () { notInDemo('Help'); } }, icon('help', 14), 'Need help?'))),
 
       h('div.kpis',
-        kpiCard('ARTICLES IN LIBRARY', fmtInt(kpi.articles), 'Shared across all platforms'),
+        kpiCard('CREATIVES IN LIBRARY', fmtInt(kpi.creatives), 'Shared across all platforms'),
         kpiCard('PLATFORMS CONNECTED', fmtInt(kpi.platforms), kpi.platforms + ' with build activity'),
-        kpiCard('ACCOUNTS · ALL PLATFORMS', fmtInt(kpi.accounts), 'Migrated from the sheets'),
+        kpiCard('ACCOUNTS · ALL PLATFORMS', fmtInt(kpi.accounts), 'Checked before every run'),
         kpiCard('VERTICALS', fmtInt(kpi.verticals), DASHBOARD.geos + ' geos · ' + DASHBOARD.languages + ' languages · shared')),
 
       h('div.card.perf',
-        h('div.card__head', h('span.cap', { text: 'COMBINED PERFORMANCE · ALL PLATFORMS' }),
+        h('div.card__head', h('span.cap', { text: 'LAUNCHES · LAST 30 DAYS · ALL PLATFORMS' }),
           h('button.btn.btn--sm', { type: 'button', onclick: function () { notInDemo('Reports'); } }, 'Open in Reports', icon('down', 12))),
         h('div.perf__nums',
-          bigNum('SPEND', fmtMoney(totals.spend)),
-          bigNum('REVENUE', fmtMoney(totals.revenue)),
-          bigNum('PROFIT 100%', fmtMoney(totals.profit), 'is-good'),
-          bigNum('ROAS', totals.roas.toFixed(2))),
-        h('div.perf__label.cap', { text: 'PROFIT BY PLATFORM' }),
-        h('div.bars', DASHBOARD.profit.map(function (p) {
+          bigNum('CAMPAIGNS LAUNCHED', fmtInt(totals.launched)),
+          bigNum('LIVE', fmtInt(totals.live), 'is-good'),
+          bigNum('FAILED', fmtInt(totals.failed)),
+          bigNum('SUCCESS RATE', totals.rate.toFixed(1) + '%')),
+        h('div.perf__label.cap', { text: 'CAMPAIGNS LAUNCHED BY PLATFORM' }),
+        h('div.bars', DASHBOARD.launched.map(function (p) {
           var plat = platformById(p.platform);
-          var w = p.value > 0 ? Math.max(0.6, p.value / maxProfit * 100) : 0;
+          var n = p.live + p.failed;
           return h('div.bar-row',
             h('span.bar-row__name', { text: plat.name }),
-            h('span.track', h('span.fill', { style: { width: w + '%', background: plat.color } })),
-            h('span.bar-row__val.mono' + (p.value < 0 ? '.is-bad' : ''), { text: fmtMoney(p.value) }));
+            h('span.track', h('span.fill', { style: { width: Math.max(0.6, n / maxLaunched * 100) + '%', background: plat.color } })),
+            h('span.bar-row__val.mono', { text: fmtInt(n) }));
         }))),
 
       h('div.card.plats',
@@ -67,8 +67,8 @@ export function createDashboard(app) {
         })),
 
       h('div.two',
-        listCard('LIBRARY BY FEED · ALL PLATFORMS', DASHBOARD.libraryByFeed),
-        listCard('TOP GEOS · BY ARTICLES', DASHBOARD.topGeos))
+        listCard('CREATIVES BY BRAND · ALL PLATFORMS', DASHBOARD.creativesByBrand),
+        listCard('TOP GEOS · BY CAMPAIGNS', DASHBOARD.topGeos))
     );
     el.replaceChildren(view);
   }
