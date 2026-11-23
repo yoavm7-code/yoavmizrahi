@@ -53,6 +53,7 @@
       "year": "2026",
       "madeWith": "AI coding agents",
       "description": "[One line: what it uploads, and for whom.] Built with AI agents and running in production.",
+      "design": "",
       "link": "",
       "style": "device",
       "demo": "uploader",
@@ -71,6 +72,7 @@
       "year": "2026",
       "madeWith": "AI coding agents",
       "description": "A World Cup 2026 prediction pool for friends. Everyone picks the scores before kickoff, and the table settles the arguments.",
+      "design": "",
       "link": "",
       "style": "phone",
       "demo": "toto",
@@ -80,6 +82,13 @@
         "x": 450,
         "y": 40,
         "r": 4
+      },
+      "replica": {
+        "logo": null,
+        "strings": {
+          "en": {},
+          "he": {}
+        }
       }
     },
     {
@@ -89,6 +98,7 @@
       "year": "2026",
       "madeWith": "AI coding agents",
       "description": "The operations system behind a real playground business. [One line: what it handles day to day.]",
+      "design": "",
       "link": "",
       "style": "polaroid",
       "demo": "memesh",
@@ -98,6 +108,15 @@
         "x": 745,
         "y": 478,
         "r": -6
+      },
+      "replica": {
+        "logo": {
+          "src": "media/7955ebea482a06f9.webp"
+        },
+        "strings": {
+          "he": {},
+          "en": {}
+        }
       }
     },
     {
