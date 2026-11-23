@@ -31,7 +31,7 @@ test('the work page shows the clickable replica on wide screens and the video on
   }
   await expect(box).toHaveAttribute('data-mode', 'try');
   const frame = page.frameLocator('.replica__frame');
-  await expect(frame.locator('.ws-head')).toContainText('Wave 0');
+  await expect(frame.locator('.ws-head')).toContainText('Spring launch');
   await expect(frame.locator('.backlink')).toHaveCount(0);
   const scale = await box.locator('.replica__frame').evaluate((f) => new DOMMatrix(getComputedStyle(f).transform).a);
   const width = await box.locator('[data-replica-viewport]').evaluate((v) => v.clientWidth);
@@ -52,7 +52,7 @@ test('START OVER puts the replica back to its first state', async ({ page }) => 
   await frame.locator('.nav__item', { hasText: 'Dashboard' }).first().click();
   await expect(frame.locator('.dash h1')).toHaveText('Dashboard');
   await page.locator('[data-replica-reset]').click();
-  await expect(frame.locator('.ws-head')).toContainText('Wave 0');
+  await expect(frame.locator('.ws-head')).toContainText('Spring launch');
 });
 
 test('clicking around the replica never traps the Back button', async ({ page }) => {
@@ -90,7 +90,7 @@ test.describe('the replica', () => {
 
     await page.locator('[data-guide-step="1"]').click();
     await expect(page.locator('[data-guide-step="2"]')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('[data-tool="resolve"]')).toContainText('Resolve Northwind Links · 19');
+    await expect(page.locator('[data-tool="resolve"]')).toContainText('Create tracking links · 19');
 
     await page.locator('[data-guide-step="2"]').click();
     await expect(page.locator('.ws-head__ready')).toHaveText('20 campaigns ready', { timeout: 15000 });
@@ -140,21 +140,21 @@ test.describe('the replica', () => {
 
   test('cells edit by typing, and undo and redo bring changes back', async ({ page }) => {
     await page.goto('/demos/mega-uploader/');
-    const cell = page.locator('tbody tr').nth(1).locator('td[data-key="prefix"]');
+    const cell = page.locator('tbody tr').nth(1).locator('td[data-key="notes"]');
     await cell.dblclick();
     await page.keyboard.type('zz');
     await page.keyboard.press('Enter');
     await expect(cell).toHaveText('zz');
     await expect(page.locator('.saved')).toHaveText('All changes saved');
     await page.keyboard.press('Control+z');
-    await expect(cell).toHaveText('buyer, e.g. dl');
+    await expect(cell).toHaveText('—');
     await page.keyboard.press('Control+Shift+z');
     await expect(cell).toHaveText('zz');
 
     const geo = page.locator('tbody tr').nth(1).locator('td[data-key="geo"] select');
     await geo.selectOption('DE');
     await expect(page.locator('tbody tr').nth(1).locator('td[data-key="lang"] select')).toHaveValue('de');
-    await expect(page.locator('tbody tr').nth(1).locator('td[data-key="name"]')).toContainText('zz-de-');
+    await expect(page.locator('tbody tr').nth(1).locator('td[data-key="name"]')).toContainText('DE · General · ');
   });
 
   test('Export CSV downloads the filled rows', async ({ page }) => {
@@ -163,7 +163,7 @@ test.describe('the replica', () => {
     const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('menuitem', { name: 'Export CSV' }).click()]);
     expect(download.suggestedFilename()).toBe('workspace-41.csv');
     const text = await (await download.createReadStream()).toArray().then((c) => Buffer.concat(c).toString('utf8'));
-    expect(text.split('\r\n')[0]).toContain('Campaign name (auto),Prefix,Geo');
+    expect(text.split('\r\n')[0]).toContain('Campaign name (auto),Geo,Vertical');
     expect(text.trim().split('\r\n')).toHaveLength(2);
   });
 
@@ -183,8 +183,8 @@ test.describe('the replica', () => {
     await expect(page.locator('.hist .note')).toContainText('TikTok campaign statuses');
 
     await page.locator('.ask-btn').click();
-    await page.getByRole('button', { name: 'What does Resolve do?' }).click();
-    await expect(page.locator('.msg--bot p')).toContainText('Resolve & upload goes live', { timeout: 10000 });
+    await page.getByRole('button', { name: 'What do tracking links do?' }).click();
+    await expect(page.locator('.msg--bot p')).toContainText('Create links & upload goes live', { timeout: 10000 });
     await page.keyboard.press('Escape');
     await expect(page.locator('.ask')).toHaveAttribute('aria-hidden', 'true');
 

@@ -5,7 +5,7 @@ import * as D from '../../demos/mega-uploader/js/data.js';
 import * as L from '../../demos/mega-uploader/js/logic.js';
 
 const NOW = new Date(2026, 10, 23, 12, 0, 0);
-const ctx = { platform: 'outbrain', now: NOW };
+const ctx = { platform: 'facebook', now: NOW };
 
 function filledGrid(n) {
   const rows = [];
@@ -20,16 +20,22 @@ function filledGrid(n) {
 
 /* ---------- The data adds up ---------- */
 
-test('dashboard money adds up: revenue = spend + profit, ROAS = revenue / spend', () => {
-  const t = L.profitTotals(D.DASHBOARD);
-  assert.equal(t.profit, Math.round(D.DASHBOARD.profit.reduce((a, p) => a + p.value, 0) * 100) / 100);
-  assert.ok(Math.abs(t.revenue - (t.spend + t.profit)) < 0.005);
-  assert.equal(t.roas, Math.round(t.revenue / t.spend * 100) / 100);
+test('dashboard launches add up: launched = live + failed, rate = live / launched', () => {
+  const t = L.launchTotals(D.DASHBOARD);
+  assert.equal(t.live, D.DASHBOARD.launched.reduce((a, p) => a + p.live, 0));
+  assert.equal(t.failed, D.DASHBOARD.launched.reduce((a, p) => a + p.failed, 0));
+  assert.equal(t.launched, t.live + t.failed);
+  assert.equal(t.rate, Math.round(t.live / t.launched * 1000) / 10);
+  assert.deepEqual(L.launchTotals({ launched: [] }), { launched: 0, live: 0, failed: 0, rate: 0 });
+});
+
+test('the dashboard shows no money: nothing about spend, revenue or profit', () => {
+  assert.deepEqual(Object.keys(D.DASHBOARD).filter((k) => /spend|revenue|profit|roas/i.test(k)), []);
 });
 
 test('dashboard counts come from the lists they summarise', () => {
   const k = L.dashboardKpis(D.DASHBOARD);
-  assert.equal(k.articles, D.DASHBOARD.libraryByFeed.reduce((a, x) => a + x.value, 0));
+  assert.equal(k.creatives, D.DASHBOARD.creativesByBrand.reduce((a, x) => a + x.value, 0));
   assert.equal(k.accounts, D.DASHBOARD.platformRows.reduce((a, x) => a + x.accounts, 0));
   assert.equal(k.platforms, D.DASHBOARD.platformRows.length);
 });
@@ -41,9 +47,13 @@ test('every run\'s live and failed add up to its campaigns', () => {
 
 test('ids are unique and every platform the data mentions exists', () => {
   assert.equal(new Set(D.PLATFORMS.map((p) => p.id)).size, D.PLATFORMS.length);
-  assert.equal(new Set(D.FEEDS.map((f) => f.id)).size, D.FEEDS.length);
+  assert.equal(new Set(D.BRANDS.map((b) => b.id)).size, D.BRANDS.length);
+  assert.ok(D.BRANDS.some((b) => b.id === D.WORKSPACE.brand), 'the workspace brand exists');
+  assert.ok(D.PLATFORMS.some((p) => p.id === D.WORKSPACE.platform), 'the workspace platform exists');
+  const brands = D.BRANDS.map((b) => b.name);
+  for (const r of D.RUNS) assert.ok(brands.includes(r.brand), '#' + r.id + ' ' + r.brand);
   const ids = D.PLATFORMS.map((p) => p.id);
-  for (const id of [...D.DASHBOARD.profit.map((p) => p.platform), ...D.DASHBOARD.platformRows.map((p) => p.platform), ...D.RUNS.map((r) => r.platform)]) {
+  for (const id of [...D.DASHBOARD.launched.map((p) => p.platform), ...D.DASHBOARD.platformRows.map((p) => p.platform), ...D.RUNS.map((r) => r.platform)]) {
     assert.ok(ids.includes(id), id);
   }
 });
@@ -54,14 +64,14 @@ test('column letters run A..Z, then AA', () => {
   assert.equal(L.columnLetter(0), 'A');
   assert.equal(L.columnLetter(25), 'Z');
   assert.equal(L.columnLetter(26), 'AA');
-  assert.equal(L.COLUMNS.length, 24);
+  assert.equal(L.COLUMNS.length, 20);
 });
 
 test('a row is ready only when every required column is filled', () => {
   const r = L.blankRow();
   assert.equal(L.isReady(r), false);
-  assert.deepEqual(L.missing(r), ['Geo', 'Website URL', 'Offer ID', 'Asset 1 URL', 'Headline']);
-  Object.assign(r, { geo: 'US', url: 'https://read.example/x', offer: '1', asset: 'img-x', headline: '   ' });
+  assert.deepEqual(L.missing(r), ['Geo', 'Landing page', 'Product ID', 'Image', 'Headline']);
+  Object.assign(r, { geo: 'US', url: 'https://brand.example/x', product: '1', asset: 'img-x', headline: '   ' });
   assert.equal(L.isReady(r), false, 'whitespace does not count');
   r.headline = 'Hi';
   assert.equal(L.isReady(r), true);
@@ -70,29 +80,40 @@ test('a row is ready only when every required column is filled', () => {
 
 test('a blank row counts as blank even with its default selects', () => {
   assert.equal(L.isBlank(L.blankRow()), true);
-  assert.equal(L.isBlank(Object.assign(L.blankRow(), { prefix: 'x' })), false);
+  assert.equal(L.isBlank(Object.assign(L.blankRow(), { notes: 'x' })), false);
 });
 
-test('campaign names follow prefix-geo-vertical-id-date-platform-strategy', () => {
-  const r = Object.assign(L.blankRow(), { prefix: 'ab', geo: 'DE', vertical: 'Solar Panels', nwId: '4401234', strategy: 'Smart · CPA' });
-  assert.equal(L.campaignName(r, 'taboola', NOW), 'ab-de-solr-4401234-1123-tb-smart');
-  assert.equal(L.campaignName(L.blankRow(), 'taboola', NOW), '', 'no geo, no name yet');
-  assert.equal(L.campaignName(Object.assign(L.blankRow(), { geo: 'US' }), 'nope', NOW), 'dl-us-gen-0000000-1123-xx-semi');
-  assert.equal(L.countryVertical(r), 'DE-Solar Panels');
-  assert.equal(L.cellValue(r, 'cv', ctx), 'DE-Solar Panels');
+test('campaign names read as geo, vertical, date and a row number', () => {
+  const r = Object.assign(L.blankRow(), { geo: 'DE', vertical: 'Meal Kits' });
+  assert.equal(L.campaignName(r, 7, NOW), 'DE · Meal Kits · 23 Nov · #7');
+  assert.equal(L.campaignName(L.blankRow(), 7, NOW), '', 'no geo, no name yet');
+  assert.equal(L.campaignName(Object.assign(L.blankRow(), { geo: 'US' }), 2, NOW), 'US · General · 23 Nov · #2');
+  assert.equal(L.cellValue(r, 'name', ctx), 'DE · Meal Kits · 23 Nov · #' + r.id);
 });
 
-test('resolve fills the four partner columns, the same way every time', () => {
-  const r = Object.assign(L.blankRow(), { geo: 'US', url: 'https://read.example/a', offer: '77' });
+test('two rows with the same geo and vertical still get different names', () => {
+  const names = L.planRun(filledGrid(20), ctx).map((p) => p.name);
+  assert.equal(new Set(names).size, names.length);
+});
+
+test('Auto accounts are picked by region, a chosen account is kept', () => {
+  assert.equal(L.accountFor({ geo: 'US', account: 'Auto' }), 'North America 1');
+  assert.equal(L.accountFor({ geo: 'IT', account: 'Auto' }), 'Europe 2');
+  assert.equal(L.accountFor({ geo: 'DE', account: 'APAC 1' }), 'APAC 1');
+  assert.equal(L.accountFor({ geo: '', account: 'Auto' }), D.ACCOUNTS[1], 'no geo falls back to the first real account');
+  for (const geo of D.GEOS) assert.ok(D.ACCOUNTS.includes(D.REGIONS[geo]), geo);
+});
+
+test('tracking links fill Link ID and Tracked link, the same way every time', () => {
+  const r = Object.assign(L.blankRow(), { geo: 'US', url: 'https://brand.example/a', product: '77' });
   assert.equal(L.canResolve(r), true);
   const a = L.resolveFields(r);
   assert.deepEqual(a, L.resolveFields(r));
-  assert.match(a.nwId, /^44\d{5}$/);
-  assert.equal(a.site, 'https://go.read.example/d/' + a.nwId);
-  assert.match(a.destId, /^dest=[a-z0-9]{6}$/);
-  assert.equal(a.tracking, a.destId + '&t=nw');
+  assert.deepEqual(Object.keys(a), L.RESOLVED);
+  assert.match(a.linkId, /^[a-z0-9]{6}$/);
+  assert.equal(a.link, 'https://go.brand.example/' + a.linkId);
   Object.assign(r, a);
-  assert.equal(L.canResolve(r), false, 'a resolved row is not resolved twice');
+  assert.equal(L.canResolve(r), false, 'a row with a link does not get a second one');
 });
 
 test('placeholders and grammar fixes', () => {
@@ -116,8 +137,9 @@ test('a filled 20-row example grid runs 20 campaigns with exactly one policy fai
   assert.equal(failed[0].error, D.FAILURES.financial);
   assert.equal(failed[0].lines.at(-1).bad, true);
   const ok = plan.find((p) => p.ok);
-  assert.deepEqual(ok.lines.map((l) => l.step), ['northwind create', 'northwind link', 'platform campaign', 'creatives', 'summary']);
-  assert.match(ok.lines.at(-1).msg, /^SUCCESS — campaign [0-9a-f]{12} \(CPC, geo=[A-Z]{2}\)/);
+  assert.deepEqual(ok.lines.map((l) => l.step), ['tracking link', 'campaign', 'creatives', 'summary']);
+  assert.match(ok.lines.at(-1).msg, /^Live: campaign [0-9a-f]{12} in [A-Z]{2}, 1 ad /);
+  assert.deepEqual(failed[0].lines.map((l) => l.step), ['tracking link', 'policy check', 'summary']);
 });
 
 test('rows that are not ready, or already live, are left out of a run', () => {
@@ -141,7 +163,7 @@ test('the run summary counts geos, accounts and budget', () => {
 
 test('a finished plan becomes a history run with its own campaigns', () => {
   const plan = L.planRun(filledGrid(20), ctx);
-  const run = L.runFromPlan(plan, { id: 9999, platform: 'outbrain', feedName: 'NORTHWIND RSOC', user: 'dana', workspace: 41, took: '12s', now: NOW });
+  const run = L.runFromPlan(plan, { id: 9999, platform: 'facebook', brand: 'Brightside Home', user: 'dana', workspace: 41, took: '12s', now: NOW });
   assert.equal(run.campaigns, 20);
   assert.equal(run.live, 19);
   assert.equal(run.failed, 1);
@@ -149,7 +171,9 @@ test('a finished plan becomes a history run with its own campaigns', () => {
   assert.equal(run.time, '12:00');
   assert.equal(L.runCampaigns(run, NOW), run.items);
   assert.equal(run.items.filter((c) => !c.ok).length, 1);
-  assert.ok(run.items.every((c) => c.trace.length >= 4));
+  assert.equal(run.brand, 'Brightside Home');
+  assert.ok(run.items.every((c) => c.trace.length === (c.ok ? 4 : 3)));
+  assert.ok(run.items.filter((c) => c.ok).every((c) => c.account && c.linkId && c.landing));
 });
 
 /* ---------- Run history ---------- */
@@ -166,6 +190,7 @@ test('seeded runs list the right number of campaigns and failures, the same way 
     assert.equal(items.length, r.campaigns, '#' + r.id);
     assert.equal(items.filter((c) => !c.ok).length, r.failed, '#' + r.id);
     assert.deepEqual(items, L.runCampaigns(r, NOW));
+    assert.ok(items.every((c) => c.ok ? /^[0-9a-f]{12}$/.test(c.campaignId) && c.account : !c.campaignId && c.error), '#' + r.id);
   }
 });
 
@@ -193,9 +218,7 @@ test('history filters and sorts', () => {
 
 /* ---------- Formatting and CSV ---------- */
 
-test('money, numbers and dates format like the real app', () => {
-  assert.equal(L.fmtMoney(1284630.2), '1,284,630.20 $');
-  assert.equal(L.fmtMoney(-1534.25), '-1,534.25 $');
+test('numbers and dates format the same way everywhere', () => {
   assert.equal(L.fmtInt(84615), '84,615');
   assert.equal(L.dateLabel(0, NOW), '23.11.2026');
   assert.equal(L.dateLabel(23, NOW), '31.10.2026');

@@ -1,7 +1,7 @@
 /* Mega Uploader demo: the app frame around every screen. Top bar, sidebar, platform switcher,
    tips, notifications, command palette, user menu, the Ask drawer and the floating buttons. */
 
-import { ORG, USER, PLATFORMS, NAV, NOTIFICATIONS, TIPS, ASK } from './data.js';
+import { ORG, USER, PLATFORMS, BRANDS, WORKSPACE, NAV, NOTIFICATIONS, TIPS, ASK } from './data.js';
 import { platformById } from './logic.js';
 import { h, icon, dot, clear, replace, popover, closePopover, menu, toast, notInDemo, modal, closeModal, copyText, log } from './dom.js';
 
@@ -100,16 +100,16 @@ export function createShell(app) {
 
   function openNotifications(anchor) {
     popover(anchor, h('div.panel.panel--notes',
-      h('div.panel__head', h('b', { text: 'Notifications' }), h('button.link-muted', { type: 'button', onclick: function () { notInDemo('Followed reports'); } }, 'Reports you follow')),
-      h('div.panel__label', { text: 'ACCOUNT VERIFICATION' }),
+      h('div.panel__head', h('b', { text: 'Notifications' }), h('button.link-muted', { type: 'button', onclick: function () { notInDemo('Notification settings'); } }, 'Settings')),
+      h('div.panel__label', { text: 'ACCOUNTS' }),
       NOTIFICATIONS.accounts.map(function (n) {
         return h('div.note-card', h('span.note-ic.note-ic--' + n.tone, icon('clock', 12)), h('span', h('b', { text: n.title }), h('small', { text: n.sub })));
       }),
-      h('div.panel__label', { text: 'BUGS & FEATURES' }),
-      NOTIFICATIONS.bugs.map(function (n) {
-        return h('div.note-row', h('span.note-ic.note-ic--' + n.tone, icon('bug', 12)), h('span.note-row__txt', h('b', { text: n.title }), h('small', { text: n.sub })), h('small.note-row__age', { text: n.age }));
+      h('div.panel__label', { text: 'TEAM ACTIVITY' }),
+      NOTIFICATIONS.activity.map(function (n) {
+        return h('div.note-row', h('span.note-ic.note-ic--' + n.tone, icon('users', 12)), h('span.note-row__txt', h('b', { text: n.title }), h('small', { text: n.sub })), h('small.note-row__age', { text: n.age }));
       }),
-      h('button.panel__foot', { type: 'button', onclick: function () { closePopover(); notInDemo('Bugs & Features'); } }, 'Open Bugs & Features')), { align: 'right' });
+      h('button.panel__foot', { type: 'button', onclick: function () { closePopover(); notInDemo('The activity feed'); } }, 'See all activity')), { align: 'right' });
   }
 
   function openUser(anchor, dir) {
@@ -193,7 +193,7 @@ export function createShell(app) {
   function update() {
     renderNav();
     renderPlatform();
-    search.placeholder = app.screen === 'workspace' ? 'Jump to task (e.g. tsk662)' : 'Search rows, runs, accounts…';
+    search.placeholder = app.screen === 'workspace' ? 'Jump to a task (e.g. T-412)' : 'Search rows, runs, accounts…';
     replace(themeBtn, icon(app.theme === 'dark' ? 'sun' : 'moon', 15));
     themeBtn.setAttribute('aria-label', app.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
     drawer.update();
@@ -289,7 +289,8 @@ function createAsk(app) {
 
   function update() {
     var p = platformById(app.platform);
-    context.textContent = p.name + ' · NORTHWIND RSOC · ' + ({ dashboard: 'Dashboard', workspace: 'Workspace', history: 'Run history' })[app.screen];
+    var b = BRANDS.filter(function (x) { return x.id === WORKSPACE.brand; })[0];
+    context.textContent = p.name + ' · ' + b.name + ' · ' + ({ dashboard: 'Dashboard', workspace: 'Workspace', history: 'Run history' })[app.screen];
   }
 
   document.addEventListener('keydown', function (e) {
