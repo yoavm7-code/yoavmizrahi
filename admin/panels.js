@@ -1,7 +1,7 @@
 /* The editing screens. Each render function fills the main area for one admin route.
    ctx gives access to the store, the preview, uploads and navigation (see app.js). */
 
-import { STYLES, DEMOS, SIZES, DESK, LIMITS, deskKeys, uniqueId, youtubeId, hasPlaceholder, isSafeUrl } from '../js/schema.js';
+import { STYLES, DEMOS, LIMITS, deskKeys, uniqueId, youtubeId, hasPlaceholder, isSafeUrl } from '../js/schema.js';
 import { h, clear, icon, button, field, toggle, choiceCards, section, toast, dialog, confirm, when, plural } from './ui.js';
 import { ACCEPT } from './media.js';
 import { REPO } from './config.js';
@@ -82,43 +82,14 @@ export function styleArt(style) {
   return svg;
 }
 
-/* Finds a free spot on the desk for a new object of the given size. */
-function findSpot(d, size) {
-  var rects = [];
-  function add(x, y, s) { rects.push({ x: x - 16, y: y - 16, w: s.w + 32, h: s.h + 32 }); }
-  add(d.desk.note.x, d.desk.note.y, SIZES.note);
-  add(d.desk.monitor.x, d.desk.monitor.y, SIZES.monitor);
-  d.works.forEach(function (w) { if (w.desk && w.desk.show !== false) add(w.desk.x, w.desk.y, SIZES[w.style] || SIZES.polaroid); });
-  d.films.forEach(function (f) { if (f.tape && f.tape.show) add(f.tape.x, f.tape.y, SIZES.tape); });
-  function free(x, y) {
-    return rects.every(function (r) { return x + size.w < r.x || x > r.x + r.w || y + size.h < r.y || y > r.y + r.h; });
-  }
-  for (var y = 40; y < DESK.maxY - size.h; y += 20) {
-    for (var x = 40; x <= DESK.minWidth - size.w - 20; x += 20) {
-      if (free(x, y)) return { x: x, y: y };
-    }
-  }
-  return { x: 60, y: 40 };
-}
-
 function deskLabel(d, key) {
   if (key === 'note') return 'Sticky note';
   if (key === 'monitor') return 'Monitor';
-  if (key === 'tapes') return 'Tapes';
+  if (key === 'tapes') return 'Tapes (on computers they sit with the monitor)';
   var id = key.split(':')[1];
   if (key.indexOf('work:') === 0) { var w = d.works.filter(function (x) { return x.id === id; })[0]; return w ? w.title : id; }
   if (key.indexOf('tape:') === 0) { var f = d.films.filter(function (x) { return x.id === id; })[0]; return f ? 'Tape: ' + (f.tape.label || f.title) : id; }
   return key;
-}
-
-/* The draft object that holds the position of a desk item. */
-export function deskTarget(d, key) {
-  if (key === 'note') return d.desk.note;
-  if (key === 'monitor') return d.desk.monitor;
-  var id = key.split(':')[1];
-  if (key.indexOf('work:') === 0) { var w = d.works.filter(function (x) { return x.id === id; })[0]; return w && w.desk; }
-  if (key.indexOf('tape:') === 0) { var f = d.films.filter(function (x) { return x.id === id; })[0]; return f && f.tape; }
-  return null;
 }
 
 /* ---------- Overview ---------- */
@@ -156,7 +127,7 @@ export function renderHome(ctx, el) {
   quick.body.appendChild(h('div.quick',
     h('button.quick__btn', { type: 'button', on: { click: function () { addWork(ctx); } } }, styleArt('polaroid'), h('strong', 'Add a work'), h('span', 'A product or project')),
     h('button.quick__btn', { type: 'button', on: { click: function () { addFilm(ctx); } } }, styleArt('film'), h('strong', 'Add a film'), h('span', 'Paste a YouTube link')),
-    h('button.quick__btn', { type: 'button', on: { click: function () { ctx.go('#/desk'); } } }, styleArt('device'), h('strong', 'Arrange the desk'), h('span', 'Move and tilt things'))
+    h('button.quick__btn', { type: 'button', on: { click: function () { ctx.go('#/desk'); } } }, styleArt('device'), h('strong', 'The desk'), h('span', 'What sits on it, in what order'))
   ));
   el.appendChild(quick);
   ctx.preview.go('#/');
@@ -166,28 +137,7 @@ export function renderHome(ctx, el) {
 
 export function renderDesk(ctx, el) {
   var d = draft(ctx);
-  el.appendChild(pageHead('Desk', 'The home page. Everything on it can be moved and played with.'));
-
-  var arrange = section('Arrange the desk', 'Drag things where you want them and tilt them. This is where they start for every visitor.');
-  if (ctx.isWide()) {
-    var arranging = ctx.preview.mode() === 'arrange';
-    var selected = h('div.arrange__selected');
-    arrange.body.appendChild(h('div.row-gap',
-      button(arranging ? 'Done arranging' : 'Start arranging', { kind: arranging ? 'primary' : 'secondary', icon: arranging ? 'check' : 'move', onClick: function () {
-        ctx.preview.setMode(arranging ? 'preview' : 'arrange');
-        ctx.rerender();
-      } })
-    ));
-    if (arranging) {
-      arrange.body.appendChild(h('p.callout', 'Drag anything on the desk in the preview. Click an object to tilt it below.'));
-      arrange.body.appendChild(selected);
-      ctx.onDeskSelect = function (key) { renderSelected(ctx, selected, key); };
-      renderSelected(ctx, selected, ctx.selectedDeskKey);
-    }
-  } else {
-    arrange.body.appendChild(h('p.callout', 'Arranging needs a bigger screen, like a laptop. You can still change the phone order below.'));
-  }
-  el.appendChild(arrange);
+  el.appendChild(pageHead('Desk', 'The home page. It arranges itself to fit every screen, and visitors can move and play with everything on it.'));
 
   var note = section('Sticky note');
   note.body.appendChild(bound(ctx, { label: 'Greeting', path: 'desk.note.hi', max: LIMITS.short, required: true, get: function (x) { return x.desk.note.hi; }, set: function (x, v) { x.desk.note.hi = v; } }));
@@ -204,9 +154,7 @@ export function renderDesk(ctx, el) {
   d.works.forEach(function (w, i) {
     onDesk.body.appendChild(toggle({ label: w.title || 'Untitled work', hint: STYLES[w.style].name, path: 'works.' + i + '.desk', value: w.desk.show !== false, onChange: function (on) {
       ctx.store.update(function (x) {
-        var work = x.works[i];
-        if (on && work.desk.show === false) { var spot = findSpot(x, SIZES[work.style]); work.desk.x = spot.x; work.desk.y = spot.y; }
-        work.desk.show = on;
+        x.works[i].desk.show = on;
       });
       ctx.rerender();
     } }));
@@ -214,45 +162,22 @@ export function renderDesk(ctx, el) {
   d.films.forEach(function (f, i) {
     if (f.soon) return;
     onDesk.body.appendChild(toggle({ label: 'Tape: ' + (f.tape.label || f.title || 'Untitled film'), hint: 'Plays on the monitor', path: 'films.' + i + '.tape', value: !!f.tape.show, onChange: function (on) {
-      ctx.store.update(function (x) { setTape(x, x.films[i], on); });
+      ctx.store.update(function (x) { setTape(x.films[i], on); });
       ctx.rerender();
     } }));
   });
   el.appendChild(onDesk);
 
-  var order = section('Order on phones', 'On phones the desk becomes a pile you scroll through. Top of this list comes first.');
-  renderPhoneOrder(ctx, order.body);
+  var order = section('Order on the desk', 'Top of this list comes first, on computers (left to right, top to bottom) and on phones (top to bottom).');
+  renderOrder(ctx, order.body);
   el.appendChild(order);
   ctx.preview.go('#/');
 }
 
-function renderSelected(ctx, box, key) {
+function renderOrder(ctx, box) {
   clear(box);
   var d = draft(ctx);
-  var target = key && deskTarget(d, key);
-  if (!target) { box.appendChild(h('p.muted-text', 'Nothing selected yet. Click an object in the preview.')); return; }
-  var value = h('output.slider__value', target.r + '°');
-  var slider = h('input.slider', { type: 'range', min: -DESK.maxR, max: DESK.maxR, step: 1, value: target.r, 'aria-label': 'Tilt' });
-  slider.addEventListener('input', function () {
-    var r = +slider.value;
-    value.textContent = r + '°';
-    ctx.store.update(function (x) { deskTarget(x, key).r = r; }, 'tilt:' + key, { quiet: true });
-    ctx.preview.tellDesk({ type: 'desk:rotate', key: key, r: r });
-  });
-  box.appendChild(h('div.card',
-    h('div.card__row', h('strong', deskLabel(d, key)), h('span.muted-text', 'x ' + target.x + ' · y ' + target.y)),
-    h('label.slider__label', h('span', 'Tilt'), slider, value),
-    button('Straighten', { small: true, onClick: function () {
-      slider.value = 0;
-      slider.dispatchEvent(new Event('input'));
-    } })
-  ));
-}
-
-function renderPhoneOrder(ctx, box) {
-  clear(box);
-  var d = draft(ctx);
-  var keys = d.desk.mobileOrder.filter(function (k) { return deskKeys(d).indexOf(k) !== -1; });
+  var keys = d.desk.order.filter(function (k) { return deskKeys(d).indexOf(k) !== -1; });
   deskKeys(d).forEach(function (k) { if (keys.indexOf(k) === -1) keys.push(k); });
   var list = h('ol.order');
   keys.forEach(function (k, i) {
@@ -260,8 +185,8 @@ function renderPhoneOrder(ctx, box) {
       h('span.order__num', String(i + 1)),
       h('span.order__name', deskLabel(d, k)),
       orderButtons(deskLabel(d, k), i, keys.length, function (from, to) {
-        ctx.store.update(function (x) { x.desk.mobileOrder = keys.slice(); moveItem(x.desk.mobileOrder, from, to); });
-        renderPhoneOrder(ctx, box);
+        ctx.store.update(function (x) { x.desk.order = keys.slice(); moveItem(x.desk.order, from, to); });
+        renderOrder(ctx, box);
         ctx.preview.refresh();
       })
     ));
@@ -269,12 +194,8 @@ function renderPhoneOrder(ctx, box) {
   box.appendChild(list);
 }
 
-function setTape(d, f, on) {
-  if (on && !f.tape.show) {
-    var spot = findSpot(d, SIZES.tape);
-    f.tape.x = spot.x; f.tape.y = spot.y;
-    if (!f.tape.label) f.tape.label = autoTapeLabel(f);
-  }
+function setTape(f, on) {
+  if (on && !f.tape.show && !f.tape.label) f.tape.label = autoTapeLabel(f);
   f.tape.show = on;
 }
 
@@ -324,13 +245,12 @@ export function addWork(ctx) {
       var id;
       ctx.store.update(function (x) {
         id = uniqueId(title, x.works.map(function (w) { return w.id; }));
-        var spot = findSpot(x, SIZES[style]);
         x.works.push({
           id: id, title: title, kind: '', year: String(new Date().getFullYear()), madeWith: 'AI coding agents',
           description: '', link: '', style: style, demo: null, media: null,
-          desk: { show: true, x: spot.x, y: spot.y, r: Math.round(Math.random() * 8 - 4) }
+          desk: { show: true }
         });
-        x.desk.mobileOrder = (x.desk.mobileOrder || []).concat('work:' + id);
+        x.desk.order = (x.desk.order || []).concat('work:' + id);
       });
       ctx.go('#/works/' + id);
       toast('Added "' + title + '". Fill in the details, then publish.');
@@ -387,9 +307,7 @@ export function renderWork(ctx, el, id) {
   }));
   look.body.appendChild(toggle({ label: 'Show on the desk', hint: 'Off keeps it on the Work page only.', path: p + '.desk', value: w.desk.show !== false, onChange: function (on) {
     ctx.store.update(function (x) {
-      var work = x.works[workIndex(ctx, id)];
-      if (on && work.desk.show === false) { var spot = findSpot(x, SIZES[work.style]); work.desk.x = spot.x; work.desk.y = spot.y; }
-      work.desk.show = on;
+      x.works[workIndex(ctx, id)].desk.show = on;
     });
   } }));
   el.appendChild(look);
@@ -420,7 +338,7 @@ function addressField(ctx, kind, id, p) {
     ctx.store.update(function (x) {
       var arr = kind === 'work' ? x.works : x.films;
       arr.filter(function (it) { return it.id === id; })[0].id = next;
-      x.desk.mobileOrder = (x.desk.mobileOrder || []).map(function (k) { return k === 'work:' + id ? 'work:' + next : k; });
+      x.desk.order = (x.desk.order || []).map(function (k) { return k === 'work:' + id ? 'work:' + next : k; });
     });
     toast('The address is now "' + next + '".');
     ctx.go(kind === 'work' ? '#/works/' + next : '#/films/' + next);
@@ -657,7 +575,7 @@ export function addFilm(ctx) {
         };
         film.label = autoLabel(film);
         film.file = autoFile(film);
-        if (!film.soon) setTape(x, film, true);
+        if (!film.soon) setTape(film, true);
         film.tape.r = Math.round(Math.random() * 10 - 5);
         var firstSoon = x.films.map(function (f) { return f.soon; }).indexOf(true);
         if (!film.soon && firstSoon !== -1) x.films.splice(firstSoon, 0, film); else x.films.push(film);
@@ -730,7 +648,7 @@ export function renderFilm(ctx, el, id) {
   if (f.soon) tape.body.appendChild(h('p.callout', 'Films in production have no tape. Turn off "Still in production" to add one.'));
   else {
     tape.body.appendChild(toggle({ label: 'Put a tape on the desk', hint: 'Visitors drop it in the monitor to play the film.', path: p + '.tape', value: f.tape.show, onChange: function (on) {
-      ctx.store.update(function (x) { setTape(x, film(x), on); });
+      ctx.store.update(function (x) { setTape(film(x), on); });
       ctx.rerender();
     } }));
     if (f.tape.show) tape.body.appendChild(bound(ctx, { label: 'Tape label', path: p + '.tape.label', max: 24, caps: true, get: function (x) { return film(x).tape.label; }, set: function (x, v) { film(x).tape.label = v; } }));

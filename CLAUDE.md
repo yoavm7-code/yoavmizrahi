@@ -49,9 +49,10 @@ Eleven concepts were explored. The site is the 11th, "Harmonized", which combine
 Plain **HTML + CSS + vanilla JS**. No framework, no build step, no dependencies (Google Fonts only). Keep it that way unless Yoav agrees otherwise.
 
 ```
-content/site.json   ALL content: texts, works, films, desk positions, links. The source of truth.
+content/site.json   ALL content: texts, works, films, the desk order, links. The source of truth.
 js/schema.js        content rules: normalize() + validate(), object styles, sizes, limits
 js/render.js        generates index.html and the share pages (w/<id>/, f/<id>/) from site.json
+js/desk-layout.js   where everything sits on the desk (pure, unit tested), loaded before main.js
 index.html          GENERATED. Never edit by hand; it is overwritten on every publish.
 w/, f/              GENERATED share pages (link previews for each work and film)
 css/style.css       design tokens, components, motion, responsive, reduced-motion
@@ -77,7 +78,7 @@ README.md           short public readme
 - History restores past versions as new commits. `admin/rescue.html` (self-contained) undoes the last publish even if the admin is broken.
 - Publishing commits every uploaded file the content points at (`usedMedia()` in `publish.js`: work pictures and demo logos). A new kind of upload must be added there, or the page will point at a missing file.
 - Uploaded images are re-encoded through a canvas (strips GPS/EXIF), max 2400px, WebP, named by content hash in `media/`. Media is never deleted, so restores always work.
-- Strict CSP in `admin/index.html`, no third-party scripts, all content inserted as text. The preview is the real site rendered into a blob iframe; `data-mode="arrange"` turns on desk arranging (positions sent back with postMessage).
+- Strict CSP in `admin/index.html`, no third-party scripts, all content inserted as text. The preview is the real site rendered into a blob iframe. The desk has no hand placement: the admin sets what sits on it and in what order (`desk.order`).
 - Files: `app.js` (shell, sign-in screens, routing, publish UI), `panels.js` (editor screens), `store.js` (draft, undo, sync), `auth.js` (login server calls), `publish.js`, `preview.js`, `github.js`, `media.js`, `ui.js`, `config.js`.
 
 ## Tests and deploys
@@ -91,11 +92,12 @@ README.md           short public readme
 ## How it works
 
 - **Routing:** hash routes (`#/`, `#/work`, `#/work/<id>`, `#/films`, `#/films/<id>`, `#/about`). Each page is a `<section class="page" data-page="..." data-route data-label data-name>`, and `.is-active` shows it. `main.js` builds its routes from those attributes, so new works get routes automatically. `#/films/<id>` opens the reel on that film.
-- **Phone and tablet:** up to 900px the desk becomes a pile (flex, order from `data-m`, slight tilt, no dragging, tapes play with ▶). Between 900px and the desk width the whole desk is scaled with `zoom` so nothing hides off to the side. Film titles shrink to fit (`fitText`).
+- **Phone and tablet:** up to 900px the desk becomes a pile in the desk order (flex, slight tilt). The tapes sit in a 2 by 2 rack on tablets and pile up like on the big desk on phones, and play with ▶. Objects drag after a press and hold, so a swipe still scrolls. Film titles shrink to fit (`fitText`).
 - **Page wipe:** `.wipe` gets `.is-cover`, then the page swaps, then `.is-reveal`, then it resets. It's skipped on first load and with `prefers-reduced-motion`.
 - **Animations replay** because pages go from `display:none` to visible. `.up` / `.d1–.d4` stagger content. `[data-split]` headings are split into words and letters by JS.
 - **Cursor:** only on fine pointers. Elements with `data-cursor="view|drag"` grow it into the orange circle.
-- **The desk:** `.obj` elements have `data-x`, `data-y` and `data-r` (home position and rotation) and `data-obj` keys (`note`, `monitor`, `work:<id>`, `tape:<id>`). Pointer events drag them, and buttons and links inside an object don't start a drag. Works use one of four object styles: `device`, `phone`, `polaroid`, `screen` (a small monitor). The uploader and Toto demos are hand-built and tied to their works.
+- **The desk arranges itself.** Wider than 900px, `js/desk-layout.js` packs the objects in the desk order (`desk.order` in site.json; older content called it `mobileOrder`) at the highest free spot with an even gap, tries narrower content widths and keeps the most compact composition that fits the screen, and centers it. The film corner is the monitor with its tapes piled beside it, or racked under it on narrower desks, whichever composes better. Each object's tilt comes from a hash of its key, so it's the same on every visit. Positions are never stored. `tests/unit/desk-layout.test.mjs` fails if anything overlaps or leaves the desk. `.obj` elements carry `data-obj` keys (`note`, `monitor`, `work:<id>`, `tape:<id>`) and are rendered in the desk order.
+- **Dragging:** anything drags anywhere on the desk (never off it): with a mouse straight away, on touch after a 350 ms press and hold. A drag is an offset on top of the object's home spot; **Tidy up** (bottom right, shown only after something moved) animates every offset back to zero. Nothing is remembered between visits. Buttons and links inside an object don't start a drag. A tape counts as dropped on the monitor when the pointer or the tape's middle is over it. Works use one of four object styles: `device`, `phone`, `polaroid`, `screen` (a small monitor). The uploader and Toto demos are hand-built and tied to their works.
 - **Tapes:** dropping a tape (`[data-tape]`) on the monitor, or pressing its ▶ button, inserts it. The monitor `data-state` is `empty`, `idle` or `playing`.
 - **Demos** share state across all their instances (desk and project page):
   - `[data-widget="uploader"]`: a pocket Run live with five campaigns from the replica's video (one fails on policy).

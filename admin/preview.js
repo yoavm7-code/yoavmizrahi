@@ -8,7 +8,7 @@ import { h, icon } from './ui.js';
 var WIDTHS = { desktop: 1440, phone: 390 };
 
 export function createPreview(opts) {
-  var view = { device: opts.device || 'desktop', hash: '#/', mode: 'preview', content: null, url: null, timer: null, banner: null };
+  var view = { device: opts.device || 'desktop', hash: '#/', content: null, url: null, timer: null, banner: null };
   var frames = [makeFrame(), makeFrame()];
   var active = 0;
   var pending = null;
@@ -46,7 +46,7 @@ export function createPreview(opts) {
 
   function render() {
     var next = frames[1 - active];
-    var html = renderSite(content(), { root: SITE_ROOT, mode: view.mode, mediaUrl: opts.mediaUrl });
+    var html = renderSite(content(), { root: SITE_ROOT, mode: 'preview', mediaUrl: opts.mediaUrl });
     var url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
     var scroll = readScroll(frames[active].iframe);
     pending = next;
@@ -107,7 +107,6 @@ export function createPreview(opts) {
   if (window.ResizeObserver) new ResizeObserver(fit).observe(stage);
 
   function setDevice(d) {
-    if (view.mode === 'arrange' && d === 'phone') return;
     view.device = d;
     deviceBtns.desktop.setAttribute('aria-pressed', d === 'desktop' ? 'true' : 'false');
     deviceBtns.phone.setAttribute('aria-pressed', d === 'phone' ? 'true' : 'false');
@@ -127,29 +126,6 @@ export function createPreview(opts) {
     refresh(true);
   }
 
-  /* ---------- Arrange mode ---------- */
-
-  function setMode(mode) {
-    if (mode === view.mode) return;
-    view.mode = mode;
-    root.classList.toggle('is-arranging', mode === 'arrange');
-    deviceBtns.phone.disabled = mode === 'arrange';
-    if (mode === 'arrange') { view.hash = '#/'; setDevice('desktop'); }
-    refresh(true);
-  }
-
-  window.addEventListener('message', function (e) {
-    var f = frames[active];
-    if (!f.iframe.contentWindow || e.source !== f.iframe.contentWindow) return;
-    if (!e.data || typeof e.data.type !== 'string' || e.data.type.indexOf('desk:') !== 0) return;
-    if (opts.onDesk) opts.onDesk(e.data);
-  });
-
-  function tellDesk(msg) {
-    var w = frames[active].iframe.contentWindow;
-    if (w) w.postMessage(msg, '*');
-  }
-
   /* ---------- Showing another version (history) ---------- */
 
   function showVersion(content, text) {
@@ -164,10 +140,7 @@ export function createPreview(opts) {
     el: root,
     refresh: refresh,
     go: go,
-    setMode: setMode,
-    tellDesk: tellDesk,
     showVersion: showVersion,
-    fit: fit,
-    mode: function () { return view.mode; }
+    fit: fit
   };
 }

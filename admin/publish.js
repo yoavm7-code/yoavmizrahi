@@ -12,29 +12,13 @@ export function describeChanges(liveRaw, draftRaw) {
   var draft = normalize(draftRaw);
   var out = [];
   function differs(a, b) { return JSON.stringify(a) !== JSON.stringify(b); }
-  function strip(o, keys) { var c = JSON.parse(JSON.stringify(o)); keys.forEach(function (k) { delete c[k]; }); return c; }
 
   if (differs(live.site, draft.site)) out.push('Edited the site settings');
 
-  var ln = strip(live.desk.note, ['x', 'y', 'r']);
-  var dn = strip(draft.desk.note, ['x', 'y', 'r']);
-  if (differs(ln, dn)) out.push('Edited the sticky note');
+  if (differs(live.desk.note, draft.desk.note)) out.push('Edited the sticky note');
   if (live.desk.hint !== draft.desk.hint || live.desk.hintMobile !== draft.desk.hintMobile) out.push('Edited the desk hint');
 
-  var moved = 0;
-  function pos(o) { return o ? [o.x, o.y, o.r] : null; }
-  if (differs(pos(live.desk.note), pos(draft.desk.note))) moved++;
-  if (differs(pos(live.desk.monitor), pos(draft.desk.monitor))) moved++;
-  draft.works.forEach(function (w) {
-    var old = find(live.works, w.id);
-    if (old && differs(pos(old.desk), pos(w.desk))) moved++;
-  });
-  draft.films.forEach(function (f) {
-    var old = find(live.films, f.id);
-    if (old && differs(pos(old.tape), pos(f.tape))) moved++;
-  });
-  if (moved) out.push('Moved ' + moved + (moved === 1 ? ' thing' : ' things') + ' on the desk');
-  if (differs(live.desk.mobileOrder, draft.desk.mobileOrder)) out.push('Changed the phone order of the desk');
+  if (differs(live.desk.order, draft.desk.order)) out.push('Changed the order of the desk');
 
   listChanges(live.works, draft.works, 'work', function (w) { return w.title; }, ['desk'], out);
   listChanges(live.films, draft.films, 'film', function (f) { return f.label || f.title; }, ['tape'], out);

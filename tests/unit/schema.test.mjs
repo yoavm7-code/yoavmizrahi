@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import {
   slugify, uniqueId, youtubeId, isSafeUrl, isMediaPath, hasPlaceholder, runtimeSeconds,
-  deskKeys, normalize, validate, DESK, LIMITS
+  deskKeys, normalize, validate, LIMITS
 } from '../../js/schema.js';
 
 const site = JSON.parse(await readFile(new URL('../../content/site.json', import.meta.url), 'utf8'));
@@ -93,7 +93,7 @@ test('normalize never throws, whatever it is given', () => {
     { site: 'x', desk: { note: 3, monitor: [] } }, { works: [null, 7, 'x'], films: [null, []] }]) {
     const c = normalize(input);
     assert.equal(c.schemaVersion, 1);
-    assert.ok(Array.isArray(c.works) && Array.isArray(c.films) && Array.isArray(c.desk.mobileOrder));
+    assert.ok(Array.isArray(c.works) && Array.isArray(c.films) && Array.isArray(c.desk.order));
   }
 });
 
@@ -121,11 +121,16 @@ test('normalize fills defaults and coerces types', () => {
   assert.equal(c.works[0].media, null);
 });
 
-test('normalize clamps desk positions and rotation', () => {
-  const c = normalize({ desk: { note: { x: -50, y: 99999, r: 90 }, monitor: { x: 'abc', r: -90.6 } } });
-  assert.deepEqual([c.desk.note.x, c.desk.note.y, c.desk.note.r], [0, DESK.maxY, DESK.maxR]);
-  assert.deepEqual([c.desk.monitor.x, c.desk.monitor.y, c.desk.monitor.r], [60, 40, -DESK.maxR]);
-  assert.equal(normalize({ desk: { note: { x: 12.6 } } }).desk.note.x, 13);
+test('normalize drops saved desk positions: the page works them out', () => {
+  const c = normalize({
+    desk: { note: { hi: 'Hi', x: 5, y: 6, r: 7 }, monitor: { x: 1 } },
+    works: [{ id: 'a', desk: { show: false, x: 1, y: 2, r: 3 } }],
+    films: [{ id: 'f', tape: { show: true, label: 'f', x: 1, y: 2, r: 3 } }]
+  });
+  assert.deepEqual(c.desk.note, { hi: 'Hi', line: '', small: '' });
+  assert.equal('monitor' in c.desk, false);
+  assert.deepEqual(c.works[0].desk, { show: false });
+  assert.deepEqual(c.films[0].tape, { show: true, label: 'F' });
 });
 
 test('a demo forces the object style it was built for', () => {
@@ -138,14 +143,22 @@ test('a film in production never shows a tape', () => {
   assert.deepEqual(c.films.map((f) => f.tape.show), [false, true]);
 });
 
-test('normalize keeps the saved phone order, drops stale keys and adds new ones', () => {
+test('normalize keeps the saved desk order, drops stale keys and adds new ones', () => {
   const c = normalize({
-    desk: { mobileOrder: ['work:b', 'gone', 'note', 'note', 'tapes'] },
+    desk: { order: ['work:b', 'gone', 'note', 'note', 'tapes'] },
     works: [{ id: 'a' }, { id: 'b' }, { id: 'c', desk: { show: false } }],
     films: [{ id: 'f', tape: { show: true } }]
   });
-  assert.deepEqual(c.desk.mobileOrder, ['work:b', 'note', 'tapes', 'monitor', 'work:a']);
-  assert.deepEqual(deskKeys(c).sort(), c.desk.mobileOrder.slice().sort());
+  assert.deepEqual(c.desk.order, ['work:b', 'note', 'tapes', 'monitor', 'work:a']);
+  assert.deepEqual(deskKeys(c).sort(), c.desk.order.slice().sort());
+});
+
+test('the phone order of an older draft (mobileOrder) becomes the desk order', () => {
+  const c = normalize({ desk: { mobileOrder: ['work:a', 'note'] }, works: [{ id: 'a' }] });
+  assert.deepEqual(c.desk.order, ['work:a', 'note', 'monitor']);
+  assert.equal('mobileOrder' in c.desk, false);
+  const both = normalize({ desk: { order: ['note', 'work:a'], mobileOrder: ['work:a', 'note'] }, works: [{ id: 'a' }] });
+  assert.deepEqual(both.desk.order, ['note', 'work:a', 'monitor'], 'the new name wins');
 });
 
 test('normalize drops empty background lines on the About page', () => {

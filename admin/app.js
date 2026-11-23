@@ -342,7 +342,6 @@ function buildShell() {
     device: window.matchMedia('(max-width: 720px)').matches ? 'phone' : 'desktop',
     getContent: function () { return store.state.draft; },
     mediaUrl: mediaUrl,
-    onDesk: onDesk,
     onClose: closePreview
   });
 
@@ -387,9 +386,7 @@ function buildShell() {
     account: function () { return account; },
     changePassword: changePassword,
     replaceGithubKey: replaceGithubKey,
-    signOutEverywhere: signOutEverywhere,
-    selectedDeskKey: null,
-    onDeskSelect: null
+    signOutEverywhere: signOutEverywhere
   };
 
   store.onChange(function (info) {
@@ -440,9 +437,7 @@ function parse() {
 
 function route() {
   current = parse();
-  if (current.name !== 'desk' && preview.mode() === 'arrange') preview.setMode('preview');
   if (current.name !== 'history') preview.showVersion(null);
-  ctx.onDeskSelect = null;
   closePreview();
   renderPanel(false);
 }
@@ -515,22 +510,6 @@ function fix(path) {
 
 function openPreview() { if (!wide.matches) { shell.root.classList.add('is-preview-open'); preview.fit(); preview.refresh(true); } }
 function closePreview() { if (shell) shell.root.classList.remove('is-preview-open'); }
-
-function onDesk(msg) {
-  if (msg.type === 'desk:moved') {
-    store.update(function (d) {
-      var t = panels.deskTarget(d, msg.key);
-      if (t) { t.x = Math.max(0, Math.round(msg.x)); t.y = Math.max(0, Math.round(msg.y)); }
-    }, 'move:' + msg.key + ':' + Date.now(), { quiet: true });
-    ctx.selectedDeskKey = msg.key;
-    if (ctx.onDeskSelect) ctx.onDeskSelect(msg.key);
-  } else if (msg.type === 'desk:selected') {
-    ctx.selectedDeskKey = msg.key;
-    if (ctx.onDeskSelect) ctx.onDeskSelect(msg.key);
-  } else if (msg.type === 'desk:ready' && ctx.selectedDeskKey) {
-    preview.tellDesk({ type: 'desk:select', key: ctx.selectedDeskKey });
-  }
-}
 
 /* ---------- Media ---------- */
 

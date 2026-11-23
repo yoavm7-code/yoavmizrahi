@@ -206,20 +206,32 @@ body[data-theme="dark"] .site-header { border-color: var(--ink-line); }
 
 /* ---------- Desk ---------- */
 
-.desk-scroll { height: calc(100vh - var(--header-h)); height: calc(100dvh - var(--header-h)); min-height: 780px; overflow: auto; }
-.desk { position: relative; min-width: 1420px; height: 100%; min-height: 820px; overflow: hidden; }
-.desk__hint { position: absolute; left: 32px; bottom: 22px; font-size: 11px; letter-spacing: .14em; color: var(--muted); }
+.desk-scroll { height: calc(100vh - var(--header-h)); height: calc(100dvh - var(--header-h)); overflow-x: hidden; overflow-y: auto; }
+.desk { position: relative; min-height: 100%; overflow: hidden; }
+.desk__hint { position: absolute; left: 32px; bottom: 22px; margin: 0; font-size: 11px; letter-spacing: .14em; color: var(--muted); }
+/* Wide screens: objects wait for js/desk-layout.js to place them, so the desk never flashes a pile. */
+@media (min-width: 901px) {
+  .desk:not(.is-laid) .obj { visibility: hidden; }
+  .desk.is-laid { animation: desk-in .45s var(--ease) both; }
+}
+@keyframes desk-in { from { opacity: 0; } to { opacity: 1; } }
 
 .obj {
   position: absolute;
   touch-action: none;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   cursor: grab;
   transition: transform .25s var(--ease), filter .25s ease;
   filter: drop-shadow(0 10px 14px rgba(23,22,20,.22));
 }
-.obj.is-dragging { cursor: grabbing; filter: drop-shadow(0 26px 28px rgba(23,22,20,.32)); }
-[data-mode="arrange"] .obj.is-selected { outline: 2px dashed var(--accent); outline-offset: 8px; }
+.obj.is-dragging { cursor: grabbing; transition: filter .25s ease; filter: drop-shadow(0 26px 28px rgba(23,22,20,.32)); }
+.obj.is-tidying { transition: transform .6s var(--ease), filter .25s ease; }
+
+/* Tidy up: shows once something has moved, puts everything back. */
+.tidy { position: fixed; right: 32px; bottom: 28px; z-index: 40; box-shadow: 0 10px 24px rgba(23,22,20,.22); }
+.tidy[hidden] { display: none; }
 
 .note { width: 300px; padding: 34px 26px 26px; background: var(--paper-2); color: var(--ink); position: relative; }
 .note__tape { position: absolute; top: -10px; left: 50%; margin-left: -48px; width: 96px; height: 24px; background: rgba(255,90,54,.28); transform: rotate(-2deg); }
@@ -559,26 +571,27 @@ body.menu-open .mlink:nth-child(4) .mlink__in { transition-delay: .54s; }
 
 /* ---------- Small screens ---------- */
 
-/* Tablets and phones: the desk becomes a pile you scroll through. Objects keep a slight tilt, follow
-   the phone order (data-m, applied by JS) and are not draggable. The admin's arrange mode keeps the
-   full desk at any width. */
+/* Tablets and phones: the desk becomes a pile you scroll through, in the desk order, with a
+   slight tilt. Objects still drag: press and hold to lift one, so a swipe scrolls the page.
+   The tapes sit in a 2 by 2 rack the width of the monitor, so every label reads in full. */
 @media (max-width: 900px) {
-  html:not([data-mode="arrange"]) .desk-scroll { height: auto; min-height: 0; overflow: visible; }
-  html:not([data-mode="arrange"]) .desk {
-    min-width: 0 !important; min-height: 0 !important; height: auto;
+  .desk-scroll { height: auto; overflow: visible; }
+  .desk {
+    min-height: 0; height: auto;
     display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start;
     gap: 40px 48px; padding: 32px 24px 72px; overflow: visible;
   }
-  html:not([data-mode="arrange"]) .desk__hint { position: static; order: 0; flex-basis: 100%; text-align: center; line-height: 1.7; }
-  html:not([data-mode="arrange"]) .only-wide { display: none; }
-  html:not([data-mode="arrange"]) .only-narrow { display: inline; }
-  html:not([data-mode="arrange"]) .obj { position: relative; left: auto !important; top: auto !important; max-width: 100%; touch-action: auto; cursor: auto; }
-  html:not([data-mode="arrange"]) .tapes { display: flex; justify-content: center; gap: 14px; flex-basis: 100%; }
-  html:not([data-mode="arrange"]) .tapes .obj { flex: 0 1 210px; min-width: 0; }
-  html:not([data-mode="arrange"]) .tape { width: 100%; }
-  html:not([data-mode="arrange"]) .obj[data-obj="monitor"] { width: min(560px, 100%); }
-  html:not([data-mode="arrange"]) .monitor { width: 100%; }
-  html:not([data-mode="arrange"]) .monitor__screen { height: auto; aspect-ratio: 16 / 10; }
+  .desk__hint { position: static; order: -1; flex-basis: 100%; text-align: center; line-height: 1.7; }
+  .only-wide { display: none; }
+  .only-narrow { display: inline; }
+  .obj { position: relative; max-width: 100%; touch-action: auto; cursor: auto; }
+  .tapes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; flex-basis: 100%; max-width: 560px; }
+  .tapes .obj { min-width: 0; }
+  .tape { width: 100%; }
+  .obj[data-obj="monitor"] { width: min(560px, 100%); }
+  .monitor { width: 100%; }
+  .monitor__screen { height: auto; aspect-ratio: 16 / 10; }
+  .tidy { right: 20px; bottom: 20px; }
   .tape__play { position: relative; }
   .tape__play::after { content: ""; position: absolute; inset: -8px; }
   .eject { min-height: 44px; padding: 8px 14px; }
@@ -598,8 +611,10 @@ body.menu-open .mlink:nth-child(4) .mlink__in { transition-delay: .54s; }
   .brand { font-size: 18px; }
 
   /* Desk: one column */
-  html:not([data-mode="arrange"]) .desk { flex-direction: column; flex-wrap: nowrap; align-items: center; gap: 36px; padding: 24px 20px 64px; }
-  html:not([data-mode="arrange"]) .tapes { align-self: stretch; }
+  .desk { flex-direction: column; flex-wrap: nowrap; align-items: center; gap: 36px; padding: 24px 20px 64px; }
+  /* Phones: the tapes pile up like on the big desk, each label and ▶ in view, full width. */
+  .tapes { display: flex; flex-direction: column; align-self: center; width: min(360px, 100%); gap: 0; }
+  .tapes .obj + .obj { margin-top: -66px; }
   .monitor { padding: 12px 12px 10px; }
   .monitor__title { font-size: 34px; }
   .tape { padding: 7px; }
@@ -653,8 +668,7 @@ body.menu-open .mlink:nth-child(4) .mlink__in { transition-delay: .54s; }
 }
 
 @media (max-width: 380px) {
-  html:not([data-mode="arrange"]) .desk { padding-left: 14px; padding-right: 14px; }
-  html:not([data-mode="arrange"]) .tapes { gap: 10px; }
+  .desk { padding-left: 14px; padding-right: 14px; }
   .tape__label span { letter-spacing: 0; }
 }
 

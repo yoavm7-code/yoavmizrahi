@@ -71,13 +71,14 @@ test('a tape goes into the monitor, plays, and ejects', async ({ page }) => {
   if (isNarrow(page)) {
     await tape.locator('[data-insert]').click();
   } else {
-    /* Drag the tape by its body (not its button) and drop it on the monitor. */
-    await page.waitForTimeout(600);
-    const from = await tape.locator('.tape__reels').boundingBox();
+    /* Drag the tape by its label (not its button) and drop it on the monitor, just above the rack. */
+    await expect(page.locator('.desk.is-laid')).toBeVisible();
+    await tape.scrollIntoViewIfNeeded();
+    const from = await tape.locator('.tape__label span').boundingBox();
     const to = await page.locator('[data-obj="monitor"]').boundingBox();
-    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.move(from.x + 10, from.y + from.height / 2);
     await page.mouse.down();
-    await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 12 });
+    await page.mouse.move(to.x + to.width / 2, Math.max(to.y + 40, Math.min(to.y + to.height - 60, 300)), { steps: 12 });
     await page.mouse.up();
   }
   await expect(screen).toHaveAttribute('data-state', 'idle');
@@ -103,18 +104,109 @@ test('a second tape replaces the first', async ({ page }) => {
   await expect(tapes.nth(1)).toHaveClass(/is-inserted/);
 });
 
-test('desk objects drag on wide screens and stay put on narrow ones', async ({ page }) => {
+/* Real touch events through Chrome's DevTools protocol, so a press, a hold and a move reach the page
+   the way a phone sends them. */
+async function touch(page) {
+  const cdp = await page.context().newCDPSession(page);
+  const send = (type, x, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
+  return {
+    async drag(x, y, dx, dy, holdMs) {
+      await send('touchStart', x, y);
+      if (holdMs) await page.waitForTimeout(holdMs);
+      for (let k = 1; k <= 8; k++) await send('touchMove', x + (dx * k) / 8, y + (dy * k) / 8);
+      await send('touchEnd');
+    }
+  };
+}
+
+test('anything on the desk drags anywhere, and Tidy up puts it back', async ({ page }) => {
   await page.goto('/#/');
-  await page.waitForTimeout(600);
   const note = page.locator('[data-obj="note"]');
+  const tidy = page.getByRole('button', { name: 'Tidy up' });
+  if (!isNarrow(page)) await expect(page.locator('.desk.is-laid')).toBeVisible();
+  await page.waitForTimeout(500);
+  await expect(tidy).toBeHidden();
   const before = await note.boundingBox();
-  await page.mouse.move(before.x + 40, before.y + 60);
-  await page.mouse.down();
-  await page.mouse.move(before.x + 140, before.y + 120, { steps: 8 });
-  await page.mouse.up();
+  const x = before.x + 60, y = before.y + 40;
+
+  if (isNarrow(page)) {
+    const finger = await touch(page);
+    /* A quick swipe scrolls the page; it never moves the note. */
+    await finger.drag(x, y, 80, 0, 0);
+    await page.waitForTimeout(300);
+    expect(Math.abs((await note.boundingBox()).x - before.x)).toBeLessThan(2);
+    await expect(tidy).toBeHidden();
+    /* Press and hold, then move: the note follows the finger (down, where a phone has room). */
+    await finger.drag(x, y, 20, 120, 500);
+  } else {
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x + 100, y + 60, { steps: 8 });
+    await page.mouse.up();
+  }
+  await page.waitForTimeout(400);
   const after = await note.boundingBox();
-  if (isNarrow(page)) expect(Math.abs(after.x - before.x)).toBeLessThan(2);
-  else expect(after.x - before.x).toBeGreaterThan(50);
+  expect(Math.hypot(after.x - before.x, after.y - before.y)).toBeGreaterThan(50);
+  await expect(tidy).toBeVisible();
+
+  await tidy.click();
+  await expect(tidy).toBeHidden();
+  await expect.poll(async () => { const b = await note.boundingBox(); return Math.hypot(b.x - before.x, b.y - before.y); }, { timeout: 3000 }).toBeLessThan(2);
+});
+
+test('nothing can be dragged off the desk', async ({ page }) => {
+  test.skip(isNarrow(page), 'checked with a mouse on wide screens');
+  await page.goto('/#/');
+  await expect(page.locator('.desk.is-laid')).toBeVisible();
+  const note = page.locator('[data-obj="note"]');
+  const box = await note.boundingBox();
+  await page.mouse.move(box.x + 60, box.y + 40);
+  await page.mouse.down();
+  await page.mouse.move(-400, -400, { steps: 8 });
+  await page.mouse.up();
+  const desk = await page.locator('[data-desk]').boundingBox();
+  const after = await note.boundingBox();
+  expect(after.x).toBeGreaterThanOrEqual(desk.x - 1);
+  expect(after.y).toBeGreaterThanOrEqual(desk.y - 1);
+});
+
+/* The desk's tilted objects, as boxes: tapes may overlap each other (they're piled), nothing else. */
+async function deskBoxes(page) {
+  return page.locator('[data-desk] .obj').evaluateAll((els) => els.map((el) => {
+    const r = el.getBoundingClientRect();
+    return { key: el.getAttribute('data-obj'), x: r.left, y: r.top, w: r.width, h: r.height };
+  }));
+}
+function overlaps(a, b) { return a.x < b.x + b.w - 1 && b.x < a.x + a.w - 1 && a.y < b.y + b.h - 1 && b.y < a.y + a.h - 1; }
+
+for (const [w, h] of [[1180, 800], [1440, 900], [2560, 1290]]) {
+  test(`the desk arranges itself at ${w}px: no overlaps, nothing past the edge`, async ({ page }) => {
+    test.skip(isNarrow(page), 'sets its own size');
+    await page.setViewportSize({ width: w, height: h });
+    await page.goto('/#/');
+    await expect(page.locator('.desk.is-laid')).toBeVisible();
+    const boxes = await deskBoxes(page);
+    expect(boxes.length).toBeGreaterThan(6);
+    boxes.forEach((a, i) => {
+      expect(a.x, a.key + ' starts on screen').toBeGreaterThanOrEqual(0);
+      expect(a.x + a.w, a.key + ' ends on screen').toBeLessThanOrEqual(w);
+      boxes.slice(i + 1).forEach((b) => {
+        if (a.key.startsWith('tape:') && b.key.startsWith('tape:')) return;
+        expect(overlaps(a, b), a.key + ' and ' + b.key + ' overlap').toBe(false);
+      });
+    });
+  });
+}
+
+test('on phones the tapes pile up with every label in full', async ({ page }) => {
+  test.skip(page.viewportSize().width > 720, 'phone width only');
+  await page.goto('/#/');
+  const labels = page.locator('[data-tape] .tape__label span');
+  const n = await labels.count();
+  for (let i = 0; i < n; i++) {
+    const full = await labels.nth(i).evaluate((el) => el.scrollWidth <= el.clientWidth);
+    expect(full, (await labels.nth(i).textContent()) + ' reads in full').toBe(true);
+  }
 });
 
 /* ---------- Demos ---------- */
