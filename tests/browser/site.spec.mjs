@@ -47,7 +47,7 @@ test('the menu opens, navigates with the page wipe, and closes with Escape', asy
   await expect(page.locator('.page.is-active')).toHaveAttribute('data-page', 'about');
   await expect(page.locator('#menu')).toHaveAttribute('aria-hidden', 'true');
   await expect(page.locator('[data-page-name]')).toHaveText('ABOUT');
-  await expect(page).toHaveTitle(/^About — /);
+  await expect(page).toHaveTitle(/^About · /);
 });
 
 test('every work card opens its project page', async ({ page }) => {

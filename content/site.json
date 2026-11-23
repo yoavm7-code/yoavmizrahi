@@ -23,9 +23,9 @@
     "hint": "DRAG ANYTHING · DROP A TAPE IN THE MONITOR · OPEN ANY PROJECT",
     "hintMobile": "TAP ▶ ON A TAPE TO PLAY IT · OPEN ANY PROJECT",
     "note": {
-      "hi": "Hi, I’m Yoav.",
+      "hi": "Hi, I'm Yoav.",
       "line": "I build products & films with AI.",
-      "small": "Everything on this desk works. Play with it — or open the menu.",
+      "small": "Everything on this desk works. Play with it, or open the menu.",
       "x": 60,
       "y": 40,
       "r": -3
@@ -69,7 +69,7 @@
       "kind": "WEB APP",
       "year": "2026",
       "madeWith": "AI coding agents",
-      "description": "A World Cup 2026 prediction pool for friends. Call the score, lock it in, argue about it later.",
+      "description": "A World Cup 2026 prediction pool for friends. Everyone picks the scores before kickoff, and the table settles the arguments.",
       "link": "",
       "style": "phone",
       "demo": "toto",
@@ -179,7 +179,7 @@
     }
   ],
   "about": {
-    "lead": "I direct AI agents to build working software, and I make realistic AI films for my channel, The Wide Silence. Same obsession in both: the details people feel but don’t notice.",
+    "lead": "I direct AI agents to build working software, and I make realistic AI films for my channel, The Wide Silence. In both, I care most about the small things people feel without noticing them.",
     "before": [
       "Outbrain and Duda.",
       "Information Systems, Academic College of Tel Aviv‑Yaffo."
