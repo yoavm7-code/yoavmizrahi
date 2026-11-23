@@ -22,7 +22,8 @@ test('Memesh: a logo slot and every line of wording, editable in Hebrew and Engl
   await signIn(page);
   await page.goto('/admin/#/works/memesh');
   await expect(page.getByRole('heading', { name: 'Demo logo and wording' })).toBeVisible();
-  await expect(page.getByText('Choose the logo')).toBeVisible();
+  /* The live content has the real logo, so the slot offers to replace it. */
+  await expect(page.getByRole('button', { name: 'Replace' })).toBeVisible();
 
   const search = page.getByRole('searchbox', { name: 'Search the wording' });
   await search.fill('legend.closed');
