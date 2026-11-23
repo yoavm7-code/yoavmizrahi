@@ -7,7 +7,7 @@
 <title>Yoav Mizrahi - Products &amp; films, built with AI</title>
 <meta name="description" content="Portfolio of Yoav Mizrahi: products and films, built with AI.">
 <meta name="theme-color" content="#EDE9E1">
-<meta name="build" content="mwsyftqvvl6i8">
+<meta name="build" content="local-mwt18508">
 <link rel="canonical" href="https://yoavmizrahi.com/">
 <meta property="og:url" content="https://yoavmizrahi.com/">
 <meta property="og:type" content="website">
@@ -184,13 +184,25 @@
       <div><span class="label">MADE WITH</span><span class="strong">AI coding agents</span></div>
       <p>[One line: what it uploads, and for whom.] Built with AI agents and running in production.</p>
     </div>
-    <div class="stage grid-surface grid-surface--deep up d3">
-      <span class="stage__label mono">ON THE DESK · TRY IT</span>
-      <div class="device device--uploader device--big">
-        <div class="device__screen device__screen--paper">
-          <div class="row-between"><span class="label">UPLOAD QUEUE</span><span class="device__pct" data-upload-total>0%</span></div>
-          <div class="uploader" data-widget="uploader"></div>
+    <div class="stage stage--replica grid-surface grid-surface--deep up d3">
+      <span class="stage__label mono">THE REAL THING · FULLY CLICKABLE</span>
+      <div class="replica" data-replica data-src="demos/mega-uploader/" data-w="1440" data-h="900" data-title="Mega Uploader" data-mode="try">
+        <div class="replica__bar">
+          <span class="replica__title mono"><span class="replica__live" aria-hidden="true"></span>MEGA UPLOADER · MADE-UP DATA</span>
+          <div class="replica__modes" role="group" aria-label="Demo or video">
+            <button class="btn replica__mode" type="button" data-replica-mode="try" aria-pressed="true">TRY IT</button>
+            <button class="btn replica__mode" type="button" data-replica-mode="watch" aria-pressed="false">WATCH IT</button>
+          </div>
+          <div class="replica__actions">
+            <button class="btn replica__act" type="button" data-replica-reset>↺ START OVER</button>
+            <a class="replica__act" href="demos/mega-uploader/" data-replica-full>⤢ FULL SCREEN</a>
+          </div>
         </div>
+        <div class="replica__screen">
+          <div class="replica__viewport" data-replica-viewport data-cursor-off></div>
+          <video class="replica__video" data-replica-video src="demos/mega-uploader/demo.mp4" poster="demos/mega-uploader/poster.jpg" muted loop playsinline controls preload="none" aria-label="A recorded walk through Mega Uploader"></video>
+        </div>
+        <p class="replica__note mono">The clickable demo is built for a computer screen. <a class="uline" href="demos/mega-uploader/">Open it anyway →</a></p>
       </div>
     </div>
     <a class="next" href="#/work/toto" data-cursor="view"><span class="label">NEXT</span><span class="next__title uline">Toto Mundial →</span></a>

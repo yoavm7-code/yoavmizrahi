@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { renderSite, renderSharePages, routes, reelSpans } from '../../js/render.js';
-import { normalize } from '../../js/schema.js';
+import { normalize, DEMOS } from '../../js/schema.js';
 
 const site = JSON.parse(await readFile(new URL('../../content/site.json', import.meta.url), 'utf8'));
 
@@ -108,6 +108,28 @@ test('no tapes means no tape group', () => {
   assert.ok(!renderSite(raw).includes('data-obj-group="tapes"'));
 });
 
+test('a work whose demo has a replica gets the replica stage instead of the desk object', () => {
+  const raw = base();
+  raw.works = [{ id: 'up', title: 'Up', demo: 'uploader' }, { id: 'pic', title: 'Pic', style: 'polaroid' }];
+  const page = renderSite(raw);
+  const r = DEMOS.uploader.replica;
+  assert.equal(count(page, 'data-replica '), 1);
+  assert.ok(page.includes('data-src="' + r.src + '" data-w="' + r.width + '" data-h="' + r.height + '"'));
+  assert.ok(page.includes('src="' + r.video + '" poster="' + r.poster + '"'));
+  assert.ok(page.includes('href="' + r.src + '" data-replica-full'));
+  assert.ok(!page.includes('data-upload-total'), 'the old upload widget stage is gone from the project page');
+  assert.equal(count(page, 'data-widget="uploader"'), 1, 'the desk keeps its upload widget');
+  assert.ok(page.includes('ON THE DESK</span>'), 'a work without a replica keeps the desk stage');
+});
+
+test('replica paths follow the root option, for the admin preview', () => {
+  const raw = base();
+  raw.works = [{ id: 'up', title: 'Up', demo: 'uploader' }];
+  const page = renderSite(raw, { root: 'https://yoavmizrahi.com/' });
+  assert.ok(page.includes('data-src="https://yoavmizrahi.com/demos/mega-uploader/"'));
+  assert.ok(page.includes('poster="https://yoavmizrahi.com/demos/mega-uploader/poster.jpg"'));
+});
+
 test('no lines are left holding only indentation', () => {
   const page = renderSite(base());
   assert.ok(!page.split('\n').some((l) => l.length && !l.trim()));
@@ -175,6 +197,15 @@ test('share pages get a large preview only when there is an image', () => {
   assert.ok(pages[1].html.includes('https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg'));
   assert.ok(pages.every((p) => p.html.includes('summary_large_image')));
   assert.ok(renderSharePages(base()).every((p) => p.html.includes('content="summary"')));
+});
+
+test('a work with a replica uses its poster as the link preview', () => {
+  const raw = base();
+  raw.works = [{ id: 'up', title: 'Up', demo: 'uploader' }];
+  const html = renderSharePages(raw)[0].html;
+  assert.ok(html.includes('<meta property="og:image" content="https://yoavmizrahi.com/' + DEMOS.uploader.replica.poster + '">'));
+  raw.site.url = '';
+  assert.ok(!renderSharePages(raw)[0].html.includes('og:image'), 'no address, no preview image');
 });
 
 test('share pages leave out the address when the site has none', () => {

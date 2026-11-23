@@ -91,6 +91,7 @@
     window.scrollTo(0, 0);
     onPageLeave(current);
     current = r.page;
+    openReplicas(r.page);
     if (route.film) reelGoId(route.film);
     if (r.page === 'films') fitText($('[data-reel-title]'));
   }
@@ -234,6 +235,66 @@
     renderToto();
   });
   renderToto();
+
+  /* ---------- Replicas: the real product on its project page ---------- */
+  /* The interactive copy loads only when its page opens, renders at its real size and is scaled down
+     to fit the device. Narrow screens get the recorded video; the copy stays one link away. */
+  var replicas = $$('[data-replica]').map(function (box) {
+    var viewport = $('[data-replica-viewport]', box);
+    var video = $('[data-replica-video]', box);
+    var w = +box.getAttribute('data-w');
+    var h = +box.getAttribute('data-h');
+    var page = box.closest('.page').getAttribute('data-page');
+    var frame = null;
+
+    function log(msg, values) { console.info('[site replica] ' + msg, values || {}); }
+    function load() {
+      if (frame) return;
+      frame = document.createElement('iframe');
+      frame.className = 'replica__frame';
+      frame.title = box.getAttribute('data-title') + ', interactive demo with made-up data';
+      frame.width = w;
+      frame.height = h;
+      frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-downloads');
+      frame.setAttribute('allow', 'clipboard-write');
+      frame.addEventListener('load', function () { log('loaded', { src: frame.src }); });
+      frame.src = box.getAttribute('data-src');
+      viewport.appendChild(frame);
+      fit();
+      log('loading', { src: frame.src, width: w, height: h });
+    }
+    function fit() {
+      if (!frame || !viewport.clientWidth) return;
+      var s = viewport.clientWidth / w;
+      frame.style.transform = 'scale(' + s + ')';
+      log('fit', { scale: Math.round(s * 1000) / 1000 });
+    }
+    function setMode(mode) {
+      box.setAttribute('data-mode', mode);
+      $$('[data-replica-mode]', box).forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-replica-mode') === mode ? 'true' : 'false'); });
+      if (mode === 'try') { video.pause(); load(); fit(); }
+      else { var played = video.play(); if (played && played.catch) played.catch(function (e) { log('video did not autoplay', { reason: e.name }); }); }
+      log('mode', { page: page, mode: mode, narrow: narrow.matches });
+    }
+    $$('[data-replica-mode]', box).forEach(function (b) {
+      b.addEventListener('click', function () { setMode(b.getAttribute('data-replica-mode')); });
+    });
+    $('[data-replica-reset]', box).addEventListener('click', function () {
+      if (frame) { frame.contentWindow.location.reload(); log('start over', { page: page }); } else load();
+    });
+    viewport.addEventListener('mouseenter', function () { document.documentElement.classList.add('cursor-off'); });
+    viewport.addEventListener('mouseleave', function () { document.documentElement.classList.remove('cursor-off'); });
+    if (window.ResizeObserver) new ResizeObserver(fit).observe(viewport);
+    else window.addEventListener('resize', fit);
+
+    return {
+      page: page,
+      open: function () { setMode(narrow.matches ? 'watch' : box.getAttribute('data-mode')); },
+      close: function () { video.pause(); document.documentElement.classList.remove('cursor-off'); }
+    };
+  });
+  function openReplicas(page) { replicas.forEach(function (r) { if (r.page === page) r.open(); }); }
+  narrow.addEventListener('change', function () { openReplicas(current); });
 
   /* ---------- The desk: dragging, tapes, monitor ---------- */
   /* Up to 900px wide the desk is a stack: objects keep a slight tilt, follow data-m order and are
@@ -485,6 +546,7 @@
 
   /* Stop anything playing when leaving a page. */
   function onPageLeave(page) {
+    replicas.forEach(function (r) { if (r.page === page) r.close(); });
     if (page === 'films') { reelStop(); reelPlayer.innerHTML = ''; scene.classList.remove('is-playing'); }
     if (page === 'home' && screen.getAttribute('data-state') === 'playing') { monitorPlayer.innerHTML = ''; setScreen('idle'); }
   }

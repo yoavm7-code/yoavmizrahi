@@ -11,9 +11,22 @@ export const STYLES = {
   screen: { name: 'Monitor', hint: 'A small monitor, for desktop products.' }
 };
 
-/* Hand-built interactive demos. Only the works that own them can use them. */
+/* Hand-built interactive demos. Only the works that own them can use them.
+   A demo with a replica also gets the full product on its project page: an interactive copy
+   (demos/<name>/, rendered at width x height and scaled to fit) and a recorded video of it. */
 export const DEMOS = {
-  uploader: { name: 'Upload demo', style: 'device' },
+  uploader: {
+    name: 'Upload demo',
+    style: 'device',
+    replica: {
+      title: 'Mega Uploader',
+      src: 'demos/mega-uploader/',
+      video: 'demos/mega-uploader/demo.mp4',
+      poster: 'demos/mega-uploader/poster.jpg',
+      width: 1440,
+      height: 900
+    }
+  },
   toto: { name: 'Score picker demo', style: 'phone' }
 };
 

@@ -13,7 +13,8 @@ after(async () => { await rm(join(out, '..'), { recursive: true, force: true });
 
 test('everything the site and the admin load is included', () => {
   for (const path of ['index.html', 'favicon.svg', 'CNAME', '.nojekyll', 'css/style.css', 'js/main.js', 'js/render.js',
-    'js/schema.js', 'admin/index.html', 'admin/app.js', 'admin/rescue.html', 'content/site.json', 'w', 'f']) {
+    'js/schema.js', 'admin/index.html', 'admin/app.js', 'admin/rescue.html', 'content/site.json', 'w', 'f',
+    'demos/mega-uploader/index.html', 'demos/mega-uploader/js/app.js', 'demos/mega-uploader/demo.mp4', 'demos/mega-uploader/poster.jpg']) {
     assert.ok(existsSync(join(out, path)), path + ' is missing from the deploy');
   }
 });
