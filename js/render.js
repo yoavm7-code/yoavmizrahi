@@ -258,11 +258,23 @@ ${deskNote(c, order('note'))}${works}${deskMonitor(c, order('monitor'))}${deskTa
 
 /* ---------- Work ---------- */
 
-function pageWork(c) {
+/* What a work card shows behind its title: the replica's poster, with its video loaded and played only
+   on hover (js/main.js), else the work's own picture, else nothing and the card stays plain ink. */
+function cardShot(w, paths) {
+  var replica = replicaOf(w);
+  if (replica) {
+    return html`<div class="card__shot card__shot--app" aria-hidden="true"><img src="${paths.asset(replica.poster)}" alt="" loading="lazy" decoding="async"><video data-card-video data-src="${paths.asset(replica.video)}" muted loop playsinline preload="none"></video></div>`;
+  }
+  var media = mediaEl(w.media, paths);
+  return media ? html`<div class="card__shot">${media}</div>` : '';
+}
+
+function pageWork(c, paths) {
   var cards = c.works.map(function (w, i) {
+    var shot = cardShot(w, paths);
     return html`
-      <a class="card" href="${'#/work/' + w.id}" data-cursor="view">
-        <div class="card__cover"><div class="card__inner grid-dark"><span class="card__no">${pad2(i + 1)}</span><span class="card__title">${w.title}</span></div><span class="card__bar" aria-hidden="true"></span></div>
+      <a class="card${shot ? ' card--shot' : ''}" href="${'#/work/' + w.id}" data-cursor="view">
+        <div class="card__cover">${shot}<div class="card__inner${shot ? '' : ' grid-dark'}"><span class="card__no">${pad2(i + 1)}</span><span class="card__title">${w.title}</span></div><span class="card__bar" aria-hidden="true"></span></div>
         <div class="card__meta mono"><span>${upper(w.title)}</span><span class="muted">${w.kind}</span></div>
       </a>`;
   });
@@ -288,15 +300,6 @@ function pageWork(c) {
 
 function stageObject(w, paths) {
   if (w.style === 'device') {
-    if (w.demo === 'uploader') {
-      return html`
-      <div class="device device--uploader device--big">
-        <div class="device__screen device__screen--paper">
-          <div class="row-between"><span class="label">UPLOAD QUEUE</span><span class="device__pct" data-upload-total>0%</span></div>
-          <div class="uploader" data-widget="uploader"></div>
-        </div>
-      </div>`;
-    }
     return html`
       <div class="device device--big">
         <div class="device__screen device__screen--paper">
@@ -539,7 +542,7 @@ ${headMeta(c, paths, opts)}
 </header>
 
 <main>
-${pageHome(c, paths)}${pageWork(c)}${c.works.map(function (w, i) { return pageProject(c, w, i, paths); })}${pageFilms(c)}${pageAbout(c)}
+${pageHome(c, paths)}${pageWork(c, paths)}${c.works.map(function (w, i) { return pageProject(c, w, i, paths); })}${pageFilms(c)}${pageAbout(c)}
 </main>
 
 <!-- Menu -->
