@@ -37,18 +37,25 @@ test('the About page\'s web design intro and points: edit, add, remove', async (
   const intro = page.getByLabel('Intro', { exact: true });
   await intro.fill('I design in the browser.');
   await intro.blur();
-  await page.getByLabel('Point 1', { exact: true }).fill('Product sites and web apps.');
-  await page.getByLabel('Point 1', { exact: true }).blur();
+  /* Works with whatever points the live content has, even none. */
+  const before = (await draftOf(page)).about.design.points;
+  const n = before.length;
 
   await page.getByRole('button', { name: 'Add a point' }).click();
-  const added = page.getByLabel('Point 4', { exact: true });
-  await expect(added).toBeFocused();
-  await added.fill('A new point.');
-  await added.blur();
-  await page.getByRole('button', { name: 'Remove point 2' }).click();
-  await expect(page.getByLabel('Point 4', { exact: true })).toHaveCount(0);
+  const first = page.getByLabel('Point ' + (n + 1), { exact: true });
+  await expect(first).toBeFocused();
+  await first.fill('Product sites and web apps.');
+  await first.blur();
+  await page.getByRole('button', { name: 'Add a point' }).click();
+  const second = page.getByLabel('Point ' + (n + 2), { exact: true });
+  await expect(second).toBeFocused();
+  await second.fill('A new point.');
+  await second.blur();
+  await page.getByRole('button', { name: 'Remove point ' + (n + 1) }).click();
+  await expect(page.getByLabel('Point ' + (n + 2), { exact: true })).toHaveCount(0);
+  await expect(page.getByLabel('Point ' + (n + 1), { exact: true })).toHaveValue('A new point.');
 
   const design = (await draftOf(page)).about.design;
   expect(design.lead).toBe('I design in the browser.');
-  expect(design.points).toEqual(['Product sites and web apps.', 'LoreWire is one example. Open it from Work to click through it.', 'A new point.']);
+  expect(design.points).toEqual(before.concat(['A new point.']));
 });
