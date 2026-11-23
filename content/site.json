@@ -43,7 +43,8 @@
       "work:toto",
       "work:memesh",
       "work:lorewire",
-      "work:ad-intel"
+      "work:ad-intel",
+      "work:im-eng"
     ]
   },
   "works": [
@@ -156,6 +157,25 @@
         "x": 990,
         "y": 436,
         "r": 2
+      }
+    },
+    {
+      "id": "im-eng",
+      "title": "I.M Engineering",
+      "kind": "WEBSITE",
+      "year": "[Year]",
+      "madeWith": "AI coding agents",
+      "description": "The website of I.M Engineering & Construction, a contractor that builds offices, restaurants and shops. It shows the finished projects and turns visitors into calls and messages. In Hebrew, right to left, and made for phones too.",
+      "design": "Black, white and one gold, taken from the logo. The photos do the selling, so every project is a full-bleed photo with its category in a small gold pill and the title over a dark fade.\n\nOn a computer the menu is a thin rail of icons on the right. On a phone it turns into a tab bar at the bottom, and a call button appears once you scroll past the opening video.\n\nAn accessibility panel adds text size and twelve options, from high contrast to a reading guide that follows the pointer.",
+      "link": "https://im-eng.co.il",
+      "style": "polaroid",
+      "demo": "imeng",
+      "media": null,
+      "desk": {
+        "show": true,
+        "x": 520,
+        "y": 892,
+        "r": 4
       }
     }
   ],

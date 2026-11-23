@@ -328,13 +328,79 @@ async function adIntel(page, mark) {
   await pause(1600);
 }
 
+/* ---------- I.M Engineering: the hero, a project, the lead form and the accessibility panel ---------- */
+
+async function imEng(page, mark) {
+  const pause = (ms) => page.waitForTimeout(ms);
+  const to = async (target, opts = {}) => {
+    await target.scrollIntoViewIfNeeded();
+    const box = await target.boundingBox();
+    await page.mouse.move(box.x + box.width * (opts.x ?? 0.5), box.y + box.height / 2, { steps: 22 });
+    await pause(opts.wait ?? 260);
+  };
+  const click = async (target, opts) => { await to(target, opts); await target.click(); };
+  const wheel = async (dy, steps = 12) => { for (let i = 0; i < steps; i++) { await page.mouse.wheel(0, dy / steps); await pause(70); } };
+
+  await page.mouse.move(700, 600);
+  await pause(1200);
+  await mark('poster');
+  await pause(2400);
+
+  /* 1. From the hero card to the projects, then one project with its gallery. */
+  await click(page.locator('.hero__cta--float [data-cta="projects"]'));
+  await pause(1800);
+  await to(page.locator('[data-project="bbb-restaurant"]'));
+  await pause(900);
+  await to(page.locator('[data-project="factory-cafe-gindi-tlv"]'));
+  await pause(700);
+  await page.locator('[data-project="factory-cafe-gindi-tlv"]').click();
+  await pause(1800);
+  await page.mouse.move(720, 500, { steps: 12 });
+  await wheel(900);
+  await pause(1600);
+  await wheel(700);
+  await pause(900);
+  await click(page.locator('[data-shot="0"]'));
+  await pause(1400);
+  await click(page.locator('[data-lb="next"]'));
+  await pause(1300);
+  await page.keyboard.press('Escape');
+  await pause(700);
+
+  /* 2. Contact: fill the form and send it (a demo: nothing is sent). */
+  await click(page.locator('.rail [data-nav="contact"]'));
+  await pause(1600);
+  await click(page.locator('#lead-name'));
+  await page.keyboard.type('דנה כהן', { delay: 60 });
+  await click(page.locator('#lead-phone'));
+  await page.keyboard.type('052-1234567', { delay: 45 });
+  await click(page.locator('#lead-message'));
+  await page.keyboard.type('מחפשים קבלן לעבודות גמר במשרד של 150 מ"ר.', { delay: 30 });
+  await pause(400);
+  await click(page.locator('[data-send]'));
+  await pause(2600);
+
+  /* 3. The accessibility panel: bigger text and high contrast, then back to normal. */
+  await click(page.locator('[data-a11y-open]'));
+  await pause(900);
+  await click(page.locator('[data-size="up"]'));
+  await pause(700);
+  await click(page.locator('[data-a11y="contrast"]'));
+  await pause(1300);
+  await click(page.locator('[data-a11y-reset]'));
+  await pause(700);
+  await click(page.locator('[data-a11y-close]'));
+  await pause(1200);
+}
+
 /* view is the page size; scale makes the frames sharper; width is the video's width. */
 const DEMOS = [
   { name: 'mega-uploader', run: megaUploader, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' },
   { name: 'toto-mundial', run: totoMundial, view: { width: 390, height: 844 }, scale: 2, width: 780, pointer: '.rec-pointer' },
   { name: 'memesh', run: memesh, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' },
   { name: 'lorewire', run: lorewire, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' },
-  { name: 'ad-intel', run: adIntel, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' }
+  { name: 'ad-intel', run: adIntel, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' },
+  { name: 'im-eng', run: imEng, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' }
 ];
 const ONLY = process.argv.slice(2);
 
