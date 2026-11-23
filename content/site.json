@@ -107,15 +107,14 @@
       "year": "2026",
       "madeWith": "AI coding agents",
       "description": "A website that turns everyday internet dilemmas into short, hand-drawn stories. Each one ends with a question, and readers vote on it.",
-      "design": "Dark by default and built for phones first, since the stories are made for phones and social feeds. One red does all the pointing: the active tab, the poll, the progress bar, the read-along highlight.\n\nFour typefaces, each with one job. Fraunces for titles, Archivo for the logo and buttons, Hanken Grotesk for reading, and a mono for labels and durations.\n\nThe home page works like a streaming service: a rotating hero, rows of posters and a Top 10. Each poster has its title painted into the art, so a row reads like a shelf of comic covers.",
       "link": "https://lorewire.com",
       "style": "screen",
-      "demo": "lorewire",
+      "demo": null,
       "media": null,
       "desk": {
         "show": true,
-        "x": 995,
-        "y": 462,
+        "x": 820,
+        "y": 780,
         "r": -2
       }
     }
