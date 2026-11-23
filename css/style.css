@@ -583,8 +583,10 @@ body.menu-open .mlink:nth-child(4) .mlink__in { transition-delay: .54s; }
   .tape__play::after { content: ""; position: absolute; inset: -8px; }
   .eject { min-height: 44px; padding: 8px 14px; }
 
-  /* Desktop replicas: the video plays here; the clickable demo is one link away. Phone replicas stay clickable. */
-  .replica:not(.replica--phone) .replica__modes, .replica:not(.replica--phone) [data-replica-reset] { display: none; }
+  /* Desktop replicas: the video plays here; the clickable demo is one link away. Phone replicas stay clickable,
+     and so do sites with a phone view, which open in it (no Desktop / Phone switch here). */
+  .replica:not(.replica--phone):not([data-phone-w]) .replica__modes, .replica:not(.replica--phone):not([data-phone-w]) [data-replica-reset] { display: none; }
+  .replica__views { display: none; }
   .replica__note { display: block; }
   .replica__act { min-height: 44px; }
 }

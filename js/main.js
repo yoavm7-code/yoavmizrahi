@@ -328,6 +328,9 @@
     var video = $('[data-replica-video]', box);
     var w = +box.getAttribute('data-w');
     var h = +box.getAttribute('data-h');
+    /* A responsive site can also be shown at phone size; the copy is resized, so it reflows. */
+    var sizes = { desktop: [w, h], phone: box.hasAttribute('data-phone-w') ? [+box.getAttribute('data-phone-w'), +box.getAttribute('data-phone-h')] : null };
+    var view = 'desktop';
     var page = box.closest('.page').getAttribute('data-page');
     var frame = null;
     /* The screen takes the replica's own shape. Set here, not in the markup: the admin's preview
@@ -339,7 +342,7 @@
       if (frame) return;
       frame = document.createElement('iframe');
       frame.className = 'replica__frame';
-      frame.title = box.getAttribute('data-title') + ', interactive demo with made-up data';
+      frame.title = box.getAttribute('data-title') + ', interactive demo';
       frame.width = w;
       frame.height = h;
       frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-downloads');
@@ -359,12 +362,36 @@
     function setMode(mode) {
       box.setAttribute('data-mode', mode);
       $$('[data-replica-mode]', box).forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-replica-mode') === mode ? 'true' : 'false'); });
+      layout();
       if (mode === 'try') { video.pause(); load(); fit(); }
       else { var played = video.play(); if (played && played.catch) played.catch(function (e) { log('video did not autoplay', { reason: e.name }); }); }
       log('mode', { page: page, mode: mode, narrow: narrow.matches });
     }
+    /* The phone view shapes the device like a phone while trying it; the video is always the
+       desktop recording, so watching uses the wide device. */
+    function setView(next) {
+      if (!sizes.phone) return;
+      view = next;
+      w = sizes[view][0];
+      h = sizes[view][1];
+      viewport.style.aspectRatio = w + ' / ' + h;
+      if (frame) { frame.width = w; frame.height = h; }
+      $$('[data-replica-view]', box).forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-replica-view') === view ? 'true' : 'false'); });
+      layout();
+      fit();
+      log('view', { page: page, view: view });
+    }
+    function layout() {
+      if (!sizes.phone) return;
+      var phoneLook = view === 'phone' && box.getAttribute('data-mode') === 'try';
+      box.classList.toggle('replica--phone', phoneLook);
+      box.setAttribute('data-frame', phoneLook ? 'phone' : 'desktop');
+    }
     $$('[data-replica-mode]', box).forEach(function (b) {
       b.addEventListener('click', function () { setMode(b.getAttribute('data-replica-mode')); });
+    });
+    $$('[data-replica-view]', box).forEach(function (b) {
+      b.addEventListener('click', function () { setView(b.getAttribute('data-replica-view')); });
     });
     $('[data-replica-reset]', box).addEventListener('click', function () {
       if (frame) { frame.contentWindow.location.reload(); log('start over', { page: page }); } else load();
@@ -376,8 +403,12 @@
 
     return {
       page: page,
-      /* A desktop replica is too small to use on a narrow screen; a phone replica is made for one. */
-      open: function () { setMode(narrow.matches && box.getAttribute('data-frame') !== 'phone' ? 'watch' : box.getAttribute('data-mode')); },
+      /* A desktop replica is too small to use on a narrow screen; a phone replica is made for one,
+         and a site with a phone view opens in it. */
+      open: function () {
+        if (sizes.phone && narrow.matches && view !== 'phone') setView('phone');
+        setMode(narrow.matches && !sizes.phone && box.getAttribute('data-frame') !== 'phone' ? 'watch' : box.getAttribute('data-mode'));
+      },
       close: function () { video.pause(); document.documentElement.classList.remove('cursor-off'); }
     };
   });

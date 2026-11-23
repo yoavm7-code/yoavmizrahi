@@ -339,7 +339,8 @@ function stageObject(w, paths) {
 /* The full product on its project page: an ink device holding the interactive replica (TRY IT) and a
    recorded video of it (WATCH IT). js/main.js loads the replica only when the page opens and scales it
    to fit. A desktop replica gives phones and tablets the video, with a link to open it anyway; a phone
-   replica sits in a phone-shaped device and stays clickable on every screen. */
+   replica sits in a phone-shaped device and stays clickable on every screen. A site with a phone view
+   gets a Desktop / Phone switch, and phones and tablets open it in the phone view. */
 function replicaOf(w) { return w.demo && DEMOS[w.demo].replica || null; }
 
 /* A replica's poster as a desk picture, for desk objects that show an image (the polaroid). */
@@ -351,12 +352,17 @@ function replicaPoster(w, paths) {
 function replicaStage(r, paths) {
   var full = paths.asset(r.src);
   var phone = r.frame === 'phone';
+  var both = !phone && r.phone;
   return html`
     <div class="stage stage--replica grid-surface grid-surface--deep up d3">
       <span class="stage__label mono">THE REAL THING · FULLY CLICKABLE</span>
-      <div class="${'replica' + (phone ? ' replica--phone' : '')}" data-replica data-src="${full}" data-w="${r.width}" data-h="${r.height}" data-frame="${phone ? 'phone' : 'desktop'}" data-title="${r.title}" data-mode="try">
+      <div class="${'replica' + (phone ? ' replica--phone' : '')}" data-replica data-src="${full}" data-w="${r.width}" data-h="${r.height}" data-frame="${phone ? 'phone' : 'desktop'}"${both ? html` data-phone-w="${r.phone.width}" data-phone-h="${r.phone.height}"` : ''} data-title="${r.title}" data-mode="try">
         <div class="replica__bar">
-          <span class="replica__title mono"><span class="replica__live" aria-hidden="true"></span>${upper(r.title)} · MADE-UP DATA</span>
+          <span class="replica__title mono"><span class="replica__live" aria-hidden="true"></span>${upper(r.title)} · ${r.label || 'MADE-UP DATA'}</span>
+          ${both ? html`<div class="replica__modes replica__views" role="group" aria-label="Screen size">
+            <button class="btn replica__mode" type="button" data-replica-view="desktop" aria-pressed="true">DESKTOP</button>
+            <button class="btn replica__mode" type="button" data-replica-view="phone" aria-pressed="false">PHONE</button>
+          </div>` : ''}
           <div class="replica__modes" role="group" aria-label="Demo or video">
             <button class="btn replica__mode" type="button" data-replica-mode="try" aria-pressed="true">TRY IT</button>
             <button class="btn replica__mode" type="button" data-replica-mode="watch" aria-pressed="false">WATCH IT</button>
@@ -370,7 +376,7 @@ function replicaStage(r, paths) {
           <div class="replica__viewport" data-replica-viewport data-cursor-off></div>
           <video class="replica__video" data-replica-video src="${paths.asset(r.video)}" poster="${paths.asset(r.poster)}" muted loop playsinline controls preload="none" aria-label="${'A recorded walk through ' + r.title}"></video>
         </div>
-        ${phone ? '' : html`<p class="replica__note mono">The clickable demo is built for a computer screen. <a class="uline" href="${full}">Open it anyway →</a></p>`}
+        ${phone || both ? '' : html`<p class="replica__note mono">The clickable demo is built for a computer screen. <a class="uline" href="${full}">Open it anyway →</a></p>`}
       </div>
     </div>`;
 }

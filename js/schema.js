@@ -15,6 +15,9 @@ export const STYLES = {
    A demo with a replica also gets the full product on its project page: an interactive copy
    (demos/<name>/, rendered at width x height and scaled to fit) and a recorded video of it.
    frame 'phone' puts a phone app in a phone-shaped device, which phones can use too.
+   phone { width, height } gives a responsive site a phone view too: a Desktop / Phone switch, and
+   narrow screens open it in the phone view instead of playing the video.
+   label says where the content comes from (default: made-up data).
    card 'start' crops the work card's poster from its left edge instead of its middle.
    editable lists what the admin may change in a replica: its wording (the replica's i18n module,
    per language) and, for some, its logo. The replica reads these from the published content. */
@@ -55,7 +58,8 @@ export const DEMOS = {
       poster: 'demos/lorewire/poster.jpg',
       width: 1440,
       height: 900,
-      card: 'start'
+      card: 'start',
+      label: 'LOREWIRE\'S OWN STORIES'
     }
   },
   adintel: {
@@ -68,6 +72,20 @@ export const DEMOS = {
       poster: 'demos/ad-intel/poster.jpg',
       width: 1440,
       height: 900
+    }
+  },
+  imeng: {
+    name: 'I.M website replica',
+    style: 'polaroid',
+    replica: {
+      title: 'I.M Engineering',
+      src: 'demos/im-eng/',
+      video: 'demos/im-eng/demo.mp4',
+      poster: 'demos/im-eng/poster.jpg',
+      width: 1440,
+      height: 900,
+      phone: { width: 390, height: 844 },
+      label: 'THE LIVE SITE\'S CONTENT'
     }
   },
   memesh: {

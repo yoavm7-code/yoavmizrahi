@@ -162,6 +162,26 @@ test('a phone replica sits in a phone-shaped device and its card shows a standin
   assert.equal(count(page, 'data-widget="toto"'), 1, 'the desk keeps its score picker, the project page does not');
 });
 
+test('a site with a phone view gets a Desktop / Phone switch and no "built for a computer" note', () => {
+  const raw = base();
+  raw.works = [{ id: 'im', title: 'Im', demo: 'imeng' }, { id: 'up', title: 'Up', demo: 'uploader' }];
+  const page = renderSite(raw);
+  const r = DEMOS.imeng.replica;
+  assert.deepEqual(r.phone, { width: 390, height: 844 });
+  assert.ok(page.includes('data-frame="desktop" data-phone-w="390" data-phone-h="844" data-title="' + r.title + '"'));
+  assert.equal(count(page, 'data-replica-view="phone"'), 1, 'only the site with a phone view has the switch');
+  assert.equal(count(page, 'class="replica__note'), 1, 'only the desktop-only replica says it needs a computer');
+});
+
+test('the device bar says where the content comes from', () => {
+  const raw = base();
+  raw.works = [{ id: 'im', title: 'Im', demo: 'imeng' }, { id: 'lw', title: 'Lw', demo: 'lorewire' }, { id: 'up', title: 'Up', demo: 'uploader' }];
+  const page = renderSite(raw);
+  assert.ok(page.includes('I.M ENGINEERING · THE LIVE SITE&#39;S CONTENT'));
+  assert.ok(page.includes('LOREWIRE · LOREWIRE&#39;S OWN STORIES'));
+  assert.ok(page.includes('MEGA UPLOADER · MADE-UP DATA'));
+});
+
 test('a replica card can crop its poster from the left edge', () => {
   const raw = base();
   raw.works = [{ id: 'up', title: 'Up', demo: 'uploader' }, { id: 'lw', title: 'Lw', demo: 'lorewire' }];
