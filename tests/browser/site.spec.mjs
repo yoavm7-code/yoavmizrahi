@@ -251,6 +251,31 @@ test('a work card plays its video only on hover, and loads nothing before', asyn
   expect(await video.evaluate((v) => v.paused)).toBe(true);
 });
 
+test('the Films card runs its strip of stills on hover, or by itself on touch screens', async ({ page }) => {
+  await page.goto('/#/work');
+  const card = page.locator('.page.is-active .card--films');
+  const strip = card.locator('.strip');
+  await card.scrollIntoViewIfNeeded();
+  await expect(card.locator('.strip__frame img').first()).toBeVisible();
+  const state = () => strip.evaluate((el) => getComputedStyle(el).animationPlayState);
+  if (isNarrow(page)) {
+    expect(await state()).toBe('running');
+  } else {
+    expect(await state()).toBe('paused');
+    await card.hover();
+    expect(await state()).toBe('running');
+  }
+});
+
+test('with reduced motion the film strip holds still', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/#/work');
+  const card = page.locator('.page.is-active .card--films');
+  await card.scrollIntoViewIfNeeded();
+  if (!isNarrow(page)) await card.hover();
+  expect(await card.locator('.strip').evaluate((el) => getComputedStyle(el).animationName)).toBe('none');
+});
+
 test('the match pick on the desk saves by itself, undoes, and rolls the dice', async ({ page }) => {
   await page.clock.install();
   await page.goto('/#/');

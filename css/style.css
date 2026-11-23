@@ -394,6 +394,20 @@ body[data-theme="dark"] .site-header { border-color: var(--ink-line); }
 .card.is-playing .card__shot--phone > video { opacity: 1; }
 .card--phone .card__cover::after { display: none; }
 .card--phone:hover .card__shot { transform: none; }
+/* The Films card: the films' stills on a strip of film with sprocket holes, above the title. It runs
+   through slowly while the pointer is on the card, and by itself on touch screens. */
+.strip { position: absolute; left: 0; top: max(13%, calc(var(--card-pad) + 28px)); height: 52%; display: flex; animation: strip-run 48s linear infinite paused; }
+/* Each frame carries its own holes and the gap after it, so the two halves of the strip match exactly. */
+.strip__frame { --hole: rgba(237,233,225,.42); flex: none; display: flex; height: 100%; padding: 20px 6px 20px 0; background-color: #0E0D0C;
+  background-image: repeating-linear-gradient(90deg, transparent 0 9px, var(--hole) 9px 19px, transparent 19px 28px), repeating-linear-gradient(90deg, transparent 0 9px, var(--hole) 9px 19px, transparent 19px 28px);
+  background-size: 100% 7px, 100% 7px; background-position: 0 7px, 0 calc(100% - 7px); background-repeat: no-repeat; }
+.strip__frame img { height: 100%; width: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 3px; filter: saturate(.8) brightness(.82); transition: filter .6s var(--ease); }
+.card--films:hover .strip { animation-play-state: running; }
+.card--films:hover .strip__frame img { filter: none; }
+.card--films .card__cover::after { background: linear-gradient(180deg, rgba(23,22,20,.7) 0%, rgba(23,22,20,0) 22%, rgba(23,22,20,0) 58%, rgba(23,22,20,.94) 84%); }
+.card--films:hover .card__shot { transform: none; }
+@keyframes strip-run { to { transform: translateX(-50%); } }
+@media (hover: none) { .card--films .strip { animation-play-state: running; } }
 .card__meta { display: flex; justify-content: space-between; font-size: 12px; letter-spacing: .1em; }
 
 /* ---------- Project pages ---------- */
@@ -676,4 +690,5 @@ body.menu-open .mlink:nth-child(4) .mlink__in { transition-delay: .54s; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; }
+  .strip { animation: none !important; } /* a loop at .01ms would flicker */
 }

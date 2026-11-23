@@ -109,7 +109,8 @@ export const LIMITS = {
   line: 120,
   text: 400,
   lead: 600,
-  notes: 1200
+  notes: 1200,
+  stills: 4      // frames per film on the Work page's Films card
 };
 
 const ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -187,6 +188,13 @@ export function deskKeys(content) {
 /* A replica's admin settings: a logo (an uploaded image) and wording overrides per language.
    Keys must look like the replica's own keys; values are plain text, shown with textContent. */
 const STRING_KEY_RE = /^[A-Za-z][\w.]{0,60}$/;
+/* A film's stills: uploaded pictures only (no videos), each once, at most LIMITS.stills. */
+function stillList(list) {
+  return (Array.isArray(list) ? list : []).filter(function (src, i, arr) {
+    return isMediaPath(src) && !/\.(mp4|webm)$/.test(src) && arr.indexOf(src) === i;
+  }).slice(0, LIMITS.stills);
+}
+
 export const REPLICA_LIMITS = { strings: 800, text: 600 };
 
 function replicaSettings(input, editable) {
@@ -274,7 +282,8 @@ export function normalize(input) {
       file: caps(f.file),
       youtube: youtubeId(f.youtube),
       soon: !!f.soon,
-      tape: { show: !f.soon && !!t.show, label: caps(t.label) }
+      tape: { show: !f.soon && !!t.show, label: caps(t.label) },
+      stills: stillList(f.stills)
     };
   });
 

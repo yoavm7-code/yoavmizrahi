@@ -143,6 +143,18 @@ test('a film in production never shows a tape', () => {
   assert.deepEqual(c.films.map((f) => f.tape.show), [false, true]);
 });
 
+test('a film keeps up to four pictures as stills, each once, in order', () => {
+  const c = normalize({ films: [
+    { id: 'a', stills: ['media/1.webp', 'media/2.jpg', 'media/1.webp', 'media/clip.mp4', 'https://x.com/a.webp', '../media/x.webp', 5, null, 'media/3.png', 'media/4.webp', 'media/5.webp'] },
+    { id: 'b' },
+    { id: 'c', stills: 'media/1.webp' }
+  ] });
+  assert.deepEqual(c.films[0].stills, ['media/1.webp', 'media/2.jpg', 'media/3.png', 'media/4.webp']);
+  assert.equal(c.films[0].stills.length, LIMITS.stills);
+  assert.deepEqual(c.films[1].stills, []);
+  assert.deepEqual(c.films[2].stills, []);
+});
+
 test('normalize keeps the saved desk order, drops stale keys and adds new ones', () => {
   const c = normalize({
     desk: { order: ['work:b', 'gone', 'note', 'note', 'tapes'] },

@@ -166,6 +166,37 @@ test('a work card uses the work\'s own picture, or stays plain ink without one',
   assert.ok(page.includes('<div class="card__inner grid-dark"><span class="card__no">02</span><span class="card__title">None</span>'));
 });
 
+test('the Films card runs the stills of every film along a strip, twice over so the loop has no seam', () => {
+  const raw = base();
+  raw.films = [
+    { id: 'a', title: 'A', label: 'A', stills: ['media/a1.webp', 'media/a2.webp'] },
+    { id: 'b', title: 'B', label: 'B', soon: true },
+    { id: 'c', title: 'C', label: 'C', stills: ['media/c1.webp'] }
+  ];
+  const page = renderSite(raw);
+  const at = page.indexOf('<a class="card card--shot card--films" href="#/films"');
+  assert.ok(at >= 0, 'the Films card is a picture card');
+  const card = page.slice(at, page.indexOf('</a>', at));
+  assert.ok(card.includes('<div class="card__shot card__shot--strip" aria-hidden="true"><div class="strip">'));
+  const srcs = [...card.matchAll(/<img src="([^"]+)" alt="" loading="lazy"/g)].map((m) => m[1]);
+  assert.deepEqual(srcs, ['media/a1.webp', 'media/a2.webp', 'media/c1.webp', 'media/a1.webp', 'media/a2.webp', 'media/c1.webp']);
+  assert.ok(card.includes('<div class="card__inner"><span class="card__no">02</span><span class="card__title">Films</span>'));
+});
+
+test('without stills the Films card stays plain ink', () => {
+  const page = renderSite(base());
+  assert.ok(page.includes('<a class="card" href="#/films"'));
+  assert.ok(page.includes('<div class="card__inner grid-dark"><span class="card__no">02</span><span class="card__title">Films</span>'));
+  assert.equal(count(page, 'class="strip"'), 0);
+});
+
+test('the admin preview loads stills through its own media address', () => {
+  const raw = base();
+  raw.films[0].stills = ['media/a1.webp'];
+  const page = renderSite(raw, { root: '../', mediaUrl: (p) => 'blob:' + p });
+  assert.ok(page.includes('<span class="strip__frame"><img src="blob:media/a1.webp"'));
+});
+
 test('a phone replica sits in a phone-shaped device and its card shows a standing phone', () => {
   const raw = base();
   raw.works = [{ id: 'up', title: 'Up', demo: 'uploader' }, { id: 'tm', title: 'Tm', demo: 'toto' }];

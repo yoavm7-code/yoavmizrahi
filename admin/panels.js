@@ -347,9 +347,10 @@ function addressField(ctx, kind, id, p) {
   return f;
 }
 
-/* Upload, replace or remove a picture: a work's screenshot or video, or a replica's logo.
+/* Upload, replace or remove a picture: a work's screenshot or video, a replica's logo or a film's still.
    opts: path (for messages), get(draft) -> the current value, set(draft, upload result or null),
-   video (videos allowed), alt (ask for a description), title and hint (the empty drop zone). */
+   video (videos allowed), alt (ask for a description), title and hint (the empty drop zone),
+   changed (optional: called instead of redrawing the picker, for lists that redraw themselves). */
 function mediaPicker(ctx, opts) {
   var box = h('div.media-pick', { 'data-path': opts.path });
   var fileInput = h('input', { type: 'file', accept: opts.video ? ACCEPT : IMAGES, hidden: true });
@@ -370,7 +371,7 @@ function mediaPicker(ctx, opts) {
         button('Replace', { icon: 'image', onClick: function () { fileInput.click(); } }),
         button('Remove', { kind: 'ghost', icon: 'trash', onClick: function () {
           ctx.store.update(function (x) { opts.set(x, null); });
-          draw();
+          if (opts.changed) opts.changed(); else draw();
         } })
       ));
       if (opts.alt) {
@@ -405,7 +406,7 @@ function mediaPicker(ctx, opts) {
         st.media[res.path] = res.sha;
       });
       status.textContent = '';
-      draw();
+      if (opts.changed) opts.changed(); else draw();
       toast('Picture added.');
     } catch (e) {
       status.textContent = e.message;
@@ -654,6 +655,27 @@ export function renderFilm(ctx, el, id) {
     if (f.tape.show) tape.body.appendChild(bound(ctx, { label: 'Tape label', path: p + '.tape.label', max: 24, caps: true, get: function (x) { return film(x).tape.label; }, set: function (x, v) { film(x).tape.label = v; } }));
   }
   el.appendChild(tape);
+
+  var stills = section('Stills', 'Up to ' + LIMITS.stills + ' frames from the film. They run along the Films card on the Work page, in this order.');
+  function stillsOf(x) { var fl = film(x); fl.stills = Array.isArray(fl.stills) ? fl.stills : []; return fl.stills; }
+  var frames = h('div.grid-2.stills');
+  (f.stills || []).forEach(function (src, k) {
+    frames.appendChild(mediaPicker(ctx, {
+      path: p + '.stills.' + k, video: false, alt: false, changed: ctx.rerender,
+      get: function (x) { var s = stillsOf(x)[k]; return s ? { type: 'image', src: s } : null; },
+      set: function (x, res) { if (res) stillsOf(x)[k] = res.path; else stillsOf(x).splice(k, 1); }
+    }));
+  });
+  if ((f.stills || []).length < LIMITS.stills) {
+    frames.appendChild(mediaPicker(ctx, {
+      path: p + '.stills.' + (f.stills || []).length, video: false, alt: false, changed: ctx.rerender,
+      title: 'Add a still', hint: 'A wide frame from the film (16:9). JPG, PNG or WebP. Or drop a file here.',
+      get: function () { return null; },
+      set: function (x, res) { if (res) stillsOf(x).push(res.path); }
+    }));
+  }
+  stills.body.appendChild(frames);
+  el.appendChild(stills);
 
   var adv = section('Advanced');
   adv.body.appendChild(bound(ctx, { label: 'Timeline label', hint: 'The name on the reel clip. Follows the title unless you change it.', path: p + '.label', max: LIMITS.short, caps: true, get: function (x) { return film(x).label; }, set: function (x, v) { film(x).label = v; } }));

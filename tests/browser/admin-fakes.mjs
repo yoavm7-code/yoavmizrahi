@@ -46,6 +46,7 @@ export async function fakeBackend(page, { deploy, goLive, versions, heads }) {
       if (content) saved.content = JSON.parse(content.content);
       return json({ sha: 'b'.repeat(40) });
     }
+    if (method === 'POST' && path === '/git/blobs') return json({ sha: 'c'.repeat(40) });
     if (method === 'POST' && path === '/git/commits') return json({ sha: NEW_COMMIT });
     if (method === 'PATCH' || (method === 'POST' && path === '/git/refs')) return json({ object: { sha: NEW_COMMIT } });
     return json({ message: 'unexpected ' + method + ' ' + path }, 500);

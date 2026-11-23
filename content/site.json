@@ -168,7 +168,13 @@
       "tape": {
         "show": true,
         "label": "THE LAST WARNING"
-      }
+      },
+      "stills": [
+        "media/8fa367186e3a1f45.webp",
+        "media/afb334aa5b279836.webp",
+        "media/185d1d87badbce0c.webp",
+        "media/7d96a5fc6474147a.webp"
+      ]
     },
     {
       "id": "film-2",
@@ -184,7 +190,13 @@
       "tape": {
         "show": true,
         "label": "LEVIATHAN · PART 1"
-      }
+      },
+      "stills": [
+        "media/5215764751383910.webp",
+        "media/98fa233f77e400b1.webp",
+        "media/296a7133151cbb31.webp",
+        "media/f0e8cc579be87e2f.webp"
+      ]
     },
     {
       "id": "leviathan-part-2",
