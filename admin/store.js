@@ -5,6 +5,7 @@
 
 import { normalize } from '../js/schema.js';
 import { REPO, PATHS } from './config.js';
+import { mergeDraft } from './merge.js';
 
 var LOCAL_KEY = 'ym-admin-draft-v1';
 var SYNC_DELAY = 4000;
@@ -65,11 +66,19 @@ export function createStore(gh) {
       .sort(function (a, b) { return (b.updatedAt || 0) - (a.updatedAt || 0); })[0];
 
     var source = null;
+    var caughtUp = false;
+    var stale = false;
+    if (pick && pick.baseCommit && pick.baseCommit !== state.liveCommit && !same(pick.draft, state.live)) {
+      var base = await draftBase(pick.baseCommit);
+      if (base) { pick = Object.assign({}, pick, { draft: mergeDraft(base, normalize(pick.draft), state.live) }); caughtUp = true; }
+      else stale = true;
+      console.info('[admin draft] draft is older than the live site', { base: pick.baseCommit, live: state.liveCommit, caughtUp: caughtUp });
+    }
     if (pick && !same(pick.draft, state.live)) {
       state.draft = pick.draft;
       state.media = pick.media || {};
       state.updatedAt = pick.updatedAt || Date.now();
-      source = { fromOtherDevice: pick === remote && (!local || (local.updatedAt || 0) < (remote.updatedAt || 0)), stale: pick.baseCommit && pick.baseCommit !== state.liveCommit, updatedAt: state.updatedAt };
+      source = { fromOtherDevice: pick === remote && (!local || (local.updatedAt || 0) < (remote.updatedAt || 0)), caughtUp: caughtUp, stale: stale, updatedAt: state.updatedAt };
     } else {
       state.draft = clone(state.live);
       state.media = {};
@@ -79,6 +88,38 @@ export function createStore(gh) {
     saveLocal();
     emit({ loaded: true });
     return source;
+  }
+
+  /* The live content a draft started from, or null when it can't be read. */
+  async function draftBase(commit) {
+    try {
+      var text = await gh.getText(PATHS.content, commit);
+      return text ? normalize(JSON.parse(text)) : null;
+    } catch (e) {
+      console.info('[admin draft] could not read the draft base', { base: commit, error: String(e && e.message) });
+      return null;
+    }
+  }
+
+  /* Something was published while this draft was open: lays the draft's own edits on top of the
+     newest live content, so publishing keeps that newer work. Returns the new live commit. */
+  async function catchUp() {
+    var ref = await gh.getRef(REPO.main);
+    var head = ref.object.sha;
+    if (head === state.liveCommit) return head;
+    var text = await gh.getText(PATHS.content, head);
+    if (!text) throw Object.assign(new Error('missing content'), { status: 404 });
+    var live = normalize(JSON.parse(text));
+    /* Undo steps from before would bring back the older base and undo the newer work, so they go. */
+    undoStack = [];
+    redoStack = [];
+    state.draft = mergeDraft(state.live, normalize(state.draft), live);
+    state.live = live;
+    state.liveCommit = head;
+    lastStepKey = null;
+    console.info('[admin draft] caught up with the live site', { live: head, dirty: isDirty() });
+    changed({ structural: true });
+    return head;
   }
 
   /* ---------- Editing ---------- */
@@ -203,6 +244,7 @@ export function createStore(gh) {
   return {
     state: state,
     load: load,
+    catchUp: catchUp,
     update: update,
     replace: replace,
     undo: undo,

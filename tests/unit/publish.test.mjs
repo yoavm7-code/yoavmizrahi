@@ -34,9 +34,23 @@ test('each kind of change is named in plain words', () => {
   assert.deepEqual(edit((r) => { r.desk.hint = 'drag'; }), ['Edited the desk hint']);
   assert.deepEqual(edit((r) => { r.works[0].title = 'Uno'; }), ['Edited work "Uno"']);
   assert.deepEqual(edit((r) => { r.works.push({ id: 'three', title: 'Three' }); }), ['Changed the phone order of the desk', 'Added work "Three"']);
-  assert.deepEqual(edit((r) => { r.films = []; }), ['Changed the phone order of the desk', 'Removed film "FILM"']);
+  assert.deepEqual(edit((r) => { r.films = []; }), ['Removed film "FILM"', 'Changed the phone order of the desk']);
   assert.deepEqual(edit((r) => { r.works.reverse(); }), ['Changed the phone order of the desk', 'Changed the order of the works']);
   assert.deepEqual(edit((r) => { r.about.lead = 'More'; }), ['Edited the About page']);
+});
+
+test('removals come first, so a long list never hides them behind "and N more"', () => {
+  const changes = edit((r) => {
+    r.desk.note.hi = 'Hello';
+    r.desk.hint = 'drag';
+    r.site.name = 'New';
+    r.about.lead = 'More';
+    r.works[0].title = 'Uno';
+    r.works[1].title = 'Dos';
+    r.films = [];
+  });
+  assert.equal(changes[0], 'Removed film "FILM"');
+  assert.match(commitMessage(changes), /^Removed film "FILM"; /);
 });
 
 test('moving things on the desk is counted, not listed as edits', () => {
