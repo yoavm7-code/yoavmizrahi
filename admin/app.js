@@ -7,7 +7,7 @@ import { createClient, explain } from './github.js';
 import { createStore } from './store.js';
 import { createPreview } from './preview.js';
 import { prepare, fromBase64, mimeFor } from './media.js';
-import { publish, describeChanges, check, commitMessage, waitForLive } from './publish.js';
+import { publish, describeChanges, isRemoval, check, commitMessage, waitForLive } from './publish.js';
 import * as panels from './panels.js';
 import * as auth from './auth.js';
 import { h, clear, icon, button, toast, dialog, confirm, plural } from './ui.js';
@@ -284,6 +284,7 @@ async function start(getToken, api) {
     window.addEventListener('hashchange', route);
     route();
     if (source && source.stale) staleDraftNotice();
+    else if (source && source.caughtUp) toast('The site changed since you started this draft. Your edits are kept, and so is everything published since.', null, 8000);
     else if (source && source.fromOtherDevice) toast('Picked up your draft from another device.');
     expiryNotice();
   } catch (e) {
@@ -556,17 +557,19 @@ async function openPublish(messageOverride) {
   }
   var changes = describeChanges(st.live, st.draft);
   if (!changes.length) { toast('Nothing to publish. The site is up to date.'); return; }
+  var removals = changes.filter(isRemoval).length;
   var body = h('div.stack',
-    h('ul.changes', changes.map(function (c) { return h('li', c); })),
+    removals ? h('p.callout.callout--danger', 'This takes ' + plural(removals, 'thing') + ' off the live site. If that is not what you meant, choose Not yet.') : null,
+    h('ul.changes', changes.map(function (c) { return h('li' + (isRemoval(c) ? '.is-removal' : ''), c); })),
     result.warnings.length ? h('p.callout', plural(result.warnings.length, 'thing is', 'things are') + ' still missing (listed on the Overview). That is fine to publish.') : null
   );
   dialog('Publish ' + plural(changes.length, 'change') + '?', body, [
     { label: 'Not yet', kind: 'ghost' },
-    { label: 'Publish', kind: 'primary', icon: 'rocket', onClick: function () { runPublish(messageOverride || commitMessage(changes), false); } }
+    { label: 'Publish', kind: 'primary', icon: 'rocket', onClick: function () { runPublish(messageOverride || commitMessage(changes)); } }
   ]);
 }
 
-async function runPublish(message, force) {
+async function runPublish(message) {
   var steps = {
     checking: h('li', 'Checking the live site'),
     building: h('li', 'Building the pages'),
@@ -583,7 +586,7 @@ async function runPublish(message, force) {
   }
   try {
     var st = store.state;
-    var res = await publish(gh, st.draft, st.media, st.liveCommit, message, mark, force);
+    var res = await publish(gh, st.draft, st.media, st.liveCommit, message, mark);
     await store.published(res.content, res.commit);
     mark('live');
     liveState = 'waiting';
@@ -622,15 +625,31 @@ async function runPublish(message, force) {
   } catch (e) {
     dlg.close();
     if (e.moved) {
-      var ok = await confirm('The live site changed', 'Something was published after you started this draft (from another device, a restore or the rescue page). Publishing replaces it with your version.', 'Publish anyway');
-      if (ok) runPublish(message, true);
+      catchUpAndReview();
       return;
     }
     if (e.invalid) { openPublish(); return; }
     if (e.status === 401 || e.githubKey) { keyStopped(e); return; }
     dialog("Publishing didn't finish", h('p.dialog__text', explain(e) + ' Nothing on the live site changed.'), [
       { label: 'Close', kind: 'ghost' },
-      { label: 'Try again', kind: 'primary', onClick: function () { runPublish(message, force); } }
+      { label: 'Try again', kind: 'primary', onClick: function () { runPublish(message); } }
+    ]);
+  }
+}
+
+/* The live site changed while this draft was open: keep that newer work, then show the list again,
+   since it may now be different. */
+async function catchUpAndReview() {
+  try {
+    await store.catchUp();
+    if (!store.isDirty()) { toast('The live site already has all of your changes. Nothing to publish.'); return; }
+    toast('The site changed while you were editing. Your edits now sit on top of the newest version. Check the list and publish.', null, 8000);
+    openPublish();
+  } catch (e) {
+    if (e.status === 401 || e.githubKey) { keyStopped(e); return; }
+    dialog("Publishing didn't finish", h('p.dialog__text', explain(e) + ' Nothing on the live site changed.'), [
+      { label: 'Close', kind: 'ghost' },
+      { label: 'Try again', kind: 'primary', onClick: catchUpAndReview }
     ]);
   }
 }
