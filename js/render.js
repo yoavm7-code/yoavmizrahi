@@ -123,7 +123,7 @@ function deskNote(c) {
       <div class="obj" ${objAttrs('note')}>
         <div class="note settle">
           <span class="note__tape" aria-hidden="true"></span>
-          <p class="note__hi">${n.hi}</p>
+          <h1 class="note__hi">${n.hi}</h1>
           ${n.line ? html`<p class="note__line">${n.line}</p>` : ''}
           ${n.small ? html`<p class="note__small">${n.small}</p>` : ''}
         </div>
@@ -482,7 +482,7 @@ function pageFilms(c) {
       <div class="timeline__inner">
         <div class="timeline__labels mono"><span class="tl-spacer"></span><span class="tl-row">FILMS</span></div>
         <div class="timeline__lanes">
-          <button class="ruler" type="button" data-scrub aria-label="Scrub the reel"></button>
+          <div class="ruler" data-scrub role="slider" tabindex="0" aria-label="Reel position" aria-valuemin="0" aria-valuemax="150" aria-valuenow="0" aria-valuetext="0 seconds"></div>
           <div class="lane" data-lane>${clips}
           </div>
           <div class="playhead" data-playhead aria-hidden="true"><span class="playhead__head"></span><span class="playhead__line"></span></div>
@@ -535,10 +535,18 @@ function pageAbout(c) {
 
 /* ---------- Document ---------- */
 
+/* What the site may load: its own files, Google Fonts, YouTube's privacy-enhanced player and its
+   thumbnails. GitHub Pages can't send headers, so it's a meta tag. The admin's preview leaves it out:
+   it shows unpublished uploads from blob: addresses, and the admin page has its own policy. */
+export const SITE_CSP = "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; " +
+  "font-src https://fonts.gstatic.com; img-src 'self' data: https://i.ytimg.com; media-src 'self'; connect-src 'self'; " +
+  "frame-src 'self' https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'";
+
 function headMeta(c, paths, opts) {
   var url = c.site.url ? c.site.url + '/' : '';
   return html`<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+${opts.mode === 'preview' ? '' : html`<meta http-equiv="Content-Security-Policy" content="${SITE_CSP}">
+`}<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${c.site.title}</title>
 <meta name="description" content="${c.site.description}">
 <meta name="theme-color" content="#EDE9E1">
@@ -548,8 +556,13 @@ ${opts.build ? html`<meta name="build" content="${opts.build}">
 ` : ''}<meta property="og:type" content="website">
 <meta property="og:title" content="${c.site.title}">
 <meta property="og:description" content="${c.site.description}">
-<meta name="twitter:card" content="summary">
-<link rel="icon" href="${paths.asset('favicon.svg')}" type="image/svg+xml">
+${url ? html`<meta property="og:image" content="${url + 'share.jpg'}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="${'The desk on ' + c.site.name + "'s site: a sticky note, a monitor with film tapes, and the products as objects"}">
+<meta name="twitter:card" content="summary_large_image">
+` : html`<meta name="twitter:card" content="summary">
+`}<link rel="icon" href="${paths.asset('favicon.svg')}" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=Inter:wght@400;500;600;700&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -574,6 +587,8 @@ ${headMeta(c, paths, opts)}
 </head>
 <body data-page="home" data-site-title="${c.site.title}" data-site-name="${c.site.name}">
 
+<a class="skip pill pill--solid" href="#main" data-skip>Skip to content</a>
+
 <header class="site-header">
   <div class="site-header__inner">
     <a class="brand uline" href="#/">${c.site.name}</a>
@@ -584,7 +599,7 @@ ${headMeta(c, paths, opts)}
   </div>
 </header>
 
-<main>
+<main id="main">
 ${pageHome(c, paths)}${pageWork(c, paths)}${c.works.map(function (w, i) { return pageProject(c, w, i, paths); })}${pageFilms(c)}${pageAbout(c)}
 </main>
 
@@ -626,7 +641,7 @@ export function renderSharePages(content) {
   var pages = [];
   c.works.forEach(function (w) {
     var replica = replicaOf(w);
-    var image = !base ? '' : w.media && w.media.type === 'image' ? base + w.media.src : replica ? base + replica.poster : '';
+    var image = !base ? '' : w.media && w.media.type === 'image' ? base + w.media.src : replica ? base + (replica.share || replica.poster) : '';
     pages.push({ path: 'w/' + w.id + '/index.html', html: sharePage(c, w.title, w.description, '#/work/' + w.id, image) });
   });
   c.films.forEach(function (f) {

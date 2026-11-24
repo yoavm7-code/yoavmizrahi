@@ -392,9 +392,9 @@ test('share links land on the right page', async ({ page }) => {
   await page.goto('/w/toto/');
   await expect(page).toHaveURL(/\/#\/work\/toto$/);
   await expect(page.locator('.page.is-active')).toHaveAttribute('data-page', 'work-toto');
-  await page.goto('/f/leviathan-1/');
-  await expect(page).toHaveURL(/\/#\/films\/leviathan-1$/);
-  await expect(page.locator('[data-clip][data-id="leviathan-1"]')).toHaveClass(/is-active/);
+  await page.goto('/f/the-last-warning/');
+  await expect(page).toHaveURL(/\/#\/films\/the-last-warning$/);
+  await expect(page.locator('[data-clip][data-id="the-last-warning"]')).toHaveClass(/is-active/);
 });
 
 /* ---------- Admin ---------- */

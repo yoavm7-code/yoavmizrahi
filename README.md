@@ -41,6 +41,7 @@ The site is static, so the only thing worth attacking is the admin's write acces
 - **Allow-list proxy.** [`worker/src/rules.js`](worker/src/rules.js) refuses any GitHub call it doesn't explicitly allow. A session can only write content files (`content/`, `index.html`, `w/`, `f/`, `media/`) on `main` and `drafts`. It can never change code, so a stolen session can change text but not the admin, and History can undo that.
 - **Passwords** are peppered with HMAC and hashed with PBKDF2-SHA256. Sessions are HMAC-signed tokens with a server-side version, so "sign out everywhere" takes effect immediately. Failed attempts back off per address and account, and sign-ins are logged.
 - **Admin page:** a strict Content Security Policy, no third-party scripts, and all content inserted as text. Uploaded images are re-encoded through a canvas, which strips EXIF and GPS data.
+- **The site** has its own policy too: its files, Google Fonts and YouTube's privacy-enhanced player, no inline script. The replicas run in iframes sandboxed without `allow-same-origin`, so a replica can't reach the site, its storage or the admin.
 - **Deploys are gated.** A push to `main` deploys only after the test suite passes. If it fails, the last good version stays live.
 
 Found a security issue? Please email yoavm7@gmail.com instead of opening a public issue.
@@ -68,7 +69,7 @@ npx playwright install chromium
 npm run test:browser  # the built site in Chromium at 390, 820 and 1180 px
 ```
 
-The browser tests click through every route, the desk, the demos and the film reel, and fail on console errors. The replica tests also fail on any outside network request. Admin tests run against a fake GitHub API, never the real repository.
+The browser tests click through every route, the desk, the demos and the film reel, and fail on console errors, which includes anything the content policy blocks. Every page is also checked with [axe](https://github.com/dequelabs/axe-core) against WCAG 2.2 AA, and the keyboard paths (skip link, menu, page focus, the reel slider) have their own tests. The replica tests also fail on any outside network request. Admin tests run against a fake GitHub API, never the real repository.
 
 ## Deploys
 

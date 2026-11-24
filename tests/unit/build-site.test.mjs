@@ -20,7 +20,8 @@ test('everything the site and the admin load is included', () => {
     'demos/lorewire/index.html', 'demos/lorewire/js/app.js', 'demos/lorewire/demo.mp4', 'demos/lorewire/poster.jpg',
     'demos/lorewire/media/lw-03d99aff6fb5/poster.webp', 'demos/lorewire/media/lw-03d99aff6fb5/video.mp4',
     'demos/ad-radar/index.html', 'demos/ad-radar/js/app.js', 'demos/ad-radar/demo.mp4', 'demos/ad-radar/poster.jpg',
-    'demos/im-eng/index.html', 'demos/im-eng/js/app.js', 'demos/im-eng/demo.mp4', 'demos/im-eng/poster.jpg', 'demos/im-eng/media/hero.mp4', 'demos/im-eng/media/logo.webp']) {
+    'demos/im-eng/index.html', 'demos/im-eng/js/app.js', 'demos/im-eng/demo.mp4', 'demos/im-eng/poster.jpg', 'demos/im-eng/media/hero.mp4', 'demos/im-eng/media/logo.webp',
+    '404.html', 'robots.txt', 'sitemap.xml', 'share.jpg', 'demos/toto-mundial/share.jpg']) {
     assert.ok(existsSync(join(out, path)), path + ' is missing from the deploy');
   }
 });

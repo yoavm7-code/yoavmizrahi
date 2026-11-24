@@ -19,6 +19,8 @@ export const STYLES = {
    narrow screens open it in the phone view instead of playing the video.
    label says where the content comes from (default: made-up data).
    card 'start' crops the work card's poster from its left edge instead of its middle.
+   share is a 1200 x 630 link preview picture, for a replica whose poster is too tall to preview well
+   (made by tests/share-images.mjs).
    editable lists what the admin may change in a replica: its wording (the replica's i18n module,
    per language) and, for some, its logo. The replica reads these from the published content. */
 export const DEMOS = {
@@ -42,6 +44,7 @@ export const DEMOS = {
       src: 'demos/toto-mundial/',
       video: 'demos/toto-mundial/demo.mp4',
       poster: 'demos/toto-mundial/poster.jpg',
+      share: 'demos/toto-mundial/share.jpg',
       width: 390,
       height: 844,
       frame: 'phone',

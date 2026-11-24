@@ -7,9 +7,11 @@
     "test": "node --test \"unit/*.test.mjs\" \"../worker/test/*.test.js\"",
     "test:browser": "node ../tools/build-site.mjs && playwright test",
     "test:all": "npm test && npm run test:browser",
-    "record:demos": "node ../tools/build-site.mjs && node record-demos.mjs"
+    "record:demos": "node ../tools/build-site.mjs && node record-demos.mjs",
+    "share:images": "node ../tools/build-site.mjs && node share-images.mjs"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@playwright/test": "1.65.1"
   }
 }
