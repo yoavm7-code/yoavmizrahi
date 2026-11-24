@@ -11,14 +11,29 @@
   function info() { if (DEBUG) console.info.apply(console, arguments); }
   var narrow = window.matchMedia('(max-width: 900px)');
 
+  /* The film player. enablejsapi lets the site's sound switch mute and unmute it with a message to the
+     frame (filmSound), so no YouTube script is loaded into the page. */
+  var YOUTUBE = 'https://www.youtube-nocookie.com';
   function youtubeEmbed(id) {
     var f = document.createElement('iframe');
+    var origin = /^https?:/.test(location.origin) ? '&origin=' + encodeURIComponent(location.origin) : '';
     f.className = 'embed';
-    f.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) + '?autoplay=1&rel=0';
+    f.src = YOUTUBE + '/embed/' + encodeURIComponent(id) + '?autoplay=1&rel=0&enablejsapi=1' + origin;
     f.title = 'Film player';
     f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
     f.allowFullscreen = true;
+    /* The player takes commands only once it is ready, so the switch's state is sent a few times. */
+    f.addEventListener('load', function () {
+      [0, 700, 1600].forEach(function (ms) { setTimeout(function () { filmSound(f); }, ms); });
+    });
     return f;
+  }
+  /* Tells a film player to follow the sound switch. */
+  function filmSound(f) {
+    if (!f.contentWindow) return;
+    var func = sound.isOn() ? 'unMute' : 'mute';
+    f.contentWindow.postMessage(JSON.stringify({ event: 'command', func: func, args: [] }), YOUTUBE);
+    info('[site sound] film', { func: func });
   }
   function placeholderPlayer() {
     var d = document.createElement('div');
@@ -503,9 +518,10 @@
   narrow.addEventListener('change', function () { openReplicas(current); });
 
   /* ---------- Sound ---------- */
-  /* Off until the visitor turns it on with the switch on the monitor; the choice is kept on this device.
-     The sounds are made in the browser (Web Audio), so there are no audio files. The audio context starts
-     inside a click, as browsers ask. */
+  /* One switch for all the site's sound: the desk's clicks and the film playing. Off until the visitor
+     turns it on, or presses play on a film (that means they want to hear it); the choice is kept on this
+     device. The clicks are made in the browser (Web Audio), so there are no audio files. The audio
+     context starts inside a click, as browsers ask. */
   var sound = (function () {
     var KEY = 'ym-sound';
     var on = false;
@@ -561,14 +577,36 @@
       SOUNDS[name](c, c.currentTime + 0.01);
       info('[desk sound] play', { name: name, state: c.state });
     }
-    function set(next) {
+    var listeners = [];
+    /* quiet: no tick, for a film that is about to start with its own sound. */
+    function set(next, quiet) {
+      if (on === !!next) return;
       on = !!next;
       try { localStorage.setItem(KEY, on ? 'on' : 'off'); } catch (e) { /* storage blocked: kept for this visit only */ }
-      info('[desk sound]', { on: on });
-      play('tick');
+      info('[desk sound]', { on: on, quiet: !!quiet });
+      listeners.forEach(function (fn) { fn(on); });
+      if (!quiet) play('tick');
     }
-    return { play: play, set: set, isOn: function () { return on; } };
+    return { play: play, set: set, isOn: function () { return on; }, onChange: function (fn) { listeners.push(fn); } };
   })();
+
+  /* Every copy of the switch says the same thing, in words (SOUND OFF / SOUND ON, so no aria-pressed as
+     well), and every film playing follows it. */
+  var soundBtns = $$('[data-sound]');
+  function showSound() {
+    soundBtns.forEach(function (b) {
+      b.classList.toggle('is-on', sound.isOn());
+      $('[data-sound-label]', b).textContent = sound.isOn() ? 'SOUND ON' : 'SOUND OFF';
+    });
+  }
+  sound.onChange(function () {
+    showSound();
+    $$('iframe.embed').forEach(filmSound);
+  });
+  showSound();
+  soundBtns.forEach(function (b) {
+    b.addEventListener('click', function () { sound.set(!sound.isOn()); });
+  });
 
   /* ---------- The desk: layout, dragging, tapes, monitor ---------- */
   /* Wider than 900px, js/desk-layout.js places everything in the desk order: the note, the film
@@ -878,12 +916,6 @@
   $$('[data-insert]', desk).forEach(function (b) {
     b.addEventListener('click', function () { nudge.cancel('pressed'); flyIn(b.closest('.obj')); });
   });
-  var soundBtn = $('[data-sound]');
-  soundBtn.setAttribute('aria-pressed', sound.isOn() ? 'true' : 'false');
-  soundBtn.addEventListener('click', function () {
-    sound.set(!sound.isOn());
-    soundBtn.setAttribute('aria-pressed', sound.isOn() ? 'true' : 'false');
-  });
 
   /* Standby: with no tape in, the screen crossfades through the films' first stills. The pictures load
      one at a time, after the page has loaded, and only on the desk. The crossfade runs only while the
@@ -972,6 +1004,7 @@
   $('[data-monitor-play]').addEventListener('click', function () {
     if (!tapeIn) return;
     var id = tapeIn.getAttribute('data-youtube');
+    sound.set(true, true);
     monitorPlayer.innerHTML = '';
     monitorPlayer.appendChild(id ? youtubeEmbed(id) : placeholderPlayer());
     setScreen('playing');
@@ -1089,6 +1122,7 @@
     if (!clips[reel.idx]) return;
     reelStop();
     var id = clips[reel.idx].getAttribute('data-youtube');
+    sound.set(true, true);
     reelPlayer.innerHTML = '';
     reelPlayer.appendChild(id ? youtubeEmbed(id) : placeholderPlayer());
     scene.classList.add('is-playing');
