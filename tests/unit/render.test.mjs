@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { renderSite, renderSharePages, routes, reelSpans, SITE_CSP } from '../../js/render.js';
-import { normalize, DEMOS } from '../../js/schema.js';
+import { normalize, DEMOS, POSTER_WIDTHS, posterSizes } from '../../js/schema.js';
 
 const site = JSON.parse(await readFile(new URL('../../content/site.json', import.meta.url), 'utf8'));
 
@@ -98,9 +98,10 @@ test('the site carries its content security policy, the admin preview does not',
   assert.ok(!renderSite(site, { mode: 'preview' }).includes('Content-Security-Policy'));
 });
 
-test('the policy allows only the site, Google Fonts and YouTube, and no inline script', () => {
+test('the policy allows only the site and YouTube, and no inline script', () => {
   const hosts = SITE_CSP.match(/https:\/\/[^\s;]+/g);
-  assert.deepEqual([...new Set(hosts)].sort(), ['https://fonts.googleapis.com', 'https://fonts.gstatic.com', 'https://i.ytimg.com', 'https://www.youtube-nocookie.com']);
+  assert.deepEqual([...new Set(hosts)].sort(), ['https://i.ytimg.com', 'https://www.youtube-nocookie.com']);
+  assert.ok(SITE_CSP.includes("font-src 'self'") && SITE_CSP.includes("style-src 'self';"), 'fonts come from the site itself');
   assert.ok(!/unsafe-inline|unsafe-eval|\*/.test(SITE_CSP));
   assert.ok(SITE_CSP.includes("script-src 'self'") && SITE_CSP.includes("object-src 'none'"));
 });
@@ -166,7 +167,8 @@ test('a work whose demo has a replica gets the replica stage instead of the desk
   const r = DEMOS.uploader.replica;
   assert.equal(count(page, 'data-replica '), 1);
   assert.ok(page.includes('data-src="' + r.src + '" data-w="' + r.width + '" data-h="' + r.height + '"'));
-  assert.ok(page.includes('src="' + r.video + '" poster="' + r.poster + '"'));
+  assert.ok(page.includes('src="' + r.video + '" data-poster="' + r.poster + '"'), 'the video gets its poster only when its page opens');
+  assert.ok(!/<video[^>]* poster=/.test(page), 'no video poster is fetched on first load');
   assert.ok(page.includes('href="' + r.src + '" data-replica-full'));
   assert.equal(count(page, 'data-widget="uploader"'), 1, 'the desk keeps its Launch widget, the project page does not');
   assert.ok(page.includes('ON THE DESK</span>'), 'a work without a replica keeps the desk stage');
@@ -180,7 +182,8 @@ test('a work card shows the replica poster with a video that loads only on hover
   const at = page.indexOf('<a class="card card--shot" href="#/work/up"');
   assert.ok(at >= 0, 'the card is marked as a picture card');
   const card = page.slice(at);
-  assert.ok(card.includes('<img src="' + r.poster + '" alt="" loading="lazy"'));
+  const set = POSTER_WIDTHS.map((w) => r.poster.replace('.jpg', '-' + w + '.webp') + ' ' + w + 'w').join(', ');
+  assert.ok(card.includes('<img src="' + r.poster + '" srcset="' + set + '" sizes="100vw" alt="" loading="lazy"'));
   assert.ok(card.includes('<video data-card-video data-src="' + r.video + '" muted loop playsinline preload="none">'));
   assert.ok(!card.slice(0, card.indexOf('</a>')).includes(' src="' + r.video + '"'), 'no video src until hover');
 });
@@ -388,6 +391,16 @@ test('a phone replica uses its landscape share picture instead of its tall poste
   raw.works = [{ id: 'toto', title: 'Toto', demo: 'toto' }];
   assert.ok(DEMOS.toto.replica.share);
   assert.ok(renderSharePages(raw)[0].html.includes('<meta property="og:image" content="https://yoavmizrahi.com/' + DEMOS.toto.replica.share + '">'));
+});
+
+test('desk pictures of a replica offer the smaller poster copies; a phone replica has none', () => {
+  const raw = base();
+  raw.works = [{ id: 'mem', title: 'Mem', demo: 'memesh', style: 'polaroid' }];
+  const page = renderSite(raw);
+  const r = DEMOS.memesh.replica;
+  assert.ok(page.includes('<img class="media" src="' + r.poster + '" srcset="' + posterSizes(r).map((s) => s.src + ' ' + s.width + 'w').join(', ') + '" sizes="(max-width: 900px) 340px, 410px"'));
+  assert.deepEqual(posterSizes(DEMOS.toto.replica), []);
+  assert.ok(!renderSite(Object.assign(base(), { works: [{ id: 't', title: 'T', demo: 'toto' }] })).includes('srcset'));
 });
 
 test('share pages leave out the address when the site has none', () => {

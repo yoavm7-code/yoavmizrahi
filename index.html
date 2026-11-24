@@ -3,12 +3,12 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src &#39;self&#39;; script-src &#39;self&#39;; style-src &#39;self&#39; https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src &#39;self&#39; data: https://i.ytimg.com; media-src &#39;self&#39;; connect-src &#39;self&#39;; frame-src &#39;self&#39; https://www.youtube-nocookie.com; object-src &#39;none&#39;; base-uri &#39;self&#39;; form-action &#39;none&#39;">
+<meta http-equiv="Content-Security-Policy" content="default-src &#39;self&#39;; script-src &#39;self&#39;; style-src &#39;self&#39;; font-src &#39;self&#39;; img-src &#39;self&#39; data: https://i.ytimg.com; media-src &#39;self&#39;; connect-src &#39;self&#39;; frame-src &#39;self&#39; https://www.youtube-nocookie.com; object-src &#39;none&#39;; base-uri &#39;self&#39;; form-action &#39;none&#39;">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Yoav Mizrahi - Products &amp; films, built with AI</title>
 <meta name="description" content="Yoav Mizrahi builds software with AI agents and makes AI films for The Wide Silence. Every product here is clickable.">
 <meta name="theme-color" content="#EDE9E1">
-<meta name="build" content="local-mwufotnb">
+<meta name="build" content="local-mwug7b3z">
 <link rel="canonical" href="https://yoavmizrahi.com/">
 <meta property="og:url" content="https://yoavmizrahi.com/">
 <meta property="og:type" content="website">
@@ -20,9 +20,8 @@
 <meta property="og:image:alt" content="The desk on Yoav Mizrahi&#39;s site: a sticky note, a monitor with film tapes, and the products as objects">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=Inter:wght@400;500;600;700&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preload" href="fonts/syne-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body data-page="home" data-site-title="Yoav Mizrahi - Products &amp; films, built with AI" data-site-name="Yoav Mizrahi">
@@ -139,7 +138,7 @@
       <!-- Memesh -->
       <div class="obj" data-obj="work:memesh" data-cursor="drag">
         <div class="polaroid settle d3">
-          <div class="polaroid__img mono"><img class="media" src="demos/memesh/poster.jpg" alt="Memesh, a screenshot of the replica" loading="lazy" decoding="async"></div>
+          <div class="polaroid__img mono"><img class="media" src="demos/memesh/poster.jpg" srcset="demos/memesh/poster-480.webp 480w, demos/memesh/poster-960.webp 960w, demos/memesh/poster-1440.webp 1440w" sizes="(max-width: 900px) 340px, 410px" alt="Memesh, a screenshot of the replica" loading="lazy" decoding="async"></div>
           <span class="label">03 · CLIENT SYSTEM</span>
           <span class="polaroid__title">Memesh</span>
           <a class="uline mono-link" href="#/work/memesh">OPEN PROJECT →</a>
@@ -149,7 +148,7 @@
       <!-- LoreWire -->
       <div class="obj" data-obj="work:lorewire" data-cursor="drag">
         <div class="screen settle d4">
-          <div class="screen__display"><img class="media" src="demos/lorewire/poster.jpg" alt="LoreWire, a screenshot of the replica" loading="lazy" decoding="async"></div>
+          <div class="screen__display"><img class="media" src="demos/lorewire/poster.jpg" srcset="demos/lorewire/poster-480.webp 480w, demos/lorewire/poster-960.webp 960w, demos/lorewire/poster-1440.webp 1440w" sizes="(max-width: 900px) 340px, 410px" alt="LoreWire, a screenshot of the replica" loading="lazy" decoding="async"></div>
           <div class="screen__foot"><span class="label label--dark">04 · WEBSITE</span><span class="screen__title">LoreWire</span><a class="uline mono-link mono-link--light" href="#/work/lorewire">OPEN PROJECT →</a></div>
         </div>
       </div>
@@ -157,7 +156,7 @@
       <!-- Ad Radar -->
       <div class="obj" data-obj="work:ad-radar" data-cursor="drag">
         <div class="screen settle d1">
-          <div class="screen__display"><img class="media" src="demos/ad-radar/poster.jpg" alt="Ad Radar, a screenshot of the replica" loading="lazy" decoding="async"></div>
+          <div class="screen__display"><img class="media" src="demos/ad-radar/poster.jpg" srcset="demos/ad-radar/poster-480.webp 480w, demos/ad-radar/poster-960.webp 960w, demos/ad-radar/poster-1440.webp 1440w" sizes="(max-width: 900px) 340px, 410px" alt="Ad Radar, a screenshot of the replica" loading="lazy" decoding="async"></div>
           <div class="screen__foot"><span class="label label--dark">05 · INTERNAL TOOL</span><span class="screen__title">Ad Radar</span><a class="uline mono-link mono-link--light" href="#/work/ad-radar">OPEN PROJECT →</a></div>
         </div>
       </div>
@@ -165,7 +164,7 @@
       <!-- I.M Engineering -->
       <div class="obj" data-obj="work:im-eng" data-cursor="drag">
         <div class="polaroid settle d2">
-          <div class="polaroid__img mono"><img class="media" src="demos/im-eng/poster.jpg" alt="I.M Engineering, a screenshot of the replica" loading="lazy" decoding="async"></div>
+          <div class="polaroid__img mono"><img class="media" src="demos/im-eng/poster.jpg" srcset="demos/im-eng/poster-480.webp 480w, demos/im-eng/poster-960.webp 960w, demos/im-eng/poster-1440.webp 1440w" sizes="(max-width: 900px) 340px, 410px" alt="I.M Engineering, a screenshot of the replica" loading="lazy" decoding="async"></div>
           <span class="label">06 · WEBSITE</span>
           <span class="polaroid__title">I.M Engineering</span>
           <a class="uline mono-link" href="#/work/im-eng">OPEN PROJECT →</a>
@@ -186,7 +185,7 @@
     </div>
     <div class="cards up d2">
       <a class="card card--shot" href="#/work/uploader" data-cursor="view">
-        <div class="card__cover"><div class="card__shot card__shot--app" aria-hidden="true"><img src="demos/launch-desk/poster.jpg" alt="" loading="lazy" decoding="async"><video data-card-video data-src="demos/launch-desk/demo.mp4" muted loop playsinline preload="none"></video></div><div class="card__inner"><span class="card__no">01</span><span class="card__title">Launch Desk</span></div><span class="card__bar" aria-hidden="true"></span></div>
+        <div class="card__cover"><div class="card__shot card__shot--app" aria-hidden="true"><img src="demos/launch-desk/poster.jpg" srcset="demos/launch-desk/poster-480.webp 480w, demos/launch-desk/poster-960.webp 960w, demos/launch-desk/poster-1440.webp 1440w" sizes="100vw" alt="" loading="lazy" decoding="async"><video data-card-video data-src="demos/launch-desk/demo.mp4" muted loop playsinline preload="none"></video></div><div class="card__inner"><span class="card__no">01</span><span class="card__title">Launch Desk</span></div><span class="card__bar" aria-hidden="true"></span></div>
         <div class="card__meta mono"><span>LAUNCH DESK</span><span class="muted">PRODUCTION TOOL</span></div>
       </a>
       <a class="card card--shot card--phone" href="#/work/toto" data-cursor="view">
@@ -194,19 +193,19 @@
         <div class="card__meta mono"><span>TOTO MUNDIAL</span><span class="muted">WEB APP</span></div>
       </a>
       <a class="card card--shot" href="#/work/memesh" data-cursor="view">
-        <div class="card__cover"><div class="card__shot card__shot--app" aria-hidden="true"><img src="demos/memesh/poster.jpg" alt="" loading="lazy" decoding="async"><video data-card-video data-src="demos/memesh/demo.mp4" muted loop playsinline preload="none"></video></div><div class="card__inner"><span class="card__no">03</span><span class="card__title">Memesh</span></div><span class="card__bar" aria-hidden="true"></span></div>
+        <div class="card__cover"><div class="card__shot card__shot--app" aria-hidden="true"><img src="demos/memesh/poster.jpg" srcset="demos/memesh/poster-480.webp 480w, demos/memesh/poster-960.webp 960w, demos/memesh/poster-1440.webp 1440w" sizes="100vw" alt="" loading="lazy" decoding="async"><video data-card-video data-src="demos/memesh/demo.mp4" muted loop playsinline preload="none"></video></div><div class="card__inner"><span class="card__no">03</span><span class="card__title">Memesh</span></div><span class="card__bar" aria-hidden="true"></span></div>
         <div class="card__meta mono"><span>MEMESH</span><span class="muted">CLIENT SYSTEM</span></div>
       </a>
       <a class="card card--shot" href="#/work/lorewire" data-cursor="view">
-        <div class="card__cover"><div class="card__shot card__shot--app card__shot--start" aria-hidden="true"><img src="demos/lorewire/poster.jpg" alt="" loading="lazy" decoding="async"><video data-card-video data-src="demos/lorewire/demo.mp4" muted loop playsinline preload="none"></video></div><div class="card__inner"><span class="card__no">04</span><span class="card__title">LoreWire</span></div><span class="card__bar" aria-hidden="true"></span></div>
+        <div class="card__cover"><div class="card__shot card__shot--app card__shot--start" aria-hidden="true"><img src="demos/lorewire/poster.jpg" srcset="demos/lorewire/poster-480.webp 480w, demos/lorewire/poster-960.webp 960w, demos/lorewire/poster-1440.webp 1440w" sizes="100vw" alt="" loading="lazy" decoding="async"><video data-card-video data-src="demos/lorewire/demo.mp4" muted loop playsinline preload="none"></video></div><div class="card__inner"><span class="card__no">04</span><span class="card__title">LoreWire</span></div><span class="card__bar" aria-hidden="true"></span></div>
         <div class="card__meta mono"><span>LOREWIRE</span><span class="muted">WEBSITE</span></div>
       </a>
       <a class="card card--shot" href="#/work/ad-radar" data-cursor="view">
-        <div class="card__cover"><div class="card__shot card__shot--app" aria-hidden="true"><img src="demos/ad-radar/poster.jpg" alt="" loading="lazy" decoding="async"><video data-card-video data-src="demos/ad-radar/demo.mp4" muted loop playsinline preload="none"></video></div><div class="card__inner"><span class="card__no">05</span><span class="card__title">Ad Radar</span></div><span class="card__bar" aria-hidden="true"></span></div>
+        <div class="card__cover"><div class="card__shot card__shot--app" aria-hidden="true"><img src="demos/ad-radar/poster.jpg" srcset="demos/ad-radar/poster-480.webp 480w, demos/ad-radar/poster-960.webp 960w, demos/ad-radar/poster-1440.webp 1440w" sizes="100vw" alt="" loading="lazy" decoding="async"><video data-card-video data-src="demos/ad-radar/demo.mp4" muted loop playsinline preload="none"></video></div><div class="card__inner"><span class="card__no">05</span><span class="card__title">Ad Radar</span></div><span class="card__bar" aria-hidden="true"></span></div>
         <div class="card__meta mono"><span>AD RADAR</span><span class="muted">INTERNAL TOOL</span></div>
       </a>
       <a class="card card--shot" href="#/work/im-eng" data-cursor="view">
-        <div class="card__cover"><div class="card__shot card__shot--app" aria-hidden="true"><img src="demos/im-eng/poster.jpg" alt="" loading="lazy" decoding="async"><video data-card-video data-src="demos/im-eng/demo.mp4" muted loop playsinline preload="none"></video></div><div class="card__inner"><span class="card__no">06</span><span class="card__title">I.M Engineering</span></div><span class="card__bar" aria-hidden="true"></span></div>
+        <div class="card__cover"><div class="card__shot card__shot--app" aria-hidden="true"><img src="demos/im-eng/poster.jpg" srcset="demos/im-eng/poster-480.webp 480w, demos/im-eng/poster-960.webp 960w, demos/im-eng/poster-1440.webp 1440w" sizes="100vw" alt="" loading="lazy" decoding="async"><video data-card-video data-src="demos/im-eng/demo.mp4" muted loop playsinline preload="none"></video></div><div class="card__inner"><span class="card__no">06</span><span class="card__title">I.M Engineering</span></div><span class="card__bar" aria-hidden="true"></span></div>
         <div class="card__meta mono"><span>I.M ENGINEERING</span><span class="muted">WEBSITE</span></div>
       </a>
       <a class="card card--shot card--films" href="#/films" data-cursor="view">
@@ -246,7 +245,7 @@
         </div>
         <div class="replica__screen">
           <div class="replica__viewport" data-replica-viewport data-cursor-off></div>
-          <video class="replica__video" data-replica-video src="demos/launch-desk/demo.mp4" poster="demos/launch-desk/poster.jpg" muted loop playsinline controls preload="none" aria-label="A recorded walk through Launch Desk"></video>
+          <video class="replica__video" data-replica-video src="demos/launch-desk/demo.mp4" data-poster="demos/launch-desk/poster.jpg" muted loop playsinline controls preload="none" aria-label="A recorded walk through Launch Desk"></video>
         </div>
         <p class="replica__note mono">The clickable demo is built for a computer screen. <a class="uline" href="demos/launch-desk/">Open it anyway →</a></p>
       </div>
@@ -288,7 +287,7 @@
         </div>
         <div class="replica__screen">
           <div class="replica__viewport" data-replica-viewport data-cursor-off></div>
-          <video class="replica__video" data-replica-video src="demos/toto-mundial/demo.mp4" poster="demos/toto-mundial/poster.jpg" muted loop playsinline controls preload="none" aria-label="A recorded walk through Toto Mundial"></video>
+          <video class="replica__video" data-replica-video src="demos/toto-mundial/demo.mp4" data-poster="demos/toto-mundial/poster.jpg" muted loop playsinline controls preload="none" aria-label="A recorded walk through Toto Mundial"></video>
         </div>
       </div>
     </div>
@@ -329,7 +328,7 @@
         </div>
         <div class="replica__screen">
           <div class="replica__viewport" data-replica-viewport data-cursor-off></div>
-          <video class="replica__video" data-replica-video src="demos/memesh/demo.mp4" poster="demos/memesh/poster.jpg" muted loop playsinline controls preload="none" aria-label="A recorded walk through Memesh"></video>
+          <video class="replica__video" data-replica-video src="demos/memesh/demo.mp4" data-poster="demos/memesh/poster.jpg" muted loop playsinline controls preload="none" aria-label="A recorded walk through Memesh"></video>
         </div>
         <p class="replica__note mono">The clickable demo is built for a computer screen. <a class="uline" href="demos/memesh/">Open it anyway →</a></p>
       </div>
@@ -372,7 +371,7 @@
         </div>
         <div class="replica__screen">
           <div class="replica__viewport" data-replica-viewport data-cursor-off></div>
-          <video class="replica__video" data-replica-video src="demos/lorewire/demo.mp4" poster="demos/lorewire/poster.jpg" muted loop playsinline controls preload="none" aria-label="A recorded walk through LoreWire"></video>
+          <video class="replica__video" data-replica-video src="demos/lorewire/demo.mp4" data-poster="demos/lorewire/poster.jpg" muted loop playsinline controls preload="none" aria-label="A recorded walk through LoreWire"></video>
         </div>
         <p class="replica__note mono">The clickable demo is built for a computer screen. <a class="uline" href="demos/lorewire/">Open it anyway →</a></p>
       </div>
@@ -414,7 +413,7 @@
         </div>
         <div class="replica__screen">
           <div class="replica__viewport" data-replica-viewport data-cursor-off></div>
-          <video class="replica__video" data-replica-video src="demos/ad-radar/demo.mp4" poster="demos/ad-radar/poster.jpg" muted loop playsinline controls preload="none" aria-label="A recorded walk through Ad Radar"></video>
+          <video class="replica__video" data-replica-video src="demos/ad-radar/demo.mp4" data-poster="demos/ad-radar/poster.jpg" muted loop playsinline controls preload="none" aria-label="A recorded walk through Ad Radar"></video>
         </div>
         <p class="replica__note mono">The clickable demo is built for a computer screen. <a class="uline" href="demos/ad-radar/">Open it anyway →</a></p>
       </div>
@@ -461,7 +460,7 @@
         </div>
         <div class="replica__screen">
           <div class="replica__viewport" data-replica-viewport data-cursor-off></div>
-          <video class="replica__video" data-replica-video src="demos/im-eng/demo.mp4" poster="demos/im-eng/poster.jpg" muted loop playsinline controls preload="none" aria-label="A recorded walk through I.M Engineering"></video>
+          <video class="replica__video" data-replica-video src="demos/im-eng/demo.mp4" data-poster="demos/im-eng/poster.jpg" muted loop playsinline controls preload="none" aria-label="A recorded walk through I.M Engineering"></video>
         </div>
       </div>
     </div>

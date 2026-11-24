@@ -2,13 +2,14 @@
 // The video shows only the replica's made-up data, so nothing real can end up in it.
 //   cd tests && npm run record:demos      (needs ffmpeg on the PATH)
 //   cd tests && npm run record:demos -- toto-mundial    (just one demo)
-// Writes demos/<name>/demo.mp4 and demos/<name>/poster.jpg. Commit both.
+// Writes demos/<name>/demo.mp4 and demos/<name>/poster.jpg (plus its smaller copies, see posters.mjs). Commit them all.
 import { chromium } from '@playwright/test';
 import { spawn, spawnSync } from 'node:child_process';
 import { mkdtemp, writeFile, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { makePosterSizes } from './posters.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const PORT = 4174;
@@ -432,6 +433,7 @@ async function record(browser, demo) {
       await page.screenshot({ path: join(dir, 'poster.jpg'), type: 'jpeg', quality: 80, scale: 'css' });
       await pointer.evaluate((el) => { el.style.visibility = ''; });
       log('poster written', { demo: demo.name });
+      makePosterSizes(demo.name);
     }
   });
   await cdp.send('Page.stopScreencast');

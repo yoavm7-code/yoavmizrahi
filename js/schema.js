@@ -106,6 +106,15 @@ export const DEMOS = {
   }
 };
 
+/* A desktop replica's poster also comes in smaller WebP copies, so the desk and the work cards fetch
+   only what their slot needs (made by tests/posters.mjs). A phone replica's poster is small already.
+   Returns [{ src, width }], smallest first, or [] when the replica has none. */
+export const POSTER_WIDTHS = [480, 960, 1440];
+export function posterSizes(replica) {
+  if (!replica || replica.frame === 'phone') return [];
+  return POSTER_WIDTHS.map(function (w) { return { src: replica.poster.replace(/\.jpg$/, '-' + w + '.webp'), width: w }; });
+}
+
 export const LIMITS = {
   short: 40,
   title: 60,
