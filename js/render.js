@@ -555,6 +555,24 @@ export const REPLICA_CSP = "default-src 'self'; script-src 'self'; style-src 'se
   "font-src https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; " +
   "frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'";
 
+/* Who the site is about, for search engines: a schema.org Person (with the profiles from the About
+   page as sameAs, so they are tied to this name) and the WebSite. Only facts from site.json. JSON can
+   carry "</script>", so "<" is written as \u003c. A data block, not a script: the site's policy has
+   no reason to block it. */
+export function structuredData(c) {
+  var url = c.site.url ? c.site.url + '/' : '';
+  if (!url || !c.site.name) return '';
+  var profiles = c.site.links.map(function (l) { return safeHref(l.url); }).filter(Boolean);
+  var person = { '@type': 'Person', '@id': url + '#person', name: c.site.name, url: url };
+  if (c.site.description) person.description = c.site.description;
+  if (c.site.email) person.email = 'mailto:' + c.site.email;
+  if (profiles.length) person.sameAs = profiles;
+  var site = { '@type': 'WebSite', '@id': url + '#website', url: url, name: c.site.name, inLanguage: 'en', author: { '@id': url + '#person' } };
+  if (c.site.description) site.description = c.site.description;
+  var json = JSON.stringify({ '@context': 'https://schema.org', '@graph': [person, site] }).replace(/</g, '\\u003c');
+  return new Raw('<script type="application/ld+json">' + json + '</script>\n');
+}
+
 function headMeta(c, paths, opts) {
   var url = c.site.url ? c.site.url + '/' : '';
   return html`<meta charset="utf-8">
@@ -575,7 +593,7 @@ ${url ? html`<meta property="og:image" content="${url + 'share.jpg'}">
 <meta property="og:image:alt" content="${'The desk on ' + c.site.name + "'s site: a sticky note, a monitor with film tapes, and the products as objects"}">
 <meta name="twitter:card" content="summary_large_image">
 ` : html`<meta name="twitter:card" content="summary">
-`}<link rel="icon" href="${paths.asset('favicon.svg')}" type="image/svg+xml">
+`}${structuredData(c)}<link rel="icon" href="${paths.asset('favicon.svg')}" type="image/svg+xml">
 <link rel="preload" href="${paths.asset('fonts/syne-latin.woff2')}" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="${paths.asset('fonts/inter-latin.woff2')}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="${paths.asset('css/style.css')}">`;
