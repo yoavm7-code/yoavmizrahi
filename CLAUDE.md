@@ -47,7 +47,7 @@ Eleven concepts were explored. The site is the 11th, "Harmonized", which combine
 
 ## Tech
 
-Plain **HTML + CSS + vanilla JS**. No framework, no build step, no dependencies (Google Fonts only). Keep it that way unless Yoav agrees otherwise.
+Plain **HTML + CSS + vanilla JS**. No framework, no build step, no dependencies. The site's fonts are served from `fonts/` (the replicas still load theirs from Google Fonts). Keep it that way unless Yoav agrees otherwise.
 
 ```
 content/site.json   ALL content: texts, works, films, the desk order, links. The source of truth.
@@ -56,7 +56,8 @@ js/render.js        generates index.html and the share pages (w/<id>/, f/<id>/) 
 js/desk-layout.js   where everything sits on the desk (pure, unit tested), loaded before main.js
 index.html          GENERATED. Never edit by hand; it is overwritten on every publish.
 w/, f/              GENERATED share pages (link previews for each work and film)
-css/style.css       design tokens, components, motion, responsive, reduced-motion
+css/style.css       fonts (@font-face), design tokens, components, motion, responsive, reduced-motion
+fonts/              the four typefaces as woff2, Latin and Latin Extended, with their licenses (OFL.txt)
 js/main.js          behavior only: router, wipe, menu, cursor, desk, monitor/tapes, demos, reel
 admin/              the admin (see below)
 demos/<name>/       replicas: a clickable copy of a work with made-up data, plus its demo.mp4 and poster.jpg (see "Replicas")
@@ -118,6 +119,7 @@ README.md           short public readme
   - I.M Engineering: `demos/im-eng/`, the website Yoav built for I.M הנדסה ובניה (im-eng.co.il), in Hebrew, right to left, at desktop and phone size: the home page (hero video, about, projects, a client logo marquee, the contact form, footer), all projects, and a project page (details, works, the challenge, a gallery with a lightbox that swipes on phones). The accessibility panel's text size and twelve options all work (classes on `<html>`; colour filters go on the page and bars, never on `<body>`). It uses the real company, owner, contact details, clients, texts and photos with Yoav's OK (`js/data.js`, photos in `demos/im-eng/media/`), with the live site's mistakes fixed: real cities for "[עיר]", the "ללל" typo, the duplicate law-office project, projects without photos left out, and Raguan (whose live page is a 404) shown from its card text only. The form sends nothing: 800 ms, then the thank-you card (`?form=fail` shows the error state for tests). WhatsApp, phone, email and Instagram links show a note instead of opening. No "Powered by Kritix.io" line. On the desk it's a polaroid under the tapes.
   - **Privacy:** never copy real names, partners, IDs, numbers or times from the product. `tests/unit/replica-privacy.test.mjs` fails on known real terms in any script (Hebrew too), stored only as hashes (it explains how to add one). Tour specs and screenshots of the real product stay out of the repo (`.gitignore` covers `*-replica-spec.md` and `*-screenshots/`).
   - **Video:** after changing a replica, run `cd tests && npm run record:demos` (needs ffmpeg) and commit the new `demo.mp4` and `poster.jpg`. The script in `tests/record-demos.mjs` drives each replica at its own screen size with a visible pointer; `npm run record:demos -- toto-mundial` records just one.
+  - **Poster sizes:** a desktop replica's poster also comes as `poster-480.webp`, `-960` and `-1440` (`POSTER_WIDTHS` in `js/schema.js`). The desk and the work cards pick one with `srcset`; the project page's video gets its poster only when the page opens, so a first visit doesn't fetch every poster. `record:demos` remakes them with each new poster; `npm run posters` remakes them all.
   - **Sandbox:** the replica iframe has `sandbox="allow-scripts allow-downloads"`, no `allow-same-origin`, so it runs as an outside page. A replica can't use `localStorage`, cookies or `window.parent`; it reads `content/site.json` and its own files through CORS (GitHub Pages sends `Access-Control-Allow-Origin: *`, and `tests/serve.mjs` does the same).
   - **Link previews:** a work's share page uses the replica's poster, or its `share` picture when the poster is too tall (Toto Mundial). `cd tests && npm run share:images` remakes `share.jpg` and the Toto one.
 - **Design notes:** a work can have `design` notes (paragraphs split on blank lines), shown as a DESIGN block under its demo on the project page. The About page has a WEB DESIGN section from `about.design` (`lead` plus `points`); it only shows when it has text. Both are edited in the admin.

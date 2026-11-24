@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { SITE_CSP } from '../../js/render.js';
-import { DEMOS } from '../../js/schema.js';
+import { DEMOS, posterSizes } from '../../js/schema.js';
 
 const root = new URL('../../', import.meta.url);
 const read = (path) => readFile(new URL(path, root), 'utf8');
@@ -42,6 +42,27 @@ test('the sitemap lists the site address', async () => {
   const map = await read('sitemap.xml');
   assert.ok(map.startsWith('<?xml version="1.0" encoding="UTF-8"?>'));
   assert.ok(map.includes('<loc>' + site.site.url + '/</loc>'));
+});
+
+test('every desktop replica has its smaller poster copies, as WebP at the listed widths', async () => {
+  const sizes = Object.values(DEMOS).flatMap((d) => posterSizes(d.replica));
+  assert.ok(sizes.length >= 3 * 5);
+  for (const s of sizes) {
+    const buf = await readFile(new URL(s.src, root));
+    assert.equal(buf.toString('ascii', 0, 4) + buf.toString('ascii', 8, 12), 'RIFFWEBP', s.src + ' is not a WebP');
+    assert.ok(buf.length < 160 * 1024, s.src + ' is too heavy');
+  }
+});
+
+test('the site serves its own fonts, with their licenses', async () => {
+  const css = await read('css/style.css');
+  const files = [...css.matchAll(/url\("\.\.\/(fonts\/[a-z-]+\.woff2)"\)/g)].map((m) => m[1]);
+  assert.equal(files.length, 8);
+  for (const f of files) assert.equal((await readFile(new URL(f, root))).toString('ascii', 0, 4), 'wOF2', f);
+  const ofl = await read('fonts/OFL.txt');
+  for (const name of ['Syne', 'Inter', 'Caveat', 'JetBrains Mono']) assert.ok(ofl.includes(name + ' Project Authors'), name);
+  assert.ok(!(await read('index.html')).includes('fonts.googleapis.com'));
+  assert.ok(!(await read('404.html')).includes('fonts.googleapis.com'));
 });
 
 test('the link preview pictures exist at 1200 x 630', async () => {

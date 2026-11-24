@@ -33,7 +33,6 @@ async function toto(browser) {
   const page = await browser.newPage({ viewport: SIZE, deviceScaleFactor: 1 });
   await page.setContent(`<!doctype html><html><head>
 <link rel="stylesheet" href="${BASE}css/style.css">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=Inter:wght@400&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
   body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
   .share-card { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0 110px 0 96px; }

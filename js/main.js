@@ -176,13 +176,20 @@
   }
   if (window.matchMedia('(pointer: fine)').matches) {
     document.documentElement.classList.add('has-cursor');
-    var cx = -100, cy = -100, tx = -100, ty = -100;
-    window.addEventListener('pointermove', function (e) { tx = e.clientX; ty = e.clientY; }, { passive: true });
-    (function loop() {
+    /* The dot eases after the pointer. The loop runs only while it is catching up, so a still mouse
+       costs nothing. */
+    var cx = -100, cy = -100, tx = -100, ty = -100, cursorFrame = 0;
+    function follow() {
       cx += (tx - cx) * 0.35; cy += (ty - cy) * 0.35;
+      if (Math.abs(tx - cx) < 0.1 && Math.abs(ty - cy) < 0.1) { cx = tx; cy = ty; cursorFrame = 0; }
+      else cursorFrame = requestAnimationFrame(follow);
       cursor.style.transform = 'translate(' + cx + 'px,' + cy + 'px)';
-      requestAnimationFrame(loop);
-    })();
+    }
+    follow(); // parks the dot off screen until the pointer first moves
+    window.addEventListener('pointermove', function (e) {
+      tx = e.clientX; ty = e.clientY;
+      if (!cursorFrame) cursorFrame = requestAnimationFrame(follow);
+    }, { passive: true });
     document.addEventListener('pointerover', function (e) {
       if (dragging) return;
       var el = e.target.closest('[data-cursor]');
@@ -433,6 +440,8 @@
       /* A desktop replica is too small to use on a narrow screen; a phone replica is made for one,
          and a site with a phone view opens in it. */
       open: function () {
+        /* The video's poster is set only now, so a first visit doesn't fetch the poster of every page. */
+        if (!video.poster) video.poster = video.getAttribute('data-poster');
         if (sizes.phone && narrow.matches && view !== 'phone') setView('phone');
         setMode(narrow.matches && !sizes.phone && box.getAttribute('data-frame') !== 'phone' ? 'watch' : box.getAttribute('data-mode'));
       },

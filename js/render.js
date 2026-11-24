@@ -3,7 +3,7 @@
    Every value is escaped by the html`` tag, so content can never inject markup.
    Plain ES module, no dependencies, works in the browser and in Node. */
 
-import { normalize, runtimeSeconds, isSafeUrl, isMediaPath, DEMOS } from './schema.js';
+import { normalize, runtimeSeconds, isSafeUrl, isMediaPath, DEMOS, posterSizes } from './schema.js';
 
 /* ---------- Safe templating ---------- */
 
@@ -260,7 +260,7 @@ function cardShot(w, paths) {
   if (replica) {
     var phone = replica.frame === 'phone';
     var look = phone ? 'card__shot--phone grid-dark' : 'card__shot--app' + (replica.card === 'start' ? ' card__shot--start' : '');
-    return html`<div class="${'card__shot ' + look}" aria-hidden="true"><img src="${paths.asset(replica.poster)}" alt="" loading="lazy" decoding="async"><video data-card-video data-src="${paths.asset(replica.video)}" muted loop playsinline preload="none"></video></div>`;
+    return html`<div class="${'card__shot ' + look}" aria-hidden="true"><img src="${paths.asset(replica.poster)}"${posterSrcset(replica, paths, '100vw')} alt="" loading="lazy" decoding="async"><video data-card-video data-src="${paths.asset(replica.video)}" muted loop playsinline preload="none"></video></div>`;
   }
   var media = mediaEl(w.media, paths);
   return media ? html`<div class="card__shot">${media}</div>` : '';
@@ -353,7 +353,13 @@ function replicaOf(w) { return w.demo && DEMOS[w.demo].replica || null; }
 /* A replica's poster as a desk picture, for desk objects that show an image (the polaroid). */
 function replicaPoster(w, paths) {
   var r = replicaOf(w);
-  return r ? html`<img class="media" src="${paths.asset(r.poster)}" alt="${r.title + ', a screenshot of the replica'}" loading="lazy" decoding="async">` : '';
+  return r ? html`<img class="media" src="${paths.asset(r.poster)}"${posterSrcset(r, paths, '(max-width: 900px) 340px, 410px')} alt="${r.title + ', a screenshot of the replica'}" loading="lazy" decoding="async">` : '';
+}
+
+/* The poster's smaller copies as srcset and sizes, so a slot fetches only the width it needs. */
+function posterSrcset(r, paths, sizes) {
+  var set = posterSizes(r).map(function (s) { return paths.asset(s.src) + ' ' + s.width + 'w'; }).join(', ');
+  return set ? html` srcset="${set}" sizes="${sizes}"` : '';
 }
 
 function replicaStage(r, paths) {
@@ -381,7 +387,7 @@ function replicaStage(r, paths) {
         </div>
         <div class="replica__screen">
           <div class="replica__viewport" data-replica-viewport data-cursor-off></div>
-          <video class="replica__video" data-replica-video src="${paths.asset(r.video)}" poster="${paths.asset(r.poster)}" muted loop playsinline controls preload="none" aria-label="${'A recorded walk through ' + r.title}"></video>
+          <video class="replica__video" data-replica-video src="${paths.asset(r.video)}" data-poster="${paths.asset(r.poster)}" muted loop playsinline controls preload="none" aria-label="${'A recorded walk through ' + r.title}"></video>
         </div>
         ${phone || both ? '' : html`<p class="replica__note mono">The clickable demo is built for a computer screen. <a class="uline" href="${full}">Open it anyway →</a></p>`}
       </div>
@@ -535,11 +541,11 @@ function pageAbout(c) {
 
 /* ---------- Document ---------- */
 
-/* What the site may load: its own files, Google Fonts, YouTube's privacy-enhanced player and its
+/* What the site may load: its own files (fonts included), YouTube's privacy-enhanced player and its
    thumbnails. GitHub Pages can't send headers, so it's a meta tag. The admin's preview leaves it out:
    it shows unpublished uploads from blob: addresses, and the admin page has its own policy. */
-export const SITE_CSP = "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; " +
-  "font-src https://fonts.gstatic.com; img-src 'self' data: https://i.ytimg.com; media-src 'self'; connect-src 'self'; " +
+export const SITE_CSP = "default-src 'self'; script-src 'self'; style-src 'self'; " +
+  "font-src 'self'; img-src 'self' data: https://i.ytimg.com; media-src 'self'; connect-src 'self'; " +
   "frame-src 'self' https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'";
 
 function headMeta(c, paths, opts) {
@@ -563,9 +569,8 @@ ${url ? html`<meta property="og:image" content="${url + 'share.jpg'}">
 <meta name="twitter:card" content="summary_large_image">
 ` : html`<meta name="twitter:card" content="summary">
 `}<link rel="icon" href="${paths.asset('favicon.svg')}" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=Inter:wght@400;500;600;700&family=Caveat:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preload" href="${paths.asset('fonts/syne-latin.woff2')}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="${paths.asset('fonts/inter-latin.woff2')}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="${paths.asset('css/style.css')}">`;
 }
 

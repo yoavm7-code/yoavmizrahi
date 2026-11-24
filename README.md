@@ -10,7 +10,7 @@ The home page is a desk. Every work on it is an object you can pick up and use: 
 
 I work as the product owner and reviewer, and AI agents (Claude Code) write the code. Every change goes through a pull request with a written plan, tests and a green CI run before it reaches `main`. The plans are in [`_plans/`](_plans/), the agent's project notes are in [`CLAUDE.md`](CLAUDE.md), and the merged pull requests show the full trail.
 
-- **No framework, no build step.** Plain HTML, CSS and JavaScript. The only outside requests are Google Fonts, and YouTube (privacy-enhanced mode) once a film is played.
+- **No framework, no build step.** Plain HTML, CSS and JavaScript. The fonts are served from the site itself, so the only outside request is YouTube (privacy-enhanced mode), once a film is played. The replicas load their own fonts from Google Fonts when opened.
 - **Content is data.** All text, works, films and the desk order live in [`content/site.json`](content/site.json). [`js/render.js`](js/render.js) turns it into a complete `index.html` plus a share page per work and film (`w/`, `f/`), so visitors and link previews get finished HTML with no runtime fetching.
 - **The desk lays itself out.** [`js/desk-layout.js`](js/desk-layout.js) packs the objects at the highest free spot with an even gap, tries several content widths and keeps the most compact result for the screen. It's pure and unit tested: a test fails if anything overlaps or leaves the desk. Positions are never stored.
 - **Replicas** live in [`demos/`](demos/). Each one is a self-contained static app with its own look, a `data.js` holding every name and number, and a pure `logic.js` with its own unit tests. They never change the URL, so the browser's Back button keeps working.
@@ -41,7 +41,7 @@ The site is static, so the only thing worth attacking is the admin's write acces
 - **Allow-list proxy.** [`worker/src/rules.js`](worker/src/rules.js) refuses any GitHub call it doesn't explicitly allow. A session can only write content files (`content/`, `index.html`, `w/`, `f/`, `media/`) on `main` and `drafts`. It can never change code, so a stolen session can change text but not the admin, and History can undo that.
 - **Passwords** are peppered with HMAC and hashed with PBKDF2-SHA256. Sessions are HMAC-signed tokens with a server-side version, so "sign out everywhere" takes effect immediately. Failed attempts back off per address and account, and sign-ins are logged.
 - **Admin page:** a strict Content Security Policy, no third-party scripts, and all content inserted as text. Uploaded images are re-encoded through a canvas, which strips EXIF and GPS data.
-- **The site** has its own policy too: its files, Google Fonts and YouTube's privacy-enhanced player, no inline script. The replicas run in iframes sandboxed without `allow-same-origin`, so a replica can't reach the site, its storage or the admin.
+- **The site** has its own policy too: its own files and YouTube's privacy-enhanced player, nothing else, and no inline script. The replicas run in iframes sandboxed without `allow-same-origin`, so a replica can't reach the site, its storage or the admin.
 - **Deploys are gated.** A push to `main` deploys only after the test suite passes. If it fails, the last good version stays live.
 
 Found a security issue? Please email yoavm7@gmail.com instead of opening a public issue.
