@@ -27,6 +27,7 @@ export function createStore(gh) {
   var lastStepAt = 0;
   var listeners = [];
   var syncTimer = null;
+  var stopped = false;
 
   function emit(info) { listeners.forEach(function (fn) { fn(info || {}); }); }
   function snapshot() { return JSON.stringify({ draft: state.draft, media: state.media }); }
@@ -178,7 +179,13 @@ export function createStore(gh) {
 
   function scheduleSync() {
     clearTimeout(syncTimer);
-    syncTimer = setTimeout(sync, SYNC_DELAY);
+    if (!stopped) syncTimer = setTimeout(sync, SYNC_DELAY);
+  }
+
+  /* Signing out: no more syncing from this store (a later sign-in makes a new one). */
+  function stop() {
+    stopped = true;
+    clearTimeout(syncTimer);
   }
 
   async function sync() {
@@ -255,6 +262,7 @@ export function createStore(gh) {
     sync: sync,
     published: published,
     forgetLocal: forgetLocal,
+    stop: stop,
     onChange: function (fn) { listeners.push(fn); }
   };
 }

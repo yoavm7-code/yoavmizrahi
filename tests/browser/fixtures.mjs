@@ -15,6 +15,12 @@ export function watchRequests(page) {
   return outside;
 }
 
+/* Waits until every animation and transition on the element and inside it has finished, instead of
+   guessing a duration. */
+export async function settled(locator) {
+  await locator.evaluate((el) => Promise.all(el.getAnimations({ subtree: true }).map((a) => a.finished.catch(() => null))));
+}
+
 export const test = base.extend({
   allowedConsole: [[], { option: true }],
   page: async ({ page, allowedConsole }, use) => {

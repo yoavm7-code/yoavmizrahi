@@ -20,7 +20,7 @@ The site will be reviewed by strong engineers who open DevTools, run Lighthouse,
 3. **Accessibility, SEO, sharing.** Menu traps focus and makes the page behind it inert; focus moves to the new page on route change and the change is announced; a real `h1` on the home page; a skip link; accent text that meets 4.5:1; a visible focus ring; 44px touch targets; a keyboard-operable reel scrubber; a share image for the home page; `robots.txt`, `sitemap.xml` and a 404 page; a Content Security Policy for the site; an effective iframe sandbox for replicas; share page slugs that match their films; a landscape share image for Toto Mundial.
 4. **Speed.** Self-hosted fonts with only the weights in use; poster thumbnails sized for their slots (`srcset`); the cursor's animation loop stops when the pointer is idle.
 5. **Login server.** A global limit on failed sign-ins on top of the per-address one; a sign-in log that junk attempts can't flush; an absolute cap on how long a session can be renewed; the same compare-and-swap check on `drafts` as on `main`; only fine-grained GitHub tokens accepted; a symlink guard on tree writes; tests for the request handlers.
-6. **Code tooling.** ESLint and Prettier with an `.editorconfig` and a pinned Node version, run in CI; one shared helper module for the replicas instead of six copies; console logs only with `?debug`; remaining raw colours moved to tokens; timers tied to `transitionend` instead of copied durations; the admin's interval and listeners cleaned up on sign-out; test steadiness (a worker cap, polling instead of fixed sleeps).
+6. **Code tooling.** ESLint (Prettier dropped while building: it would have reformatted nearly every line and buried the real changes) with an `.editorconfig` and a pinned Node version, run in CI; one shared helper module for the replicas instead of six copies; console logs only with `?debug`; remaining raw colours moved to tokens; timers tied to `transitionend` instead of copied durations; the admin's interval and listeners cleaned up on sign-out; test steadiness (a worker cap, polling instead of fixed sleeps).
 
 ## Rejected
 
@@ -36,7 +36,7 @@ The site will be reviewed by strong engineers who open DevTools, run Lighthouse,
 
 ## Observability
 
-- Logs keep their bracketed namespaces (`[site …]`, `[admin …]`, `[mu-demo …]`). After PR 6 they print only with `?debug` in the address, so visitors see a clean console and debugging is one parameter away.
+- Logs keep their bracketed namespaces (`[site …]`, `[admin …]`, `[ld-demo …]`). After PR 6 the site's and the replicas' print only with `?debug` in the address, so visitors see a clean console and debugging is one parameter away.
 - The Worker keeps its structured `console.log` lines (visible in `wrangler tail`), never with passwords, tokens or full IPs.
 
 ## Settings

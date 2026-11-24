@@ -1,45 +1,11 @@
 /* Toto Mundial demo: small DOM helpers shared by every screen.
    Text always goes in through textContent, so nothing a visitor types can become markup. */
 
-/* ---------- Logging ---------- */
+import { h, clear, makeLog, makeToast } from '../../shared/dom.js';
 
-export function log(ns, msg, values) {
-  console.info('[tm-demo ' + ns + '] ' + msg, values || {});
-}
-
-/* ---------- Elements ---------- */
-
-/* h('button.btn.btn--ghost', { onclick, 'aria-label': 'x' }, 'Label', child...) */
-export function h(spec, attrs) {
-  var parts = spec.split('.');
-  var el = document.createElement(parts[0] || 'div');
-  if (parts.length > 1) el.className = parts.slice(1).join(' ');
-  var children = Array.prototype.slice.call(arguments, 2);
-  if (attrs && (typeof attrs !== 'object' || attrs instanceof Node || Array.isArray(attrs))) { children.unshift(attrs); attrs = null; }
-  if (attrs) {
-    Object.keys(attrs).forEach(function (k) {
-      var v = attrs[k];
-      if (v === undefined || v === null || v === false) return;
-      if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), v);
-      else if (k === 'style') Object.assign(el.style, v);
-      else if (k === 'text') el.textContent = v;
-      else if (k === 'value') el.value = v;
-      else el.setAttribute(k, v === true ? '' : v);
-    });
-  }
-  append(el, children);
-  return el;
-}
-
-function append(el, list) {
-  list.forEach(function (c) {
-    if (c === null || c === undefined || c === false || c === '') return;
-    if (Array.isArray(c)) append(el, c);
-    else el.appendChild(c instanceof Node ? c : document.createTextNode(String(c)));
-  });
-}
-
-export function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); return el; }
+export { h, clear };
+export var log = makeLog('tm-demo');
+export var toast = makeToast({ ms: 3200, log: log });
 
 /* ---------- Icons (outline, 24px grid, drawn for this demo) ---------- */
 /* Icons marked flip point along the reading direction and mirror in Hebrew. */
@@ -106,24 +72,6 @@ export function cup(size) {
     '<rect x="8" y="21" width="8" height="3" rx="1" fill="#b97f1f"/><rect x="6.5" y="24" width="11" height="4" rx="1.2" fill="#d79a2b"/>' +
     '<circle cx="17" cy="26" r="3.6" fill="#fff8f5" stroke="#382e29" stroke-width="1"/><path d="M17 23.6l1.2.9-.5 1.4h-1.4l-.5-1.4z" fill="#382e29"/></svg>';
   return wrap;
-}
-
-/* ---------- Toasts ---------- */
-
-var toastTimer = null;
-export function toast(text) {
-  var el = document.querySelector('.toast');
-  if (!el) {
-    el = h('div.toast', { role: 'status', 'aria-live': 'polite' });
-    document.body.appendChild(el);
-  }
-  el.textContent = text;
-  el.classList.remove('is-on');
-  void el.offsetWidth;
-  el.classList.add('is-on');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(function () { el.classList.remove('is-on'); }, 3200);
-  log('ui', 'toast', { text: text });
 }
 
 /* ---------- Bottom sheets ---------- */

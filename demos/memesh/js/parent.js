@@ -4,7 +4,7 @@
 
 import { PRICES, HORIZON } from './data.js';
 import { dateOf, offsetOf, roundById, free, level, dayLevel, isOver, entriesLeft, maxCount, summary, canCancel, bookingsFor } from './logic.js';
-import { state, parent, cardsOf, card, round, book, cancel, saveProfile, subscribe } from './store.js';
+import { state, parent, cardsOf, round, book, cancel, saveProfile, subscribe } from './store.js';
 import { t, roundName, dmy, weekdayShort, weekdayLong, monthYear, personName, childLine } from './i18n.js';
 import { h, icon, qr, toast, modal, closeModal, log } from './dom.js';
 import { punchGrid } from './parts.js';

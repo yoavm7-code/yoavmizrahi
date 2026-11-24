@@ -71,3 +71,28 @@ test('the preview changing page never pulls focus out of the field being edited'
   await expect(preview.locator('.page.is-active')).toHaveAttribute('data-page', 'work-memesh');
   await expect(notes).toBeFocused();
 });
+
+test('signing out and in again without a reload leaves one account refresh running, not two', async ({ page }) => {
+  // Counts the admin's long timers (the 20-minute account refresh) that are still alive.
+  await page.addInitScript(() => {
+    const live = new Set();
+    const set = window.setInterval.bind(window);
+    const clear = window.clearInterval.bind(window);
+    window.setInterval = (fn, ms, ...rest) => { const id = set(fn, ms, ...rest); if (ms >= 60000) live.add(id); return id; };
+    window.clearInterval = (id) => { live.delete(id); return clear(id); };
+    window.__longTimers = () => live.size;
+  });
+  await signIn(page);
+  await expect(page.locator('main.main')).toBeVisible();
+  expect(await page.evaluate(() => window.__longTimers())).toBe(1);
+  await page.evaluate(() => { location.hash = '#/more'; });
+  await page.getByRole('button', { name: 'Sign out on this device' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Sign out' }).click();
+  await expect(page.locator('#username')).toBeVisible();
+  expect(await page.evaluate(() => window.__longTimers()), 'signing out stops it').toBe(0);
+  await page.locator('#username').fill('yoav');
+  await page.locator('#password').fill('a long test password');
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await expect(page.locator('main.main')).toBeVisible();
+  expect(await page.evaluate(() => window.__longTimers())).toBe(1);
+});

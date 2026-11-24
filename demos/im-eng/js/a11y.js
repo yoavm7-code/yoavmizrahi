@@ -5,7 +5,7 @@ import { A11Y } from './data.js';
 import { textSize } from './logic.js';
 import { h, icon, log } from './dom.js';
 
-export function createA11y(app) {
+export function createA11y() {
   var on = {};
   var size = 1;
   var panel = h('aside.a11y', { id: 'a11y-panel', role: 'dialog', 'aria-modal': 'false', 'aria-labelledby': 'a11y-title', hidden: true });

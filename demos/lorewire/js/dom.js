@@ -1,39 +1,11 @@
 /* LoreWire demo: small DOM helpers shared by every screen.
    Text always goes in through textContent, so nothing a visitor types can become markup. */
 
-export function log(ns, msg, values) {
-  console.info('[lw-demo ' + ns + '] ' + msg, values || {});
-}
+import { h, makeLog, makeToast } from '../../shared/dom.js';
 
-/* h('button.btn', { onclick, 'aria-label': 'x' }, 'Label', child...) */
-export function h(spec, attrs) {
-  var parts = spec.split('.');
-  var el = document.createElement(parts[0] || 'div');
-  if (parts.length > 1) el.className = parts.slice(1).join(' ');
-  var children = Array.prototype.slice.call(arguments, 2);
-  if (attrs && (typeof attrs !== 'object' || attrs instanceof Node || Array.isArray(attrs))) { children.unshift(attrs); attrs = null; }
-  if (attrs) {
-    Object.keys(attrs).forEach(function (k) {
-      var v = attrs[k];
-      if (v === undefined || v === null || v === false) return;
-      if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), v);
-      else if (k === 'style') Object.assign(el.style, v);
-      else if (k === 'text') el.textContent = v;
-      else if (k === 'value') el.value = v;
-      else el.setAttribute(k, v === true ? '' : v);
-    });
-  }
-  append(el, children);
-  return el;
-}
-
-function append(el, list) {
-  list.forEach(function (c) {
-    if (c === null || c === undefined || c === false || c === '') return;
-    if (Array.isArray(c)) append(el, c);
-    else el.appendChild(c instanceof Node ? c : document.createTextNode(String(c)));
-  });
-}
+export { h };
+export var log = makeLog('lw-demo');
+export var toast = makeToast({ ms: 3200, log: log });
 
 /* ---------- Icons (outline, 24px grid, drawn for this demo) ---------- */
 
@@ -72,22 +44,4 @@ export function icon(name, size) {
   wrap.setAttribute('aria-hidden', 'true');
   wrap.innerHTML = '<svg viewBox="0 0 24 24" width="' + s + '" height="' + s + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + (ICONS[name] || '') + '</svg>';
   return wrap;
-}
-
-/* ---------- Toasts ---------- */
-
-var toastTimer = null;
-export function toast(text) {
-  var el = document.querySelector('.toast');
-  if (!el) {
-    el = h('div.toast', { role: 'status', 'aria-live': 'polite' });
-    document.body.appendChild(el);
-  }
-  el.textContent = text;
-  el.classList.remove('is-on');
-  void el.offsetWidth;
-  el.classList.add('is-on');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(function () { el.classList.remove('is-on'); }, 3200);
-  log('ui', 'toast', { text: text });
 }

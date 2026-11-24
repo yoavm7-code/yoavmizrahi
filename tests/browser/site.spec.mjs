@@ -1,7 +1,7 @@
 // The site in a real browser, the way CLAUDE.md asks it to be checked before calling anything done:
 // every route, the menu, a tape into the monitor, both demos, the reel, share links and the admin,
 // at phone, tablet and laptop width, with no console errors anywhere.
-import { test, expect } from './fixtures.mjs';
+import { test, expect, settled } from './fixtures.mjs';
 
 const ROUTES = [
   ['/', 'home'],
@@ -124,7 +124,7 @@ test('anything on the desk drags anywhere, and Tidy up puts it back', async ({ p
   const note = page.locator('[data-obj="note"]');
   const tidy = page.getByRole('button', { name: 'Tidy up' });
   if (!isNarrow(page)) await expect(page.locator('.desk.is-laid')).toBeVisible();
-  await page.waitForTimeout(500);
+  await settled(note);
   await expect(tidy).toBeHidden();
   const before = await note.boundingBox();
   const x = before.x + 60, y = before.y + 40;
@@ -144,9 +144,7 @@ test('anything on the desk drags anywhere, and Tidy up puts it back', async ({ p
     await page.mouse.move(x + 100, y + 60, { steps: 8 });
     await page.mouse.up();
   }
-  await page.waitForTimeout(400);
-  const after = await note.boundingBox();
-  expect(Math.hypot(after.x - before.x, after.y - before.y)).toBeGreaterThan(50);
+  await expect.poll(async () => { const after = await note.boundingBox(); return Math.hypot(after.x - before.x, after.y - before.y); }).toBeGreaterThan(50);
   await expect(tidy).toBeVisible();
 
   await tidy.click();
@@ -409,4 +407,22 @@ test('the rescue page opens', async ({ page }) => {
   await page.goto('/admin/rescue.html');
   await expect(page.locator('body')).not.toBeEmpty();
   await expect(page).toHaveTitle(/Rescue/);
+});
+
+/* ---------- Logs ---------- */
+
+test('the console stays quiet for visitors, and ?debug turns the logs on, in the demos too', async ({ page }) => {
+  const infos = [];
+  page.on('console', (m) => { if (m.type() === 'info') infos.push(m.text()); });
+  await page.goto('/#/work/memesh');
+  await expect(page.locator('.page.is-active')).toHaveAttribute('data-page', 'work-memesh');
+  await page.waitForLoadState('networkidle');
+  expect(infos, 'no logs without ?debug').toEqual([]);
+
+  await page.goto('/?debug#/work/memesh');
+  await expect.poll(() => infos.some((t) => t.startsWith('[site replica]'))).toBe(true);
+  if (!isNarrow(page)) {
+    await expect(page.locator('.page.is-active .replica__frame')).toHaveAttribute('src', 'demos/memesh/?debug');
+    await expect.poll(() => infos.some((t) => t.startsWith('[mm-demo '))).toBe(true);
+  }
 });

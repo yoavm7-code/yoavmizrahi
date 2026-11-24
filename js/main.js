@@ -6,6 +6,9 @@
   var $ = function (sel, root) { return (root || document).querySelector(sel); };
   var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* Logs print only with ?debug in the address, so a visitor's console stays clean. */
+  var DEBUG = new URLSearchParams(location.search).has('debug');
+  function info() { if (DEBUG) console.info.apply(console, arguments); }
   var narrow = window.matchMedia('(max-width: 900px)');
 
   function youtubeEmbed(id) {
@@ -31,6 +34,21 @@
     var room = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
     if (room <= 0 || el.scrollWidth <= room) return;
     el.style.fontSize = Math.max(14, parseFloat(getComputedStyle(el).fontSize) * room / el.scrollWidth) + 'px';
+  }
+
+  /* Calls fn once el's transform transition has ended, so timing lives in the CSS alone. The
+     fallback covers a transition that never reports, like one in a background tab. */
+  function afterTransform(el, fn) {
+    var done = false;
+    var fallback = setTimeout(finish, 2000);
+    function finish(e) {
+      if (done || (e && (e.target !== el || e.propertyName !== 'transform'))) return;
+      done = true;
+      clearTimeout(fallback);
+      el.removeEventListener('transitionend', finish);
+      fn();
+    }
+    el.addEventListener('transitionend', finish);
   }
 
   /* ---------- Split headings into letters ---------- */
@@ -102,7 +120,7 @@
   var embedded = window.self !== window.top;
   function focusPage() {
     var h = $('.page.is-active h1');
-    console.info('[site focus] page heading', { page: current, found: !!h });
+    info('[site focus] page heading', { page: current, found: !!h });
     if (!h) return;
     h.setAttribute('tabindex', '-1');
     h.focus({ preventScroll: true });
@@ -124,19 +142,19 @@
     wipe.classList.remove('is-reveal');
     void wipe.offsetWidth;
     wipe.classList.add('is-cover');
-    setTimeout(function () {
+    afterTransform(wipe, function () {
       show(route);
       wipe.classList.remove('is-cover');
       wipe.classList.add('is-reveal');
-      setTimeout(function () {
+      afterTransform(wipe, function () {
         wipe.style.transition = 'none';
         wipe.classList.remove('is-reveal');
         void wipe.offsetWidth;
         wipe.style.transition = '';
         busy = false;
         if (!sameRoute(routeFromHash(), route)) navigate();
-      }, 700);
-    }, 650);
+      });
+    });
   }
   window.addEventListener('hashchange', navigate);
 
@@ -157,7 +175,7 @@
     $$('[data-menu-toggle]').forEach(function (b) { b.setAttribute('aria-expanded', open ? 'true' : 'false'); });
     if (open && !wasOpen) $('.mlink', menu).focus();
     if (!open && wasOpen && hadFocus) menuButton.focus();
-    if (open !== wasOpen) console.info('[site menu]', { open: open, focusBack: !open && hadFocus });
+    if (open !== wasOpen) info('[site menu]', { open: open, focusBack: !open && hadFocus });
   }
   function closeMenu() { setMenu(false); }
   $$('[data-menu-toggle]').forEach(function (b) {
@@ -369,7 +387,9 @@
        allows no inline styles. */
     viewport.style.aspectRatio = video.style.aspectRatio = w + ' / ' + h;
 
-    function log(msg, values) { console.info('[site replica] ' + msg, values || {}); }
+    function log(msg, values) { info('[site replica] ' + msg, values || {}); }
+    /* With ?debug the replica logs too. */
+    function replicaSrc() { return box.getAttribute('data-src') + (DEBUG ? '?debug' : ''); }
     function load() {
       if (frame) return;
       frame = document.createElement('iframe');
@@ -382,7 +402,7 @@
       frame.setAttribute('sandbox', 'allow-scripts allow-downloads');
       frame.setAttribute('allow', 'clipboard-write');
       frame.addEventListener('load', function () { log('loaded', { src: frame.src }); });
-      frame.src = box.getAttribute('data-src');
+      frame.src = replicaSrc();
       viewport.appendChild(frame);
       fit();
       log('loading', { src: frame.src, width: w, height: h });
@@ -428,7 +448,7 @@
       b.addEventListener('click', function () { setView(b.getAttribute('data-replica-view')); });
     });
     $('[data-replica-reset]', box).addEventListener('click', function () {
-      if (frame) { frame.src = box.getAttribute('data-src'); log('start over', { page: page }); } else load();
+      if (frame) { frame.src = replicaSrc(); log('start over', { page: page }); } else load();
     });
     viewport.addEventListener('mouseenter', function () { document.documentElement.classList.add('cursor-off'); });
     viewport.addEventListener('mouseleave', function () { document.documentElement.classList.remove('cursor-off'); });
@@ -541,7 +561,7 @@
     tapes.forEach(function (t, i) { if (at && corner.tapes[i]) put(t, at.x + corner.tapes[i].x, at.y + corner.tapes[i].y); });
     desk.style.height = (result.height + HINT_ROOM) + 'px';
     desk.classList.add('is-laid');
-    console.info('[desk layout]', { width: desk.offsetWidth, objects: best.blocks.length, tapes: count, films: best.shape, fits: result.fits, height: result.height });
+    info('[desk layout]', { width: desk.offsetWidth, objects: best.blocks.length, tapes: count, films: best.shape, fits: result.fits, height: result.height });
   }
 
   var layoutFrame = 0;
@@ -557,7 +577,7 @@
     if (fontsReady && !late) return;
     if (late) sizes = {};
     fontsReady = true;
-    console.info('[desk layout] fonts', { late: !!late });
+    info('[desk layout] fonts', { late: !!late });
     relayout();
   }
   if (document.fonts) {
@@ -592,12 +612,12 @@
     showTidy();
     var off = offsets[keyOf(o)];
     if (!off.dx && !off.dy) layerHome(o);
-    console.info('[desk drag]', { key: keyOf(o), dx: off.dx, dy: off.dy });
+    info('[desk drag]', { key: keyOf(o), dx: off.dx, dy: off.dy });
     if (o.hasAttribute('data-tape')) {
       var t = o.getBoundingClientRect(), m = monitorObj.getBoundingClientRect();
       function over(x, y) { return x > m.left && x < m.right && y > m.top && y < m.bottom; }
       if (over(px, py) || over(t.left + t.width / 2, t.top + t.height / 2)) {
-        console.info('[desk drag] tape dropped on the monitor', { key: keyOf(o) });
+        info('[desk drag] tape dropped on the monitor', { key: keyOf(o) });
         insertTape(o);
       }
     }
@@ -655,12 +675,12 @@
       if (!reduceMotion) {
         o.style.transitionDelay = delay + 'ms';
         o.classList.add('is-tidying');
-        setTimeout(function () { o.classList.remove('is-tidying'); o.style.transitionDelay = ''; }, 700 + delay);
+        afterTransform(o, function () { o.classList.remove('is-tidying'); o.style.transitionDelay = ''; });
       }
       rest(o);
     });
     tidyBtn.hidden = true;
-    console.info('[desk tidy]', { moved: count });
+    info('[desk tidy]', { moved: count });
   });
 
   /* ---------- Tapes and the monitor ---------- */
@@ -817,7 +837,7 @@
     else if (step) reelSeek(reel.pos + step / REEL_SECONDS);
     else return;
     e.preventDefault();
-    console.info('[site reel] key', { key: e.key, seconds: Math.floor(reel.pos * REEL_SECONDS) });
+    info('[site reel] key', { key: e.key, seconds: Math.floor(reel.pos * REEL_SECONDS) });
   });
   $('[data-reel-filmplay]').addEventListener('click', function () {
     if (!clips[reel.idx]) return;

@@ -21,7 +21,7 @@ async function prepareImage(file) {
   var img = new Image();
   img.src = url;
   try { await img.decode(); }
-  catch (e) { URL.revokeObjectURL(url); throw new Error("This image couldn't be opened. Try saving it as a JPG or PNG first."); }
+  catch (e) { URL.revokeObjectURL(url); throw new Error("This image couldn't be opened. Try saving it as a JPG or PNG first.", { cause: e }); }
   var w = img.naturalWidth, hgt = img.naturalHeight;
   var scale = Math.min(1, LIMITS.imageEdge / Math.max(w, hgt));
   w = Math.max(1, Math.round(w * scale));

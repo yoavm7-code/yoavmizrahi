@@ -23,6 +23,7 @@ js/desk-layout.js      desk packing (pure)
 js/main.js             routing, page transitions, menu, cursor, desk, demos, film reel
 css/style.css          design tokens, components, motion, responsive, reduced motion
 demos/<name>/          the clickable replicas, with their demo.mp4 and poster.jpg
+demos/shared/          the DOM helpers every replica uses (elements, toasts, ?debug logging)
 admin/                 the content admin
 worker/                the admin's login server (Cloudflare Worker)
 tools/                 generate.mjs (regenerate pages), build-site.mjs (collect what deploys)
@@ -67,9 +68,12 @@ npm test              # unit: content rules, renderer, generated files in sync, 
 npm install           # once, for the browser tests
 npx playwright install chromium
 npm run test:browser  # the built site in Chromium at 390, 820 and 1180 px
+npm run lint          # ESLint over the whole repository (correctness rules, no formatting rules)
 ```
 
 The browser tests click through every route, the desk, the demos and the film reel, and fail on console errors, which includes anything the content policy blocks. Every page is also checked with [axe](https://github.com/dequelabs/axe-core) against WCAG 2.2 AA, and the keyboard paths (skip link, menu, page focus, the reel slider) have their own tests. The replica tests also fail on any outside network request. Admin tests run against a fake GitHub API, never the real repository.
+
+Logs are namespaced (`[desk layout]`, `[site replica]`, `[ld-demo run]` ...) and print only with `?debug` in the address, which the site passes on to the replicas. The admin always logs.
 
 ## Deploys
 

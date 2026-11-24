@@ -145,7 +145,7 @@ var floats = h('div.floats',
 
 document.body.append(topbar, rail, main, tabbar, floats, box);
 document.body.classList.toggle('is-embedded', embedded);
-var a11y = createA11y(app);
+var a11y = createA11y();
 window.addEventListener('scroll', onScroll, { passive: true });
 if (!embedded && !app.recording) {
   document.body.appendChild(h('a.backlink', { href: '../../#/work/im-eng', dir: 'ltr', lang: 'en' }, '← Back to the portfolio'));

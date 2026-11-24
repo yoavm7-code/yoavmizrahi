@@ -103,7 +103,7 @@ export function makeServer() {
       const res = await worker.fetch(new Request('https://login.test' + path, { method, headers, body: opts.body === undefined ? undefined : JSON.stringify(opts.body) }), env);
       const text = await res.text();
       let data = null;
-      try { data = JSON.parse(text); } catch {}
+      try { data = JSON.parse(text); } catch { /* not JSON: data stays null */ }
       return { status: res.status, data, headers: res.headers };
     } finally {
       globalThis.fetch = realFetch;
