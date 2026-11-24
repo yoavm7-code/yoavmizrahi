@@ -97,9 +97,12 @@ h1, h2, p { margin: 0; }
 .hero__title { font: 800 56px/1 var(--display); text-transform: uppercase; letter-spacing: -.02em; text-shadow: 0 2px 30px #0008; }
 .hero__line { font-size: 17px; line-height: 1.55; color: #d8d6d1; }
 .hero__btns { display: flex; gap: 12px; }
-.hero__dots { position: absolute; left: 50%; bottom: 40px; display: flex; gap: 10px; transform: translateX(-50%); }
-.hero__dot { width: 6px; height: 6px; padding: 0; border: 0; border-radius: 999px; background: #ffffff55; transition: width .3s var(--ease); }
-.hero__dot.is-on { width: 24px; background: var(--red); }
+.hero__dots { position: absolute; left: 50%; bottom: 31px; display: flex; transform: translateX(-50%); }
+/* Each dot is a 24px button (a comfortable tap) with the visible dot drawn inside it. */
+.hero__dot { position: relative; width: 24px; height: 24px; padding: 0; border: 0; background: none; transition: width .3s var(--ease); }
+.hero__dot::before { content: ""; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; border-radius: 999px; background: #ffffff55; transform: translate(-50%, -50%); transition: width .3s var(--ease); }
+.hero__dot.is-on { width: 36px; }
+.hero__dot.is-on::before { width: 24px; background: var(--red); }
 .rows { display: flex; flex-direction: column; gap: 46px; padding: 10px 0 60px; }
 .row { display: flex; flex-direction: column; gap: 14px; }
 .row__title { padding-left: 38px; font: 800 22px/1.1 var(--display); text-transform: uppercase; letter-spacing: -.01em; }

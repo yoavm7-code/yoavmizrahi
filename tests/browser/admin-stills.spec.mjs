@@ -48,10 +48,15 @@ test('a film shows its stills, and one can be removed and a new one added in its
 
 test('a film without stills offers an empty slot', async ({ page }) => {
   const site = await (await page.request.get('/content/site.json')).json();
-  const film = site.films.find((f) => !(f.stills && f.stills.length));
+  const film = site.films[site.films.length - 1];
   await signIn(page);
   await page.goto('/admin/#/films/' + film.id);
   const section = page.locator('section.section', { has: page.getByRole('heading', { name: 'Stills', exact: true }) });
-  await expect(section.locator('.media-pick__preview')).toHaveCount(0);
+  /* Every film has stills today, so take them all away first. */
+  for (let i = film.stills.length; i > 0; i--) {
+    await section.getByRole('button', { name: 'Remove' }).first().click();
+    await expect(section.locator('.media-pick__preview')).toHaveCount(i - 1);
+  }
+  expect(await stillsOf(page, film.id)).toEqual([]);
   await expect(section.getByText('Add a still')).toBeVisible();
 });

@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { SITE_CSP } from '../../js/render.js';
+import { SITE_CSP, REPLICA_CSP } from '../../js/render.js';
 import { DEMOS, posterSizes } from '../../js/schema.js';
 
 const root = new URL('../../', import.meta.url);
@@ -29,6 +29,18 @@ test('the 404 page has the site policy, stays out of search, and leads back to t
   assert.ok(!/\bsrc="(?!\/)|href="(?!\/|https:)/.test(page), 'every path starts with /, since it is served at any address');
   assert.equal((page.match(/<h1/g) || []).length, 1);
   assert.ok(!/<script/i.test(page), 'no scripts needed');
+});
+
+test('every replica page carries the replica policy, before anything it governs', async () => {
+  const pages = Object.values(DEMOS).map((d) => d.replica && d.replica.src).filter(Boolean);
+  assert.equal(pages.length, 6);
+  for (const src of pages) {
+    const page = await read(src + 'index.html');
+    const meta = '<meta http-equiv="Content-Security-Policy" content="' + REPLICA_CSP + '">';
+    assert.ok(page.includes(meta), src + ' must use REPLICA_CSP from js/render.js');
+    assert.ok(page.indexOf(meta) < page.indexOf('<link') && page.indexOf(meta) < page.indexOf('<script'), src);
+  }
+  assert.ok(!/unsafe-inline|unsafe-eval/.test(REPLICA_CSP));
 });
 
 test('robots.txt lets everything be crawled and points at the sitemap', async () => {

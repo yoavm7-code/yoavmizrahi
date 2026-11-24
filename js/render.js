@@ -548,6 +548,13 @@ export const SITE_CSP = "default-src 'self'; script-src 'self'; style-src 'self'
   "font-src 'self'; img-src 'self' data: https://i.ytimg.com; media-src 'self'; connect-src 'self'; " +
   "frame-src 'self' https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'";
 
+/* The replicas' own pages (demos/<name>/index.html, hand-written) carry this policy: their files, the
+   content they read, Google Fonts for their own typefaces and small images inlined in their CSS.
+   tests/unit/static-pages.test.mjs checks every replica page uses it. */
+export const REPLICA_CSP = "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; " +
+  "font-src https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; " +
+  "frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'";
+
 function headMeta(c, paths, opts) {
   var url = c.site.url ? c.site.url + '/' : '';
   return html`<meta charset="utf-8">
