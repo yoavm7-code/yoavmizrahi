@@ -82,6 +82,7 @@
 
   function show(route) {
     var r = routes[route.path];
+    var opening = current !== null;
     $$('.page').forEach(function (p) { p.classList.toggle('is-active', p.getAttribute('data-page') === r.page); });
     document.body.setAttribute('data-page', r.page);
     document.body.setAttribute('data-theme', r.page === 'films' ? 'dark' : 'light');
@@ -94,7 +95,19 @@
     if (route.film) reelGoId(route.film);
     if (r.page === 'films') fitText($('[data-reel-title]'));
     if (r.page === 'home') layoutDesk();
+    if (opening && !embedded) focusPage();
   }
+  /* Keyboard and screen reader users land on the new page's heading, which reads out its name.
+     Not inside a frame: in the admin's preview that would pull focus out of the field being edited. */
+  var embedded = window.self !== window.top;
+  function focusPage() {
+    var h = $('.page.is-active h1');
+    console.info('[site focus] page heading', { page: current, found: !!h });
+    if (!h) return;
+    h.setAttribute('tabindex', '-1');
+    h.focus({ preventScroll: true });
+  }
+  $('[data-skip]').addEventListener('click', function (e) { e.preventDefault(); focusPage(); });
 
   function navigate() {
     var route = routeFromHash();
@@ -128,11 +141,23 @@
   window.addEventListener('hashchange', navigate);
 
   /* ---------- Menu ---------- */
+  /* While the menu is open everything behind it is inert, so Tab stays in the menu. Closing it hands
+     focus back to the Menu button, unless a menu link already moved on to a new page. */
   var menu = $('#menu');
+  var menuButton = $('.site-header [data-menu-toggle]');
+  var behindMenu = [$('.site-header'), $('main'), $('[data-skip]')];
+  menu.inert = true;
   function setMenu(open) {
+    var wasOpen = document.body.classList.contains('menu-open');
+    var hadFocus = menu.contains(document.activeElement);
     document.body.classList.toggle('menu-open', open);
     menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+    menu.inert = !open;
+    behindMenu.forEach(function (el) { el.inert = open; });
     $$('[data-menu-toggle]').forEach(function (b) { b.setAttribute('aria-expanded', open ? 'true' : 'false'); });
+    if (open && !wasOpen) $('.mlink', menu).focus();
+    if (!open && wasOpen && hadFocus) menuButton.focus();
+    if (open !== wasOpen) console.info('[site menu]', { open: open, focusBack: !open && hadFocus });
   }
   function closeMenu() { setMenu(false); }
   $$('[data-menu-toggle]').forEach(function (b) {
@@ -345,7 +370,9 @@
       frame.title = box.getAttribute('data-title') + ', interactive demo';
       frame.width = w;
       frame.height = h;
-      frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-downloads');
+      /* No allow-same-origin: the copy runs as an outside page, with no reach into the site, its storage
+         or the admin. It reads site.json and its own files the way any other site could. */
+      frame.setAttribute('sandbox', 'allow-scripts allow-downloads');
       frame.setAttribute('allow', 'clipboard-write');
       frame.addEventListener('load', function () { log('loaded', { src: frame.src }); });
       frame.src = box.getAttribute('data-src');
@@ -394,7 +421,7 @@
       b.addEventListener('click', function () { setView(b.getAttribute('data-replica-view')); });
     });
     $('[data-replica-reset]', box).addEventListener('click', function () {
-      if (frame) { frame.contentWindow.location.reload(); log('start over', { page: page }); } else load();
+      if (frame) { frame.src = box.getAttribute('data-src'); log('start over', { page: page }); } else load();
     });
     viewport.addEventListener('mouseenter', function () { document.documentElement.classList.add('cursor-off'); });
     viewport.addEventListener('mouseleave', function () { document.documentElement.classList.remove('cursor-off'); });
@@ -707,6 +734,8 @@
     var secs = reel.pos * REEL_SECONDS;
     $('[data-timecode]').textContent = '00:' + pad(Math.floor(secs / 60)) + ':' + pad(Math.floor(secs % 60)) + ':' + pad(Math.floor((secs % 1) * 24));
     playhead.style.left = (reel.pos * 100) + '%';
+    ruler.setAttribute('aria-valuenow', Math.floor(secs));
+    ruler.setAttribute('aria-valuetext', Math.floor(secs) + ' seconds' + (clips.length ? ', ' + clips[clipAt(Math.min(reel.pos, 0.9999))].getAttribute('data-label') : ''));
     if (!clips.length) return;
     var idx = clipAt(Math.min(reel.pos, 0.9999));
     if (idx !== reel.idx) {
@@ -760,12 +789,26 @@
   toggleBtn.addEventListener('click', function () { if (reel.timer) reelStop(); else reelPlay(); });
   $('[data-reel-prev]').addEventListener('click', function () { reelStop(); reelGo(reel.idx - 1); });
   $('[data-reel-next]').addEventListener('click', function () { reelStop(); reelGo(reel.idx + 1); });
-  ruler.addEventListener('click', function (e) {
-    var r = ruler.getBoundingClientRect();
+  function reelSeek(p) {
     reelStop();
     playhead.classList.remove('is-running');
-    reel.pos = Math.max(0, Math.min(0.999, (e.clientX - r.left) / r.width));
+    reel.pos = Math.max(0, Math.min(0.999, p));
     renderReel();
+  }
+  ruler.addEventListener('click', function (e) {
+    var r = ruler.getBoundingClientRect();
+    reelSeek((e.clientX - r.left) / r.width);
+  });
+  /* The ruler is a slider: arrows move 5 seconds, Page Up and Down 30, Home and End to either end. */
+  var SCRUB_KEYS = { ArrowRight: 5, ArrowUp: 5, ArrowLeft: -5, ArrowDown: -5, PageUp: 30, PageDown: -30 };
+  ruler.addEventListener('keydown', function (e) {
+    var step = SCRUB_KEYS[e.key];
+    if (e.key === 'Home') reelSeek(0);
+    else if (e.key === 'End') reelSeek(1);
+    else if (step) reelSeek(reel.pos + step / REEL_SECONDS);
+    else return;
+    e.preventDefault();
+    console.info('[site reel] key', { key: e.key, seconds: Math.floor(reel.pos * REEL_SECONDS) });
   });
   $('[data-reel-filmplay]').addEventListener('click', function () {
     if (!clips[reel.idx]) return;

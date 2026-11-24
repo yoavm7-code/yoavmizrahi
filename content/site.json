@@ -155,7 +155,7 @@
   ],
   "films": [
     {
-      "id": "leviathan-1",
+      "id": "the-last-warning",
       "title": "THE LAST WARNING",
       "part": "",
       "label": "THE LAST WARNING",
@@ -177,7 +177,7 @@
       ]
     },
     {
-      "id": "film-2",
+      "id": "leviathan-part-1",
       "title": "LEVIATHAN",
       "part": "PART 1",
       "label": "LEVIATHAN · PART 1",
@@ -215,7 +215,7 @@
       }
     },
     {
-      "id": "devil-s-herd",
+      "id": "devils-herd",
       "title": "DEVIL'S HERD",
       "part": "",
       "label": "DEVIL'S HERD",

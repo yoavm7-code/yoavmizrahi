@@ -22,6 +22,16 @@ test('the work page shows the replica in a window on wide screens and the video 
   await expect(app.locator('[data-book]').first()).toBeVisible();
 });
 
+test('the sandboxed window keeps the replica apart from the site and still reads its logo from the content', async ({ page }) => {
+  test.skip(isNarrow(page), 'narrow screens get the video');
+  await page.goto('/#/work/memesh');
+  const frame = page.locator('.page.is-active .replica__frame');
+  await expect(frame).toHaveAttribute('sandbox', 'allow-scripts allow-downloads');
+  const app = page.frameLocator('.page.is-active .replica__frame');
+  await expect(app.locator('img.logo__img').first()).toHaveAttribute('src', /^\.\.\/\.\.\/media\/[a-z0-9]+\.webp$/);
+  expect(await app.locator('body').evaluate(() => { try { return window.parent.document ? 'reached the site' : ''; } catch (e) { return 'kept apart'; } })).toBe('kept apart');
+});
+
 test('the desk polaroid shows a picture of the replica', async ({ page }) => {
   await page.goto('/#/');
   await expect(page.locator('.page.is-active .obj[data-obj="work:memesh"] .polaroid__img img')).toHaveAttribute('src', 'demos/memesh/poster.jpg');

@@ -59,3 +59,15 @@ test('the About page\'s web design intro and points: edit, add, remove', async (
   expect(design.lead).toBe('I design in the browser.');
   expect(design.points).toEqual(before.concat(['A new point.']));
 });
+
+test('the preview changing page never pulls focus out of the field being edited', async ({ page }) => {
+  await signIn(page);
+  await page.goto('/admin/#/works/lorewire');
+  const preview = page.frameLocator('.preview__frame-wrap.is-shown iframe');
+  await expect(preview.locator('.page.is-active')).toHaveAttribute('data-page', 'work-lorewire');
+  const notes = page.getByLabel('Design notes (optional)');
+  await notes.focus();
+  await page.evaluate(() => { document.querySelector('.preview__frame-wrap.is-shown iframe').contentWindow.location.hash = '#/work/memesh'; });
+  await expect(preview.locator('.page.is-active')).toHaveAttribute('data-page', 'work-memesh');
+  await expect(notes).toBeFocused();
+});

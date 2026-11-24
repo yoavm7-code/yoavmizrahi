@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { renderSite, renderSharePages, routes, reelSpans } from '../../js/render.js';
+import { renderSite, renderSharePages, routes, reelSpans, SITE_CSP } from '../../js/render.js';
 import { normalize, DEMOS } from '../../js/schema.js';
 
 const site = JSON.parse(await readFile(new URL('../../content/site.json', import.meta.url), 'utf8'));
@@ -88,6 +88,38 @@ test('a work taken off the desk is not rendered on it', () => {
   const raw = base();
   raw.works[0].desk = { show: false };
   assert.ok(!renderSite(raw, {}).includes('data-obj="work:one"'));
+});
+
+test('the site carries its content security policy, the admin preview does not', () => {
+  const page = renderSite(site);
+  assert.equal(count(page, 'http-equiv="Content-Security-Policy"'), 1);
+  assert.ok(page.indexOf('Content-Security-Policy') < page.indexOf('<link'), 'the policy comes before anything it governs');
+  assert.ok(page.includes('content="' + SITE_CSP.replace(/'/g, '&#39;') + '"'));
+  assert.ok(!renderSite(site, { mode: 'preview' }).includes('Content-Security-Policy'));
+});
+
+test('the policy allows only the site, Google Fonts and YouTube, and no inline script', () => {
+  const hosts = SITE_CSP.match(/https:\/\/[^\s;]+/g);
+  assert.deepEqual([...new Set(hosts)].sort(), ['https://fonts.googleapis.com', 'https://fonts.gstatic.com', 'https://i.ytimg.com', 'https://www.youtube-nocookie.com']);
+  assert.ok(!/unsafe-inline|unsafe-eval|\*/.test(SITE_CSP));
+  assert.ok(SITE_CSP.includes("script-src 'self'") && SITE_CSP.includes("object-src 'none'"));
+});
+
+test('the home page has one main heading, a skip link to the content, and a large link preview', () => {
+  const page = renderSite(site);
+  assert.ok(page.includes('<h1 class="note__hi">'), 'the sticky note is the home page heading');
+  assert.ok(page.includes('href="#main" data-skip') && page.includes('<main id="main">'));
+  assert.ok(page.indexOf('data-skip') < page.indexOf('<header'), 'the skip link is the first stop');
+  assert.ok(page.includes('<meta property="og:image" content="https://yoavmizrahi.com/share.jpg">'));
+  assert.ok(page.includes('<meta name="twitter:card" content="summary_large_image">'));
+  const raw = base();
+  raw.site.url = '';
+  assert.ok(!renderSite(raw).includes('og:image'), 'no address, no preview image');
+});
+
+test('the reel ruler is a slider a keyboard can reach', () => {
+  const page = renderSite(site);
+  assert.ok(/<div class="ruler" data-scrub role="slider" tabindex="0" aria-label="Reel position" aria-valuemin="0" aria-valuemax="150"/.test(page));
 });
 
 test('the page is deterministic: same content, same page', () => {
@@ -349,6 +381,13 @@ test('a work with a replica uses its poster as the link preview', () => {
   assert.ok(html.includes('<meta property="og:image" content="https://yoavmizrahi.com/' + DEMOS.uploader.replica.poster + '">'));
   raw.site.url = '';
   assert.ok(!renderSharePages(raw)[0].html.includes('og:image'), 'no address, no preview image');
+});
+
+test('a phone replica uses its landscape share picture instead of its tall poster', () => {
+  const raw = base();
+  raw.works = [{ id: 'toto', title: 'Toto', demo: 'toto' }];
+  assert.ok(DEMOS.toto.replica.share);
+  assert.ok(renderSharePages(raw)[0].html.includes('<meta property="og:image" content="https://yoavmizrahi.com/' + DEMOS.toto.replica.share + '">'));
 });
 
 test('share pages leave out the address when the site has none', () => {

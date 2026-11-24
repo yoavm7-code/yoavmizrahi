@@ -3,17 +3,22 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src &#39;self&#39;; script-src &#39;self&#39;; style-src &#39;self&#39; https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src &#39;self&#39; data: https://i.ytimg.com; media-src &#39;self&#39;; connect-src &#39;self&#39;; frame-src &#39;self&#39; https://www.youtube-nocookie.com; object-src &#39;none&#39;; base-uri &#39;self&#39;; form-action &#39;none&#39;">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Yoav Mizrahi - Products &amp; films, built with AI</title>
 <meta name="description" content="Yoav Mizrahi builds software with AI agents and makes AI films for The Wide Silence. Every product here is clickable.">
 <meta name="theme-color" content="#EDE9E1">
-<meta name="build" content="local-mwuaqgrc">
+<meta name="build" content="local-mwufotnb">
 <link rel="canonical" href="https://yoavmizrahi.com/">
 <meta property="og:url" content="https://yoavmizrahi.com/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Yoav Mizrahi - Products &amp; films, built with AI">
 <meta property="og:description" content="Yoav Mizrahi builds software with AI agents and makes AI films for The Wide Silence. Every product here is clickable.">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://yoavmizrahi.com/share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The desk on Yoav Mizrahi&#39;s site: a sticky note, a monitor with film tapes, and the products as objects">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,6 +26,8 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body data-page="home" data-site-title="Yoav Mizrahi - Products &amp; films, built with AI" data-site-name="Yoav Mizrahi">
+
+<a class="skip pill pill--solid" href="#main" data-skip>Skip to content</a>
 
 <header class="site-header">
   <div class="site-header__inner">
@@ -32,7 +39,7 @@
   </div>
 </header>
 
-<main>
+<main id="main">
 
 <!-- ============ HOME: THE DESK ============ -->
 <section class="page page--home" data-page="home" data-route="/" data-label="The desk" data-name="THE DESK" aria-label="The desk">
@@ -43,7 +50,7 @@
       <div class="obj" data-obj="note" data-cursor="drag">
         <div class="note settle">
           <span class="note__tape" aria-hidden="true"></span>
-          <p class="note__hi">Hi, I&#39;m Yoav.</p>
+          <h1 class="note__hi">Hi, I&#39;m Yoav.</h1>
           <p class="note__line">I build products &amp; films with AI.</p>
           <p class="note__small">Everything on this desk works. Play with it, or open the menu.</p>
         </div>
@@ -75,14 +82,14 @@
 
       <!-- Tapes. Each one plays its film on the monitor. -->
       <div class="tapes" data-obj-group="tapes">
-      <div class="obj" data-obj="tape:leviathan-1" data-cursor="drag" data-tape
+      <div class="obj" data-obj="tape:the-last-warning" data-cursor="drag" data-tape
            data-title="THE LAST WARNING" data-part="" data-presents="THE WIDE SILENCE PRESENTS" data-youtube="5GAV8yWfhFk">
         <div class="tape settle d3">
           <div class="tape__label"><span>THE LAST WARNING</span><button class="btn tape__play" type="button" data-insert aria-label="Play THE LAST WARNING on the monitor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div>
           <div class="tape__reels" aria-hidden="true"><span></span><span></span></div>
         </div>
       </div>
-      <div class="obj" data-obj="tape:film-2" data-cursor="drag" data-tape
+      <div class="obj" data-obj="tape:leviathan-part-1" data-cursor="drag" data-tape
            data-title="LEVIATHAN" data-part="PART 1" data-presents="THE WIDE SILENCE PRESENTS" data-youtube="NonEDg3Tm6Y">
         <div class="tape settle d4">
           <div class="tape__label"><span>LEVIATHAN · PART 1</span><button class="btn tape__play" type="button" data-insert aria-label="Play LEVIATHAN · PART 1 on the monitor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div>
@@ -96,7 +103,7 @@
           <div class="tape__reels" aria-hidden="true"><span></span><span></span></div>
         </div>
       </div>
-      <div class="obj" data-obj="tape:devil-s-herd" data-cursor="drag" data-tape
+      <div class="obj" data-obj="tape:devils-herd" data-cursor="drag" data-tape
            data-title="DEVIL&#39;S HERD" data-part="" data-presents="THE WIDE SILENCE PRESENTS" data-youtube="owoyoKpygNk">
         <div class="tape settle d2">
           <div class="tape__label"><span>DEVIL&#39;S HERD</span><button class="btn tape__play" type="button" data-insert aria-label="Play DEVIL&#39;S HERD on the monitor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div>
@@ -504,13 +511,13 @@
       <div class="timeline__inner">
         <div class="timeline__labels mono"><span class="tl-spacer"></span><span class="tl-row">FILMS</span></div>
         <div class="timeline__lanes">
-          <button class="ruler" type="button" data-scrub aria-label="Scrub the reel"></button>
+          <div class="ruler" data-scrub role="slider" tabindex="0" aria-label="Reel position" aria-valuemin="0" aria-valuemax="150" aria-valuenow="0" aria-valuetext="0 seconds"></div>
           <div class="lane" data-lane>
-            <button class="clip" type="button" data-clip data-id="leviathan-1" data-start="0" data-end="0.2483"
+            <button class="clip" type="button" data-clip data-id="the-last-warning" data-start="0" data-end="0.2483"
               data-label="THE LAST WARNING" data-title="THE LAST WARNING" data-part=""
               data-presents="THE WIDE SILENCE PRESENTS" data-meta="SCI-FI SHORT · 13:01"
               data-file="THE_LAST_WARNING.MOV" data-youtube="5GAV8yWfhFk">THE LAST WARNING</button>
-            <button class="clip" type="button" data-clip data-id="film-2" data-start="0.2483" data-end="0.4623"
+            <button class="clip" type="button" data-clip data-id="leviathan-part-1" data-start="0.2483" data-end="0.4623"
               data-label="LEVIATHAN · PART 1" data-title="LEVIATHAN" data-part="PART 1"
               data-presents="THE WIDE SILENCE PRESENTS" data-meta="SCI-FI · 11:13"
               data-file="LEVIATHAN-1.MOV" data-youtube="NonEDg3Tm6Y">LEVIATHAN · PART 1</button>
@@ -518,7 +525,7 @@
               data-label="LEVIATHAN · PART 2" data-title="LEVIATHAN" data-part="PART 2"
               data-presents="THE WIDE SILENCE PRESENTS" data-meta="SCI-FI · 09:45"
               data-file="LEVIATHAN-2.MOV" data-youtube="AxNXYx13sxg">LEVIATHAN · PART 2</button>
-            <button class="clip" type="button" data-clip data-id="devil-s-herd" data-start="0.6483" data-end="1"
+            <button class="clip" type="button" data-clip data-id="devils-herd" data-start="0.6483" data-end="1"
               data-label="DEVIL&#39;S HERD" data-title="DEVIL&#39;S HERD" data-part=""
               data-presents="THE WIDE SILENCE PRESENTS" data-meta="WESTERN HORROR · 18:26"
               data-file="DEVILS_HERD.MOV" data-youtube="owoyoKpygNk">DEVIL&#39;S HERD</button>
