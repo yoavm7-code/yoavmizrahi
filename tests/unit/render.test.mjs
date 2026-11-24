@@ -280,8 +280,8 @@ test('one sound switch, on the monitor and on the Films transport, says it is of
   const page = renderSite(base());
   assert.equal(count(page, '<button class="btn sound" type="button" data-sound>'), 1);
   assert.equal(count(page, '<button class="btn sound sound--transport" type="button" data-sound>'), 1);
-  assert.equal(count(page, '<span data-sound-label>SOUND OFF</span>'), 2);
-  assert.ok(/data-sound><svg viewBox="0 0 24 24" aria-hidden="true">.*class="sound__mute".*<\/svg><span data-sound-label>SOUND OFF<\/span><\/button>/.test(page));
+  assert.equal(count(page, '<span class="sound__word">SOUND </span><span data-sound-state>OFF</span>'), 2);
+  assert.ok(/data-sound><svg viewBox="0 0 24 24" aria-hidden="true">.*class="sound__mute".*<\/svg><span class="sound__word">SOUND <\/span><span data-sound-state>OFF<\/span><\/button>/.test(page));
   assert.ok(!page.includes('data-sound aria-pressed'), 'the words carry the state, not aria-pressed');
 });
 

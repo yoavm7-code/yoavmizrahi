@@ -30,7 +30,7 @@ var SOUND_ICON = new Raw('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M
 /* All the site's sound (the desk's clicks and the film playing) has one switch, shown on the desk's
    monitor and on the Films page's transport. js/main.js keeps every copy in step. */
 function soundSwitch(extra) {
-  return html`<button class="${'btn sound' + (extra ? ' ' + extra : '')}" type="button" data-sound>${SOUND_ICON}<span data-sound-label>SOUND OFF</span></button>`;
+  return html`<button class="${'btn sound' + (extra ? ' ' + extra : '')}" type="button" data-sound>${SOUND_ICON}<span class="sound__word">SOUND </span><span data-sound-state>OFF</span></button>`;
 }
 
 /* ---------- Helpers ---------- */
