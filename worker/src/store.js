@@ -4,7 +4,7 @@
 
 import { DurableObject } from 'cloudflare:workers';
 
-var MAX_SIGNINS = 50;
+var KEEP_EACH = 30;   // successful and failed sign-ins are kept apart, so junk can't push out real ones
 
 export class AuthStore extends DurableObject {
   constructor(ctx, env) {
@@ -82,13 +82,14 @@ export class AuthStore extends DurableObject {
     return rows.length && rows[0].until > now ? rows[0].until - now : 0;
   }
 
-  /* After 3 misses each further miss doubles the wait: 30 s, 1 min, 2 min ... up to 1 hour.
-   Misses are forgotten after a day without any. */
-  recordFail(scope, now) {
+  /* After `free` misses (3 unless given) each further miss doubles the wait: 30 s, 1 min, 2 min ...
+     up to 1 hour. Misses are forgotten after a day without any. */
+  recordFail(scope, now, free) {
+    free = free || 3;
     return this.ctx.storage.transactionSync(() => {
       var rows = this.sql.exec('SELECT fails, updated FROM attempts WHERE scope = ?', scope).toArray();
       var fails = rows.length && now - rows[0].updated < 86400000 ? rows[0].fails + 1 : 1;
-      var wait = fails >= 3 ? Math.min(3600000, 30000 * Math.pow(2, fails - 3)) : 0;
+      var wait = fails >= free ? Math.min(3600000, 30000 * Math.pow(2, fails - free)) : 0;
       this.sql.exec('INSERT INTO attempts (scope, fails, until, updated) VALUES (?, ?, ?, ?) ON CONFLICT(scope) DO UPDATE SET fails = excluded.fails, until = excluded.until, updated = excluded.updated', scope, fails, now + wait, now);
       this.sql.exec('DELETE FROM attempts WHERE updated < ?', now - 7 * 86400000);
       return wait;
@@ -100,8 +101,9 @@ export class AuthStore extends DurableObject {
   /* ---------- Sign-in log (no tokens, passwords or IP addresses) ---------- */
 
   logSignin(entry) {
-    this.sql.exec('INSERT INTO signins (at, ok, kind, device, place) VALUES (?, ?, ?, ?, ?)', entry.at, entry.ok ? 1 : 0, entry.kind, entry.device || '', entry.place || '');
-    this.sql.exec('DELETE FROM signins WHERE id NOT IN (SELECT id FROM signins ORDER BY id DESC LIMIT ?)', MAX_SIGNINS);
+    var ok = entry.ok ? 1 : 0;
+    this.sql.exec('INSERT INTO signins (at, ok, kind, device, place) VALUES (?, ?, ?, ?, ?)', entry.at, ok, entry.kind, entry.device || '', entry.place || '');
+    this.sql.exec('DELETE FROM signins WHERE ok = ? AND id NOT IN (SELECT id FROM signins WHERE ok = ? ORDER BY id DESC LIMIT ?)', ok, ok, KEEP_EACH);
   }
 
   recentSignins(limit) {
