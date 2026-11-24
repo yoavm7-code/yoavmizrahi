@@ -24,7 +24,14 @@ function html(strings) {
 }
 
 var PLAY_ICON = new Raw('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>');
-var SOUND_ICON = new Raw('<svg viewBox="0 0 24 24" aria-hidden="true"><path class="sound__body" d="M4 9h4l5-4v14l-5-4H4z"/><path class="sound__waves" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>');
+/* The sound switch says its state in words and in its icon: a crossed-out speaker when off, waves when on. */
+var SOUND_ICON = new Raw('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="sound__waves" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/><path class="sound__mute" d="M16 9.5l5 5M21 9.5l-5 5"/></svg>');
+
+/* All the site's sound (the desk's clicks and the film playing) has one switch, shown on the desk's
+   monitor and on the Films page's transport. js/main.js keeps every copy in step. */
+function soundSwitch(extra) {
+  return html`<button class="${'btn sound' + (extra ? ' ' + extra : '')}" type="button" data-sound>${SOUND_ICON}<span data-sound-label>SOUND OFF</span></button>`;
+}
 
 /* ---------- Helpers ---------- */
 
@@ -208,7 +215,7 @@ function deskMonitor(c, paths) {
           <div class="monitor__foot">
             <a class="uline mono-link mono-link--light" href="#/films">ALL FILMS →</a>
             <div class="row-gap-12">
-              <button class="btn sound" type="button" data-sound aria-pressed="false">${SOUND_ICON}SOUND</button>
+              ${soundSwitch()}
               <button class="btn eject" type="button" data-eject>⏏ EJECT</button>
               <span class="power" data-power aria-hidden="true"></span>
             </div>
@@ -480,8 +487,8 @@ function pageFilms(c) {
             <span class="credit credit--light" data-reel-part></span>
             <button class="btn play-btn play-btn--big" type="button" data-reel-filmplay aria-label="Play film">${PLAY_ICON}</button>
           </div>
-          <div class="viewer__player" data-reel-player></div>
         </div>
+        <div class="viewer__player" data-reel-player></div>
       </div>
       <div class="transport">
         <button class="btn tbtn" type="button" data-reel-prev aria-label="Previous film"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6z"/><path d="M20 5v14L9 12z"/></svg></button>
@@ -491,6 +498,7 @@ function pageFilms(c) {
         </button>
         <button class="btn tbtn" type="button" data-reel-next aria-label="Next film"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2z"/><path d="M4 5v14l11-7z"/></svg></button>
         <span class="transport__label mono" data-reel-label></span>
+        ${soundSwitch('sound--transport')}
       </div>
     </div>
 

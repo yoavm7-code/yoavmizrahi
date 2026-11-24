@@ -276,10 +276,13 @@ test('the standby stills follow the admin preview\'s media address, and skip uns
   assert.ok(page.includes('data-stills="blob:media/a1.webp"'));
 });
 
-test('the monitor has a sound switch, off in the page as written', () => {
+test('one sound switch, on the monitor and on the Films transport, says it is off in the page as written', () => {
   const page = renderSite(base());
-  assert.equal(count(page, '<button class="btn sound" type="button" data-sound aria-pressed="false">'), 1);
-  assert.ok(/data-sound aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true">.*<\/svg>SOUND<\/button>/.test(page));
+  assert.equal(count(page, '<button class="btn sound" type="button" data-sound>'), 1);
+  assert.equal(count(page, '<button class="btn sound sound--transport" type="button" data-sound>'), 1);
+  assert.equal(count(page, '<span data-sound-label>SOUND OFF</span>'), 2);
+  assert.ok(/data-sound><svg viewBox="0 0 24 24" aria-hidden="true">.*class="sound__mute".*<\/svg><span data-sound-label>SOUND OFF<\/span><\/button>/.test(page));
+  assert.ok(!page.includes('data-sound aria-pressed'), 'the words carry the state, not aria-pressed');
 });
 
 test('without stills the Films card stays plain ink', () => {

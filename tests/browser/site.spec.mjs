@@ -216,19 +216,23 @@ test('with a mouse an object lifts a little under the pointer', async ({ page })
   expect(await note.evaluate((el) => getComputedStyle(el).translate)).toBe('0px -3px');
 });
 
-test('sound is off at first, the switch turns it on, and the choice is kept', async ({ page }) => {
+test('sound is off at first and says so, the switch turns it on, and the choice is kept', async ({ page }) => {
   await page.goto('/#/');
-  const sw = page.getByRole('button', { name: 'Sound' });
-  await expect(sw).toHaveAttribute('aria-pressed', 'false');
+  const sw = page.locator('.monitor [data-sound]');
+  await expect(sw).toHaveAccessibleName('SOUND OFF');
+  await expect(sw.locator('.sound__mute')).toBeVisible();
+  await expect(sw.locator('.sound__waves')).toBeHidden();
   await sw.click();
-  await expect(sw).toHaveAttribute('aria-pressed', 'true');
+  await expect(sw).toHaveAccessibleName('SOUND ON');
+  await expect(sw.locator('.sound__waves')).toBeVisible();
+  await expect(sw.locator('.sound__mute')).toBeHidden();
   await page.locator('[data-tape] [data-insert]').first().click();
   await expect(page.locator('[data-monitor]')).toHaveAttribute('data-state', 'idle');
   await page.locator('[data-eject]').click();
   await page.reload();
-  await expect(sw).toHaveAttribute('aria-pressed', 'true');
+  await expect(sw).toHaveAccessibleName('SOUND ON');
   await sw.click();
-  await expect(sw).toHaveAttribute('aria-pressed', 'false');
+  await expect(sw).toHaveAccessibleName('SOUND OFF');
   expect(await page.evaluate(() => localStorage.getItem('ym-sound'))).toBe('off');
 });
 
@@ -507,6 +511,55 @@ test('the reel steps through films, plays, and shows a player', async ({ page })
   await page.goto('/#/about');
   await page.goto('/#/films');
   await expect(page.locator('[data-reel-player] > *')).toHaveCount(0);
+});
+
+test('a playing film fills the whole screen of the viewer', async ({ page }) => {
+  await page.goto('/#/films');
+  await page.locator('[data-reel-filmplay]').click();
+  const player = page.locator('[data-reel-player]');
+  await expect(player.locator('.placeholder-player, iframe')).toHaveCount(1);
+  await settled(page.locator('.viewer')); // the viewer slides in when the page opens
+  const box = await player.boundingBox();
+  const screen = await page.locator('.viewer__screen').boundingBox();
+  for (const k of ['x', 'y', 'width', 'height']) expect(Math.abs(box[k] - screen[k]), k).toBeLessThanOrEqual(1);
+});
+
+/* Answers the film player with a page that keeps every command the site sends it. */
+async function recordingPlayer(page) {
+  await page.route('https://www.youtube-nocookie.com/**', (route) => route.fulfill({
+    status: 200, contentType: 'text/html',
+    body: '<script>window.__got = []; addEventListener("message", function (e) { try { window.__got.push(JSON.parse(e.data).func); } catch (x) {} });</script>'
+  }));
+  return async () => {
+    const frame = page.frames().find((f) => f.url().includes('youtube-nocookie.com/embed/'));
+    return frame ? frame.evaluate(() => window.__got) : [];
+  };
+}
+
+test('playing a film turns the sound on, and the switch mutes and unmutes the film', async ({ page }) => {
+  const got = await recordingPlayer(page);
+  await page.goto('/#/films');
+  const sw = page.locator('.transport [data-sound]');
+  await expect(sw).toHaveAccessibleName('SOUND OFF');
+  await page.locator('[data-reel-filmplay]').click();
+  await expect(sw).toHaveAccessibleName('SOUND ON');
+  await expect(page.locator('[data-reel-player] iframe')).toHaveAttribute('src', /enablejsapi=1/);
+  await expect.poll(got).toContain('unMute');
+  await sw.click();
+  await expect(sw).toHaveAccessibleName('SOUND OFF');
+  await expect.poll(async () => (await got()).at(-1)).toBe('mute');
+  await sw.click();
+  await expect.poll(async () => (await got()).at(-1)).toBe('unMute');
+});
+
+test('the switch on the desk and the one on the Films page are the same switch', async ({ page }) => {
+  await page.goto('/#/');
+  await page.locator('.monitor [data-sound]').click();
+  await page.goto('/#/films');
+  await expect(page.locator('.transport [data-sound]')).toHaveAccessibleName('SOUND ON');
+  await page.locator('.transport [data-sound]').click();
+  await page.goto('/#/');
+  await expect(page.locator('.monitor [data-sound]')).toHaveAccessibleName('SOUND OFF');
 });
 
 test('#/films/<id> opens the reel on that film', async ({ page }) => {
