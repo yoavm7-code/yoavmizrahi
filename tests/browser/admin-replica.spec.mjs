@@ -50,13 +50,13 @@ test('Memesh: a logo slot and every line of wording, editable in Hebrew and Engl
   await expect(page.locator('textarea[data-key="legend.closed"]')).toHaveValue('Closed');
 });
 
-test('Toto Mundial: wording only, no logo slot; Mega Uploader: neither', async ({ page }) => {
+test('Toto Mundial: wording only, no logo slot; Launch Desk: neither', async ({ page }) => {
   await signIn(page);
   await page.goto('/admin/#/works/toto');
   await expect(page.getByRole('heading', { name: 'Demo wording' })).toBeVisible();
   await expect(page.getByText('Choose the logo')).toHaveCount(0);
   await page.goto('/admin/#/works/uploader');
-  await expect(page.getByText('Mega Uploader')).toBeVisible();
+  await expect(page.getByText('Launch Desk')).toBeVisible();
   await expect(page.locator('.wording')).toHaveCount(0);
 });
 

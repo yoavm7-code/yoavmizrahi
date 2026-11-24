@@ -250,7 +250,7 @@ body[data-theme="dark"] .site-header { border-color: var(--ink-line); }
 .led { width: 8px; height: 8px; border-radius: 50%; background: var(--line); transition: background .3s ease; }
 .led.is-on { background: var(--accent); }
 
-/* Uploader widget: a pocket Run live */
+/* Uploader widget: a pocket Launch */
 .uploader { display: flex; flex-direction: column; gap: 12px; }
 .u-rows { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); overflow: hidden; }
 .u-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 11px; transition: background .3s ease; }

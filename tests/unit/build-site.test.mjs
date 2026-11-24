@@ -14,7 +14,7 @@ after(async () => { await rm(join(out, '..'), { recursive: true, force: true });
 test('everything the site and the admin load is included', () => {
   for (const path of ['index.html', 'favicon.svg', 'CNAME', '.nojekyll', 'css/style.css', 'js/main.js', 'js/render.js',
     'js/schema.js', 'admin/index.html', 'admin/app.js', 'admin/rescue.html', 'content/site.json', 'w', 'f',
-    'demos/mega-uploader/index.html', 'demos/mega-uploader/js/app.js', 'demos/mega-uploader/demo.mp4', 'demos/mega-uploader/poster.jpg',
+    'demos/launch-desk/index.html', 'demos/launch-desk/js/app.js', 'demos/launch-desk/demo.mp4', 'demos/launch-desk/poster.jpg',
     'demos/toto-mundial/index.html', 'demos/toto-mundial/js/app.js', 'demos/toto-mundial/demo.mp4', 'demos/toto-mundial/poster.jpg',
     'demos/memesh/index.html', 'demos/memesh/js/app.js', 'demos/memesh/demo.mp4', 'demos/memesh/poster.jpg',
     'demos/lorewire/index.html', 'demos/lorewire/js/app.js', 'demos/lorewire/demo.mp4', 'demos/lorewire/poster.jpg',

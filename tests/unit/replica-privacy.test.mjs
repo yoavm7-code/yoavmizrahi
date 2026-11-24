@@ -29,6 +29,8 @@ const BANNED = new Set([
   '401f8cb366ef4de6', 'f020ead6e950fdb6', 'c1bf0c9314b15d33', '9fb23fa85d269a8e', '04af46a1e0b08994', '3860edac0ccb7475',
   'ae91ac8d24ba0c9f', '71dd76e4bc275d3e', '033a1236a77e9cef', '784c9715cab9dad0', '25b220238ec7eed9', '6ee77a60b623a6cc',
   '5fc745a4c505583f', '08d0398647a13b8f',
+  // The launcher replica's old product name.
+  '9be90cc7fa7782b3',
   // Toto Mundial: real players' names and distinctive point and pot figures from the tour.
   '00260e9b05ddcbe7', '1de1f84a98acf0fd', '40587f346de6362f', '36505755eb34f660', 'faf4e1efa54ef4a5', 'd576b445708ef98e',
   'd4ef93ae2b538012', '346cd2b49312f2f7', '02742e4df5e75dd5', 'b2068ae753f72424', '3bcd8ed3670d2539', '4d5d0ac3dbeb8ae0',

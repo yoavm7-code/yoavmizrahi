@@ -136,7 +136,7 @@ test('a work whose demo has a replica gets the replica stage instead of the desk
   assert.ok(page.includes('data-src="' + r.src + '" data-w="' + r.width + '" data-h="' + r.height + '"'));
   assert.ok(page.includes('src="' + r.video + '" poster="' + r.poster + '"'));
   assert.ok(page.includes('href="' + r.src + '" data-replica-full'));
-  assert.equal(count(page, 'data-widget="uploader"'), 1, 'the desk keeps its Run live widget, the project page does not');
+  assert.equal(count(page, 'data-widget="uploader"'), 1, 'the desk keeps its Launch widget, the project page does not');
   assert.ok(page.includes('ON THE DESK</span>'), 'a work without a replica keeps the desk stage');
 });
 
@@ -229,7 +229,7 @@ test('the device bar says where the content comes from', () => {
   const page = renderSite(raw);
   assert.ok(page.includes('I.M ENGINEERING · THE LIVE SITE&#39;S CONTENT'));
   assert.ok(page.includes('LOREWIRE · LOREWIRE&#39;S OWN STORIES'));
-  assert.ok(page.includes('MEGA UPLOADER · MADE-UP DATA'));
+  assert.ok(page.includes('LAUNCH DESK · MADE-UP DATA'));
 });
 
 test('a replica card can crop its poster from the left edge', () => {
@@ -269,8 +269,8 @@ test('replica paths follow the root option, for the admin preview', () => {
   const raw = base();
   raw.works = [{ id: 'up', title: 'Up', demo: 'uploader' }];
   const page = renderSite(raw, { root: 'https://yoavmizrahi.com/' });
-  assert.ok(page.includes('data-src="https://yoavmizrahi.com/demos/mega-uploader/"'));
-  assert.ok(page.includes('poster="https://yoavmizrahi.com/demos/mega-uploader/poster.jpg"'));
+  assert.ok(page.includes('data-src="https://yoavmizrahi.com/demos/launch-desk/"'));
+  assert.ok(page.includes('poster="https://yoavmizrahi.com/demos/launch-desk/poster.jpg"'));
 });
 
 test('no lines are left holding only indentation', () => {

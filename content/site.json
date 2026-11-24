@@ -42,12 +42,12 @@
   "works": [
     {
       "id": "uploader",
-      "title": "Mega Uploader",
+      "title": "Launch Desk",
       "kind": "PRODUCTION TOOL",
       "year": "2026",
       "madeWith": "AI coding agents",
-      "description": "Launches ad campaigns in bulk. Fill a sheet with dozens of campaigns, press Run live, and watch each one get built and uploaded, with a plain reason when one fails. It runs in production.",
-      "design": "Made for people who launch dozens of campaigns at once, so the workspace is a spreadsheet. Each row is a campaign, each column a setting like country, vertical or landing page, and every row gets a check or a cross once the run is over.\n\nQuiet greys, with one blue for actions. Green, amber and red only report how a run went. Campaign names and the run log are set in Geist Mono, so long names line up and are easy to scan. There is a dark mode too.",
+      "description": "Launches ad campaigns in bulk. Fill a sheet with dozens of campaigns, press Launch, and watch each one get built and uploaded, with a plain reason when one fails. It runs in production.",
+      "design": "Made for people who launch dozens of campaigns at once, so every batch is a spreadsheet. Each row is a campaign, each column a setting like country, vertical or landing page, and every row gets a check or a cross once the launch is over.\n\nCool sage greys under a dark top bar, with one deep green for actions. Red and amber only report what went wrong in a launch. Campaign names and the launch log are set in IBM Plex Mono, so long names line up and are easy to scan. There is a dark mode too.",
       "link": "",
       "style": "device",
       "demo": "uploader",

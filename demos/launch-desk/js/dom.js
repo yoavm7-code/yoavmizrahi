@@ -1,10 +1,10 @@
-/* Mega Uploader demo: small DOM helpers shared by every screen.
+/* Launch Desk demo: small DOM helpers shared by every screen.
    Text always goes in through textContent, so nothing a visitor types can become markup. */
 
 /* ---------- Logging ---------- */
 
 export function log(ns, msg, values) {
-  console.info('[mu-demo ' + ns + '] ' + msg, values || {});
+  console.info('[ld-demo ' + ns + '] ' + msg, values || {});
 }
 
 /* ---------- Elements ---------- */
@@ -46,9 +46,7 @@ export function replace(el, child) { clear(el); if (child) el.appendChild(child)
 /* ---------- Icons (thin outline, 24px grid, drawn for this demo) ---------- */
 
 var ICONS = {
-  panel: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
-  bulb: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/>',
   info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
   terminal: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/>',
   bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
@@ -58,12 +56,7 @@ var ICONS = {
   up: '<path d="m6 15 6-6 6 6"/>',
   right: '<path d="m9 6 6 6-6 6"/>',
   left: '<path d="m15 6-6 6 6 6"/>',
-  first: '<path d="m11 17-5-5 5-5M18 17l-5-5 5-5"/>',
-  last: '<path d="m13 17 5-5-5-5M6 17l5-5-5-5"/>',
-  top: '<path d="M6 4h12M7 14l5-5 5 5"/>',
-  bottom: '<path d="M6 20h12M7 10l5 5 5-5"/>',
   grid: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
-  dashboard: '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   download: '<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
   upload: '<path d="M12 21V9M7 14l5-5 5 5M5 3h14"/>',
@@ -73,43 +66,27 @@ var ICONS = {
   chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
   users: '<circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 8M22 21a7 7 0 0 0-4-6.3"/>',
   calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
-  bug: '<rect x="7" y="7" width="10" height="13" rx="5"/><path d="M9 7a3 3 0 0 1 6 0M3 13h4M17 13h4M4 7l3 2M20 7l-3 2M4 19l3-2M20 19l-3-2"/>',
   settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
-  file: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>',
-  bookmark: '<path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>',
   image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>',
-  key: '<circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.3-9.3M17 6l3 3M14 9l2 2"/>',
-  layers: '<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/>',
   check: '<path d="M20 6 9 17l-5-5"/>',
   x: '<path d="M18 6 6 18M6 6l12 12"/>',
-  pulse: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
-  list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
   archive: '<rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/>',
   trash: '<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>',
-  help: '<circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',
   undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>',
   redo: '<path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/>',
   eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   columns: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18"/>',
-  filter: '<path d="M22 3H2l8 9.5V19l4 2v-8.5z"/>',
   play: '<path d="m6 4 14 8-14 8z"/>',
   refresh: '<path d="M21 12a9 9 0 0 1-15.5 6.3L3 16M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/>',
   copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>',
   external: '<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
-  chat: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
-  clip: '<path d="m21.4 11-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/>',
-  send: '<path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/>',
-  wand: '<path d="m15 4 5 5M4 20 15 9M18 2v4M16 4h4M9 3v2M8 4h2"/>',
   sparkle: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>',
   warn: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
-  focus: '<path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/>',
-  expand: '<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>',
   more: '<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
   grip: '<circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>',
   comment: '<path d="M4 5h16v11H8l-4 4z"/>',
   pencil: '<path d="M17 3a2.8 2.8 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5z"/>',
-  broom: '<path d="m13 11 8-8M8.5 12.5l3 3M4 22l2-6 6-6 4 4-6 6z"/>',
-  logo: '<rect x="3" y="3" width="18" height="18" rx="4" fill="currentColor" stroke="none"/><rect x="8" y="8" width="8" height="8" rx="1.5" fill="#fff" stroke="none"/>'
+  logo: '<rect x="2" y="2" width="20" height="20" rx="4" fill="currentColor" stroke="none"/><path d="m7.5 16.5 4.5-4.5 4.5 4.5M7.5 11 12 6.5l4.5 4.5" stroke="#13201b" stroke-width="2.2"/>'
 };
 
 export function icon(name, size) {
@@ -145,7 +122,7 @@ export function toast(text, kind) {
 
 /* Anything the real app has but this demo leaves out answers the same way. */
 export function notInDemo(what) {
-  toast(what + ' is not part of this demo. Try Workspace, Run history or Dashboard.');
+  toast(what + ' is not part of this demo. Try Batches, Launches or Overview.');
 }
 
 /* ---------- Popovers and menus ---------- */
@@ -229,6 +206,48 @@ export function modal(content, opts) {
   return box;
 }
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modalEl && !open) closeModal(); });
+
+/* A filtered list in a modal, driven with the arrows and Enter. items: { label, icon, kind, run } */
+export function picker(opts) {
+  var items = opts.items;
+  var sel = 0;
+  var list = h('div.picker__list', { role: 'listbox' });
+  var input = h('input.picker__input', {
+    type: 'text', placeholder: opts.placeholder, 'aria-label': opts.label, autofocus: true,
+    oninput: function () { sel = 0; draw(); },
+    onkeydown: function (e) {
+      var shown = filtered();
+      if (e.key === 'ArrowDown') { e.preventDefault(); sel = Math.min(shown.length - 1, sel + 1); draw(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); sel = Math.max(0, sel - 1); draw(); }
+      else if (e.key === 'Enter' && shown[sel]) { e.preventDefault(); pick(shown[sel]); }
+    }
+  });
+  function filtered() {
+    var q = input.value.trim().toLowerCase();
+    return items.filter(function (it) { return !q || it.label.toLowerCase().indexOf(q) !== -1; });
+  }
+  function pick(it) { closeModal(); log('ui', 'picker pick', { picker: opts.label, label: it.label }); it.run(); }
+  function draw() {
+    var shown = filtered();
+    clear(list);
+    if (!shown.length) list.appendChild(h('p.picker__empty', { text: 'Nothing matches.' }));
+    shown.forEach(function (it, i) {
+      list.appendChild(h('button.picker__item' + (i === sel ? '.is-active' : ''), {
+        type: 'button', role: 'option', 'aria-selected': String(i === sel),
+        onmousemove: function () { if (sel !== i) { sel = i; draw(); } },
+        onclick: function () { pick(it); }
+      }, icon(it.icon || 'right', 14), h('span', { text: it.label }), h('small', { text: it.kind }), i === sel ? h('kbd', { text: '↵' }) : null));
+    });
+    var act = list.querySelector('.is-active');
+    if (act) act.scrollIntoView({ block: 'nearest' });
+  }
+  modal(h('div.picker',
+    h('label.picker__search', icon('search', 15), input, h('kbd', { text: 'Esc' })),
+    list,
+    h('div.picker__foot', { text: '↑↓ move · ↵ open · Esc close' })), { cls: 'modal--picker', label: opts.label });
+  draw();
+  input.focus();
+}
 
 /* ---------- Files ---------- */
 

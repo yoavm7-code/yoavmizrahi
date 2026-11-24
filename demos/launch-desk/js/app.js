@@ -1,4 +1,4 @@
-/* Mega Uploader demo: start-up and the little bit of state every screen shares.
+/* Launch Desk demo: start-up and the little bit of state every screen shares.
    Screens switch in memory, never through the URL, so inside the portfolio's frame the Back button
    still leaves the page instead of stepping through the demo. */
 

@@ -1,9 +1,9 @@
-/* Mega Uploader demo: Run history. Every batch that was submitted, one run per card, and what
-   happened to each campaign in it, down to the upload trace. Runs made in this visit appear on top. */
+/* Launch Desk demo: Launches. Every batch that was launched, one launch per card, and what
+   happened to each campaign in it, down to the launch trace. Launches made in this visit appear on top. */
 
 import { TEAMMATES } from './data.js';
 import { runStatus, runCampaigns, filterRuns, sortRuns, dayGroup, platformById, fmtInt, toCsv } from './logic.js';
-import { h, icon, dot, clear, replace, toast, notInDemo, download, log } from './dom.js';
+import { h, icon, dot, clear, replace, toast, download, log } from './dom.js';
 
 var STATUS = {
   succeeded: { label: 'Succeeded', icon: 'check', cls: 'ok' },
@@ -12,7 +12,7 @@ var STATUS = {
 };
 
 export function createHistory(app) {
-  var el = h('section.screen.hist', { 'aria-label': 'Run history' });
+  var el = h('section.screen.hist', { 'aria-label': 'Launches' });
   var f = { q: '', platform: '', status: '', result: '', user: '', time: '', mode: 'all', sort: 'newest' };
   var view = { selected: null, filter: 'all', open: {}, refreshing: false };
   var listEl = null;
@@ -25,26 +25,24 @@ export function createHistory(app) {
     if (opts && opts.run) { view.selected = opts.run; view.filter = 'all'; view.open = {}; }
     if (!view.selected) view.selected = app.runs[0] && app.runs[0].id;
     var p = platformById(app.platform);
-    var search = h('input.input', { type: 'search', placeholder: 'Search run #, task, platform, or user…', value: f.q, 'aria-label': 'Search runs', oninput: function () { f.q = search.value; paint(); } });
+    var search = h('input.input', { type: 'search', placeholder: 'Search launch #, brand, platform or user…', value: f.q, 'aria-label': 'Search launches', oninput: function () { f.q = search.value; paint(); } });
     countEl = h('span.muted.count-runs', {});
-    var sortSel = select('Sort runs', [['newest', 'Newest first'], ['oldest', 'Oldest first'], ['number', 'Run number'], ['campaigns', 'Most campaigns'], ['live', 'Most live'], ['failed', 'Most failed']], f.sort, function (v) { f.sort = v; paint(); });
+    var sortSel = select('Sort launches', [['newest', 'Newest first'], ['oldest', 'Oldest first'], ['number', 'Launch number'], ['campaigns', 'Most campaigns'], ['live', 'Most live'], ['failed', 'Most failed']], f.sort, function (v) { f.sort = v; paint(); });
 
-    listEl = h('div.runlist__items', { role: 'listbox', 'aria-label': 'Runs' });
+    listEl = h('div.runlist__items', { role: 'listbox', 'aria-label': 'Launches' });
     detailEl = h('div.detail', {});
 
     el.replaceChildren(h('div.screen__in',
       h('div.page-head',
         h('div',
-          h('h1', { text: 'Run history' }),
-          h('p.sub', { text: 'Every batch submitted, one campaign per row. Select a run to dig in.' }),
+          h('h1', { text: 'Launches' }),
+          h('p.sub', { text: 'Every batch that went out. Select a launch to see each campaign in it.' }),
           h('p.note', icon('clock', 12), p.name + ' campaign statuses update every hour')),
-        h('div.page-head__actions.page-head__actions--col',
-          h('div.row',
-            h('div.seg', { role: 'group', 'aria-label': 'Which runs' },
-              segBtn('All runs', f.mode === 'all', function () { f.mode = 'all'; render(); }),
-              segBtn('Live', f.mode === 'live', function () { f.mode = 'live'; render(); })),
-            h('button.btn.btn--ghost', { type: 'button', onclick: function () { app.shell.ask.toggle(true); } }, icon('help', 14), 'Need help?')),
-          h('button.btn', { type: 'button', onclick: exportCsv }, icon('download', 14), 'Export CSV', icon('down', 12)))),
+        h('div.page-head__actions',
+          h('div.seg', { role: 'group', 'aria-label': 'Which launches' },
+            segBtn('All launches', f.mode === 'all', function () { f.mode = 'all'; render(); }),
+            segBtn('Live', f.mode === 'live', function () { f.mode = 'live'; render(); })),
+          h('button.btn', { type: 'button', onclick: exportCsv }, icon('download', 14), 'Export CSV'))),
 
       h('div.card.filters',
         h('div.filters__row',
@@ -53,12 +51,7 @@ export function createHistory(app) {
           select('Status', [['', 'All statuses'], ['succeeded', 'Succeeded'], ['partial', 'Partial'], ['failed', 'Failed']], f.status, function (v) { f.status = v; paint(); }),
           select('Result', [['', 'Any result'], ['live', 'Has live campaigns'], ['failures', 'Has failures'], ['none', 'Nothing went live']], f.result, function (v) { f.result = v; paint(); }),
           select('User', [['', 'All users']].concat(TEAMMATES.map(function (u) { return [u, u]; })), f.user, function (v) { f.user = v; paint(); }),
-          select('Task', [['', 'All tasks']], '', function () {}),
-          select('Workspace', [['', 'All workspaces']], '', function () {})),
-        h('div.filters__row',
-          select('Issue source', [['', 'Any issue source']], '', function () {}, 'grow'),
           select('Time', [['', 'All time'], ['today', 'Today'], ['yesterday', 'Yesterday'], ['7d', 'Last 7 days']], f.time, function (v) { f.time = v; paint(); }),
-          h('button.btn', { type: 'button', onclick: function () { notInDemo('More filters'); } }, icon('filter', 13), 'More', icon('down', 12)),
           countEl)),
 
       h('div.hist__body',
@@ -77,13 +70,13 @@ export function createHistory(app) {
 
   function paint() {
     var list = runs();
-    var label = fmtInt(list.length) + (list.length === 1 ? ' run' : ' runs');
+    var label = fmtInt(list.length) + (list.length === 1 ? ' launch' : ' launches');
     countEl.textContent = label;
     el.querySelector('.count-head').textContent = label;
     clear(listEl);
     if (!list.length) {
-      listEl.appendChild(h('p.empty', { text: 'No run matches these filters.' }, h('br'), h('button.link', { type: 'button', onclick: resetFilters }, 'Clear the filters')));
-      replace(detailEl, h('p.empty', { text: 'Pick a run on the left to see its campaigns.' }));
+      listEl.appendChild(h('p.empty', { text: 'No launch matches these filters.' }, h('br'), h('button.link', { type: 'button', onclick: resetFilters }, 'Clear the filters')));
+      replace(detailEl, h('p.empty', { text: 'Pick a launch on the left to see its campaigns.' }));
       return;
     }
     var group = null;
@@ -111,9 +104,9 @@ export function createHistory(app) {
     var p = platformById(r.platform);
     return h('button.runcard' + (r.fresh ? '.is-fresh' : ''), {
       type: 'button', role: 'option', 'data-run': String(r.id),
-      onclick: function () { view.selected = r.id; view.filter = 'all'; view.open = {}; log('history', 'select run', { run: r.id }); paintSelection(); paintDetail(); }
+      onclick: function () { view.selected = r.id; view.filter = 'all'; view.open = {}; log('history', 'select launch', { run: r.id }); paintSelection(); paintDetail(); }
     },
-    h('span.runcard__l1', h('b.blue', { text: '#' + r.id }), dot(p.color), h('span', { text: p.name }), h('span.muted', { text: '· ' + r.brand })),
+    h('span.runcard__l1', h('b.accent-text', { text: '#' + r.id }), dot(p.color), h('span', { text: p.name }), h('span.muted', { text: '· ' + r.brand })),
     h('span.runcard__l2',
       h('span.avatar.avatar--xs', { text: r.user.slice(0, 2).toUpperCase() }),
       h('span', { text: r.user }),
@@ -133,7 +126,7 @@ export function createHistory(app) {
 
   function paintDetail() {
     var r = app.runs.filter(function (x) { return x.id === view.selected; })[0];
-    if (!r) { replace(detailEl, h('p.empty', { text: 'Pick a run on the left to see its campaigns.' })); return; }
+    if (!r) { replace(detailEl, h('p.empty', { text: 'Pick a launch on the left to see its campaigns.' })); return; }
     var p = platformById(r.platform);
     var st = STATUS[runStatus(r)];
     var items = runCampaigns(r, app.now);
@@ -145,10 +138,10 @@ export function createHistory(app) {
     replace(detailEl, h('div.detail__in',
       h('div.detail__head',
         h('div',
-          h('div.detail__title', h('b', { text: 'Run #' + r.id }), dot(p.color), h('span', { text: p.name }), h('span.muted', { text: '· ' + r.brand })),
+          h('div.detail__title', h('b', { text: 'Launch #' + r.id }), dot(p.color), h('span', { text: p.name }), h('span.muted', { text: '· ' + r.brand })),
           h('div.detail__meta.muted',
             h('span.avatar.avatar--xs', { text: r.user.slice(0, 2).toUpperCase() }),
-            h('span', { text: r.user + ' · ' + (r.daysAgo === 0 ? 'Today' : r.daysAgo === 1 ? 'Yesterday' : r.daysAgo + ' days ago') + ' ' + r.time + ' · took ' + r.took + ' · Workspace ' }),
+            h('span', { text: r.user + ' · ' + (r.daysAgo === 0 ? 'Today' : r.daysAgo === 1 ? 'Yesterday' : r.daysAgo + ' days ago') + ' ' + r.time + ' · took ' + r.took + ' · Batch ' }),
             h('button.link', { type: 'button', onclick: function () { app.go('workspace'); } }, '#' + r.workspace),
             r.task ? h('span', { text: ' · Task ' + r.task }) : null)),
         h('div.row', statusPill(st), h('button.btn' + (view.refreshing ? '.is-busy' : ''), { type: 'button', onclick: refresh }, icon('refresh', 13), 'Refresh'))),
@@ -187,11 +180,11 @@ export function createHistory(app) {
     if (!open) return row;
     row.appendChild(h('div.crow__more',
       h('p.kvline', ['Account ' + (c.account || '—'), 'Geo ' + c.geo, 'Vertical ' + c.vertical, 'Strategy ' + c.strategy, 'Bid ' + c.bid, 'Budget ' + c.budget, 'Keywords ' + c.keywords, c.campaignId ? 'Campaign id ' + c.campaignId : null, 'Link ' + (c.linkId || '—')].filter(Boolean).join('   ')),
-      h('p.kvline', 'Landing page ', h('span.blue', { text: c.landing })),
+      h('p.kvline', 'Landing page ', h('span.accent-text', { text: c.landing })),
       c.ok ? h('div',
         h('p.cap', { text: 'CREATIVES · ' + c.creatives + ' OF ' + c.creativesTotal + ' UP · ' + c.creativesTotal + ' × ' + c.creativesTotal + ' IMAGES × 1 HEADLINE × 1 DESCRIPTION' }),
         Array.apply(null, Array(c.creatives)).map(function (x, k) { return h('p.creative', h('span.pill.pill--ok', icon('check', 10), 'Live'), h('span.mono', { text: 'Creative ' + c.campaignId + '-' + (k + 1) })); })) : h('p.err', { text: c.error }),
-      h('p.cap', { text: 'UPLOAD TRACE · ' + c.trace.length + ' STEPS' }),
+      h('p.cap', { text: 'LAUNCH TRACE · ' + c.trace.length + ' STEPS' }),
       h('div.trace', c.trace.map(function (t) { return h('div.trace__row', h('span.mono.muted', { text: t[0] }), h('span.mono', { text: t[1] })); }))));
     return row;
   }
@@ -216,9 +209,9 @@ export function createHistory(app) {
   }
   function exportCsv() {
     var list = runs();
-    download('run-history.csv', toCsv(['Run', 'Platform', 'Brand', 'User', 'Campaigns', 'Live', 'Failed', 'Status', 'Time'],
+    download('launches.csv', toCsv(['Launch', 'Platform', 'Brand', 'User', 'Campaigns', 'Live', 'Failed', 'Status', 'Time'],
       list.map(function (r) { return [r.id, platformById(r.platform).name, r.brand, r.user, r.campaigns, r.live, r.failed, STATUS[runStatus(r)].label, r.time]; })), 'text/csv');
-    toast('Exported ' + list.length + (list.length === 1 ? ' run.' : ' runs.'));
+    toast('Exported ' + list.length + (list.length === 1 ? ' launch.' : ' launches.'));
   }
 
   return { el: el, show: render };
@@ -232,10 +225,9 @@ function statusPill(st) {
 function segBtn(label, on, run) {
   return h('button.seg__btn' + (on ? '.is-on' : ''), { type: 'button', 'aria-pressed': String(on), onclick: run }, label);
 }
-function select(label, options, value, onChange, grow) {
-  var s = h('select.select' + (grow ? '.select--grow' : ''), { 'aria-label': label, onchange: function () { onChange(s.value); } },
+function select(label, options, value, onChange) {
+  var s = h('select.select', { 'aria-label': label, onchange: function () { onChange(s.value); } },
     options.map(function (o) { return h('option', { value: o[0], text: o[1] }); }));
   s.value = value;
-  if (options.length === 1) s.title = 'Only one option in this demo';
   return s;
 }

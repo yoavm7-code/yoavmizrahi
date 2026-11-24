@@ -1,12 +1,12 @@
-/* Mega Uploader demo: the Dashboard. Every platform at a glance: library size, launches per
-   platform and run activity. All figures come from data.js and are totalled in logic.js. */
+/* Launch Desk demo: the Overview. Every platform at a glance: library size, launches per
+   platform and launch activity. All figures come from data.js and are totalled in logic.js. */
 
 import { DASHBOARD } from './data.js';
 import { launchTotals, dashboardKpis, platformById, fmtInt, dateLabel } from './logic.js';
-import { h, icon, dot, menuButton, notInDemo, toast } from './dom.js';
+import { h, icon, dot, menuButton, toast } from './dom.js';
 
 export function createDashboard(app) {
-  var el = h('section.screen.dash', { 'aria-label': 'Dashboard' });
+  var el = h('section.screen.dash', { 'aria-label': 'Overview' });
   var platformFilter = '';
 
   function render() {
@@ -20,21 +20,17 @@ export function createDashboard(app) {
 
     var view = h('div.screen__in',
       h('div.page-head',
-        h('div', h('h1', { text: 'Dashboard' }), h('p.sub', { text: (platformFilter ? filterLabel : 'All platforms') + ' · every launch at a glance.' })),
-        h('div.page-head__actions',
-          filterBtn,
-          h('button.btn', { type: 'button', onclick: function () { notInDemo('Editing the dashboard'); } }, icon('sun', 14), 'Edit dashboard'),
-          h('button.btn.btn--ghost', { type: 'button', onclick: function () { notInDemo('Help'); } }, icon('help', 14), 'Need help?'))),
+        h('div', h('h1', { text: 'Overview' }), h('p.sub', { text: (platformFilter ? filterLabel : 'All platforms') + ' · every launch at a glance.' })),
+        h('div.page-head__actions', filterBtn)),
 
       h('div.kpis',
         kpiCard('CREATIVES IN LIBRARY', fmtInt(kpi.creatives), 'Shared across all platforms'),
         kpiCard('PLATFORMS CONNECTED', fmtInt(kpi.platforms), kpi.platforms + ' with build activity'),
-        kpiCard('ACCOUNTS · ALL PLATFORMS', fmtInt(kpi.accounts), 'Checked before every run'),
+        kpiCard('ACCOUNTS · ALL PLATFORMS', fmtInt(kpi.accounts), 'Checked before every launch'),
         kpiCard('VERTICALS', fmtInt(kpi.verticals), DASHBOARD.geos + ' geos · ' + DASHBOARD.languages + ' languages · shared')),
 
       h('div.card.perf',
-        h('div.card__head', h('span.cap', { text: 'LAUNCHES · LAST 30 DAYS · ALL PLATFORMS' }),
-          h('button.btn.btn--sm', { type: 'button', onclick: function () { notInDemo('Reports'); } }, 'Open in Reports', icon('down', 12))),
+        h('div.card__head', h('span.cap', { text: 'LAUNCHES · LAST 30 DAYS · ALL PLATFORMS' })),
         h('div.perf__nums',
           bigNum('CAMPAIGNS LAUNCHED', fmtInt(totals.launched)),
           bigNum('LIVE', fmtInt(totals.live), 'is-good'),
@@ -52,17 +48,19 @@ export function createDashboard(app) {
 
       h('div.card.plats',
         h('div.card__head', h('span.cap', { text: 'PLATFORMS · CLICK TO OPEN' })),
+        h('div.plat-row.plat-row--head', { 'aria-hidden': 'true' },
+          ['Platform', 'Accounts', 'Launches', 'Last launch', 'Status', ''].map(function (t) { return h('span.cap', { text: t }); })),
         rows.map(function (r) {
           var p = platformById(r.platform);
           return h('button.plat-row', {
             type: 'button', style: { borderLeftColor: p.color },
-            onclick: function () { app.setPlatform(p.id); app.go('workspace'); toast('Switched to ' + p.name + '. Here is its batch builder.'); }
+            onclick: function () { app.setPlatform(p.id); app.go('workspace'); toast('Switched to ' + p.name + '. Here are its batches.'); }
           },
           h('span.plat-row__name', dot(p.color), h('span', h('b', { text: p.name }), h('small', { text: p.sub }))),
           h('span.plat-row__num.mono', { text: fmtInt(r.accounts), title: 'Accounts' }),
-          h('span.plat-row__num.mono', { text: fmtInt(r.runs), title: 'Runs' }),
-          h('span.plat-row__date.mono', { text: dateLabel(r.daysAgo, app.now), title: 'Last run' }),
-          h('span.pill.pill--ok', icon('check', 11), r.runs + (r.runs === 1 ? ' run' : ' runs')),
+          h('span.plat-row__num.mono', { text: fmtInt(r.runs), title: 'Launches' }),
+          h('span.plat-row__date.mono', { text: dateLabel(r.daysAgo, app.now), title: 'Last launch' }),
+          h('span.pill.pill--ok', icon('check', 11), 'Connected'),
           icon('right', 14));
         })),
 

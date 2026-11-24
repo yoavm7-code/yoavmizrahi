@@ -1,9 +1,8 @@
-/* Mega Uploader demo: every name and number the replica shows lives here, and all of it is invented.
+/* Launch Desk demo: every name and number the replica shows lives here, and all of it is invented.
    Ad platforms keep their public names. People, brands, accounts, sites and figures are made up, and the
    workflow is kept generic: a team launching ads for several brands on several platforms.
    Derived figures (totals, rates, counts) are computed in logic.js, never typed here. */
 
-export const ORG = 'Growth Lab';
 export const USER = { name: 'Dana Levi', role: 'Team Lead', initials: 'DL', email: 'dana@example.com' };
 export const TEAMMATES = ['noa.k', 'amit', 'yoni', 'dana'];
 export const SITE = 'brand.example';
@@ -32,7 +31,7 @@ export const BRANDS = [
   { id: 'harbor', name: 'Harbor Pets', short: 'Harbor', color: '#2f6fd6', count: 0 }
 ];
 
-/* ---------- Dashboard ---------- */
+/* ---------- Overview ---------- */
 
 export const DASHBOARD = {
   /* Campaigns launched in the last 30 days, per platform. Totals and the success rate are derived. */
@@ -77,7 +76,7 @@ export const DASHBOARD = {
   languages: 6
 };
 
-/* ---------- Workspace ---------- */
+/* ---------- Batches ---------- */
 
 export const GEOS = ['US', 'UK', 'DE', 'FR', 'CA', 'AU', 'IT', 'ES', 'NL', 'MX'];
 export const LANGS = { US: 'en', UK: 'en', CA: 'en', AU: 'en', DE: 'de', FR: 'fr', IT: 'it', ES: 'es', NL: 'nl', MX: 'es' };
@@ -116,14 +115,14 @@ export const WORKSPACE = {
     keywords: 'smart bulbs, smart plug, home automation', bid: '0.40', strategy: 'Lowest cost',
     resolved: { linkId: 'k7q2mx', link: 'https://go.' + SITE + '/k7q2mx' }
   },
-  /* The run that is already in the live run panel when the demo opens. */
+  /* The launch that is already in the launch panel when the demo opens. */
   lastRun: { daysAgo: 2, uploaded: 1, total: 1, time: '11:06:42' }
 };
 
 /* Creative thumbnails: generated as small gradient tiles, so no real ad image is shipped. */
 export const ASSETS = ['#e9b384', '#9cc5e8', '#b7d9a8', '#e7a1b0', '#c7b5e6', '#f1d58a', '#a6d6d2', '#d9b08c'];
 
-/* ---------- Run history ---------- */
+/* ---------- Launches ---------- */
 /* status is derived from live and failed in logic.js. time is the clock time; daysAgo groups the list. */
 
 export const RUNS = [
@@ -167,33 +166,9 @@ export const NOTIFICATIONS = {
     { title: 'North America 1: 90% of monthly cap', sub: 'Google Ads · raise the cap in Accounts', tone: 'grey' }
   ],
   activity: [
-    { title: 'noa.k shared a workspace with you', sub: 'Spring launch · Brightside Home', age: '3h', tone: 'violet' },
-    { title: 'amit finished run #1178', sub: '25 live · 1 failed', age: '5h', tone: 'grey' },
+    { title: 'noa.k shared a batch with you', sub: 'Spring launch · Brightside Home', age: '3h', tone: 'violet' },
+    { title: 'amit launched #1178', sub: '25 live · 1 failed', age: '5h', tone: 'grey' },
     { title: 'yoni added 40 creatives', sub: 'Library · Pine & Co', age: '1d', tone: 'amber' },
-    { title: 'dana renamed a workspace', sub: 'Video test · Brightside Home', age: '2d', tone: 'grey' }
+    { title: 'dana renamed a batch', sub: 'Video test · Brightside Home', age: '2d', tone: 'grey' }
   ]
 };
-
-/* Tips only describe features the replica itself shows. */
-export const TIPS = [
-  { title: 'Fill a whole grid in two clicks', body: 'Data → Auto-fill creatives and Auto-generate headlines fill every empty row from its vertical.', meta: 'SHIPPED · 2D' },
-  { title: 'Links before launch', body: 'Create tracking links gives every row its own short link. Create links & upload goes live as the links come in.', meta: 'SHIPPED · 5D' },
-  { title: 'Every run is traced', body: 'Open Run history and expand a campaign to see each upload step and every creative it sent.', meta: 'SHIPPED · 1W' },
-  { title: 'Press / to search', body: 'The search box at the top finds rows, runs and accounts from anywhere.', meta: 'SHIPPED · 2W' }
-];
-
-/* Sidebar. screen marks the pages this demo includes; everything else answers with a short note. */
-export const NAV = [
-  { section: '', items: [['Dashboard', 'dashboard', 'dashboard']] },
-  { section: 'BUILD & UPLOAD', items: [['Workspace', 'grid', 'workspace'], ['Run history', 'clock', 'history']] },
-  { section: 'PERFORMANCE', items: [['Campaigns', 'search'], ['Reports', 'chart']] },
-  { section: 'LIBRARY', items: [['Creatives', 'image'], ['Headlines', 'file'], ['Keywords', 'key']] },
-  { section: 'MANAGE', items: [['Accounts', 'users'], ['Brands', 'layers'], ['Team', 'users'], ['Settings', 'settings'], ['Help center', 'help']] }
-];
-
-/* Canned answers for the Ask drawer. Each one describes something the demo really does. */
-export const ASK = [
-  { q: 'Why did a campaign fail?', a: 'Open Run history and pick a run with a red count. Expand the red row: the Outcome column has the platform\'s message, and the upload trace shows which step stopped. In this demo the usual one is a headline that breaks the financial claims policy. Edit the Headline cell and run it again.' },
-  { q: 'How do I fill a grid fast?', a: 'Use Data → Fill example data for the basics, then Data → Auto-fill creatives and Data → Auto-generate headlines. Every empty required cell (the red ones) fills from the row\'s vertical. The count next to the tab name tells you how many campaigns are ready.' },
-  { q: 'What do tracking links do?', a: 'Create tracking links gives every row its own short link and fills Link ID and Tracked link, so each campaign can be measured on its own. It stops there. Create links & upload goes live as the links come in.' }
-];

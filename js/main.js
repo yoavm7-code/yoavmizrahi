@@ -166,14 +166,14 @@
     });
   }
 
-  /* ---------- Uploader demo: a pocket Run live (all instances share state) ---------- */
-  /* The rows are campaigns from the replica's recorded run (demos/mega-uploader), so the desk matches the
+  /* ---------- Uploader demo: a pocket Launch (all instances share state) ---------- */
+  /* The rows are campaigns from the replica's recorded launch (demos/launch-desk), so the desk matches the
      video. Credit Cards fails on the financial claims policy there too. */
   var upRows = [
     { name: 'CA · Smart Home' }, { name: 'FR · Meal Kits' }, { name: 'IT · Language Apps' },
     { name: 'AU · Credit Cards', fails: true }, { name: 'NL · Pet Food' }
   ];
-  var upText = { ready: 'ready', running: 'uploading', live: 'live', failed: 'policy' };
+  var upText = { ready: 'ready', running: 'launching', live: 'live', failed: 'policy' };
   var up = { done: 0, running: false, timer: null };
   function upState(i) {
     if (i < up.done) return upRows[i].fails ? 'failed' : 'live';
@@ -208,7 +208,7 @@
         $('.u-state', li).textContent = upText[st];
       });
       var btn = $('[data-u-start]', root);
-      btn.textContent = up.running ? 'RUNNING…' : started ? 'RUN AGAIN' : 'RUN LIVE';
+      btn.textContent = up.running ? 'LAUNCHING…' : started ? 'LAUNCH AGAIN' : 'LAUNCH';
       btn.disabled = up.running;
       $('.u-sum', root).textContent = started ? live + ' live · ' + failed + ' failed' : upRows.length + ' campaigns ready';
     });

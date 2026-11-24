@@ -1,5 +1,5 @@
-/* Mega Uploader demo: the Workspace (batch builder). A spreadsheet of campaigns to create.
-   Fill it (by hand or with the Data tools), create tracking links, then Run live and watch the log.
+/* Launch Desk demo: Batches. A spreadsheet of campaigns to create, one batch per tab.
+   Fill it (by hand or with the Data tools), create tracking links, then Launch and watch the log.
    Everything is simulated in the page: nothing is sent anywhere. */
 
 import { BRANDS, WORKSPACE, USER } from './data.js';
@@ -8,7 +8,7 @@ import {
   resolveFields, exampleRow, autoAsset, assetUrl, assetColor, autoHeadline, autoKeywords, fixGrammar, hasPlaceholders,
   fillPlaceholders, planRun, runSummary, runFromPlan, platformById, daysBefore, shortDate, clockSeconds, toCsv, isBlank
 } from './logic.js';
-import { h, icon, dot, clear, replace, toast, notInDemo, popover, closePopover, menu, menuButton, modal, closeModal, download, copyText, log } from './dom.js';
+import { h, icon, dot, clear, replace, toast, notInDemo, popover, closePopover, menu, menuButton, modal, closeModal, picker, download, copyText, log } from './dom.js';
 
 var TAB_COLORS = ['#d6342c', '#e8742c', '#d99a1e', '#c9b21c', '#2e9a52', '#1aa79c', '#1f9bc2', '#2f6fd6', '#4553c9', '#6b4fd1', '#8a49c9', '#c94f9b', '#545b6a'];
 var FILL_STEP = 70;
@@ -17,7 +17,7 @@ var LOG_STEP = 110;
 export function createWorkspace(app) {
   var ws = {
     tabs: WORKSPACE.tabs.map(function (name, i) {
-      return { id: WORKSPACE.id + i, name: name, color: i === 0 ? '#2f6fd6' : TAB_COLORS[(i * 3) % TAB_COLORS.length], rows: blankRows(WORKSPACE.rows) };
+      return { id: WORKSPACE.id + i, name: name, color: i === 0 ? '#1aa79c' : TAB_COLORS[(i * 3) % TAB_COLORS.length], rows: blankRows(WORKSPACE.rows) };
     }),
     active: 0,
     undo: [],
@@ -25,13 +25,11 @@ export function createWorkspace(app) {
     sel: null,
     query: '',
     hidden: {},
-    focus: false,
     simple: false,
     busy: false,
     running: false,
     saved: true,
     runOpts: { notify: false },
-    colorByTask: true,
     guideOpen: true,
     done: { fill: false, creatives: false, run: false, history: false },
     panel: null
@@ -62,7 +60,7 @@ export function createWorkspace(app) {
   function readyCount() { return rows().filter(isReady).length; }
   function resolveCount() { return rows().filter(canResolve).length; }
 
-  /* The first row comes filled in, with its link made and its last run done on an earlier day. */
+  /* The first row comes filled in, with its link made and its last launch done on an earlier day. */
   (function seed() {
     var first = rows()[0];
     var f = WORKSPACE.firstRow;
@@ -179,7 +177,7 @@ export function createWorkspace(app) {
     toast('Filled placeholders in ' + n + (n === 1 ? ' row.' : ' rows.'));
   }
   function clearAll() {
-    if (ws.running) { toast('Wait for the run to finish.'); return; }
+    if (ws.running) { toast('Wait for the launch to finish.'); return; }
     var n = rows().length;
     commit('clear all rows', function () { tab().rows = blankRows(n); });
     ws.sel = null;
@@ -198,7 +196,7 @@ export function createWorkspace(app) {
   function exportCsv() {
     var data = csvRows();
     if (!data.length) { toast('The grid is empty, so there is nothing to export.'); return; }
-    download('workspace-' + tab().id + '.csv', toCsv(COLUMNS.map(function (c) { return c.label; }), data), 'text/csv');
+    download('batch-' + tab().id + '.csv', toCsv(COLUMNS.map(function (c) { return c.label; }), data), 'text/csv');
     toast('Exported ' + data.length + (data.length === 1 ? ' row.' : ' rows.'));
   }
   function copyTsv() {
@@ -212,21 +210,13 @@ export function createWorkspace(app) {
       { label: 'Fill example data', icon: 'trend', run: fillExample },
       { label: 'Import CSV…', icon: 'upload', run: function () { notInDemo('Importing a CSV'); } },
       { label: 'Export CSV', icon: 'download', run: exportCsv },
-      { label: 'Apply preferences to all rows', icon: 'settings', run: function () { notInDemo('Preferences'); } },
       { sep: true },
-      { label: 'Bulk add assets…', icon: 'plus', run: function () { notInDemo('Bulk add assets'); } },
-      { label: 'Bulk add headlines…', icon: 'plus', run: function () { notInDemo('Bulk add headlines'); } },
-      { label: 'Auto-fill creatives…', icon: 'trend', run: fillCreatives },
-      { label: 'Auto-fill keywords (all rows)', icon: 'trend', run: function () { fillKeywords(3); } },
-      { label: 'Fill up to 10 keywords (all rows)', icon: 'trend', run: function () { fillKeywords(10); } },
-      { label: 'Generate keywords from title (all rows)', icon: 'trend', run: function () { fillKeywords(4); } },
-      { label: 'Auto-generate headlines…', icon: 'trend', run: fillHeadlines },
-      { label: 'Generate all missing headlines…', icon: 'trend', run: fillHeadlines },
-      { label: 'Headlines from landing page…', icon: 'file', run: function () { notInDemo('Headlines from a landing page'); } },
+      { label: 'Auto-fill creatives', icon: 'image', run: fillCreatives },
+      { label: 'Auto-generate headlines', icon: 'sparkle', run: fillHeadlines },
+      { label: 'Auto-fill keywords', icon: 'trend', run: function () { fillKeywords(3); } },
+      { label: 'Fill up to 10 keywords', icon: 'trend', run: function () { fillKeywords(10); } },
       { label: 'Fix headline grammar', icon: 'check', run: fixHeadlines },
       { label: 'Remove placeholders like {city}', icon: 'minus', run: removePlaceholders },
-      { sep: true },
-      { label: 'Upload selected as new campaigns…', icon: 'refresh', run: function () { notInDemo('Uploading a selection'); } },
       { sep: true },
       { label: 'Copy grid as TSV', icon: 'copy', run: copyTsv },
       { label: 'Clear all rows', icon: 'trash', danger: true, run: clearAll }
@@ -247,15 +237,15 @@ export function createWorkspace(app) {
     });
   }
 
-  /* ---------- Run live ---------- */
+  /* ---------- Launch ---------- */
 
   function openRun() {
-    if (ws.running) { toast('A run is already going. Watch it in the live run panel.'); return; }
+    if (ws.running) { toast('A launch is already going. Watch it in the launch panel.'); return; }
     if (ws.busy) { toast('Wait for the current step to finish.'); return; }
     var plan = planRun(rows(), ctx());
     if (!plan.length) {
       var anyLive = rows().some(function (r) { return r.status === 'live'; });
-      toast(anyLive ? 'Every ready row is already live. Add rows, or start a new workspace with +.' : 'No rows are ready yet. Fill Geo, Landing page, Product ID, Image and Headline, or use Data → Fill example data.');
+      toast(anyLive ? 'Every ready row is already live. Add rows, or start a new batch with +.' : 'No rows are ready yet. Fill Geo, Landing page, Product ID, Image and Headline, or use Data → Fill example data.');
       log('run', 'nothing to run', { ready: readyCount(), live: anyLive });
       return;
     }
@@ -263,19 +253,19 @@ export function createWorkspace(app) {
     var p = platformById(app.platform);
     var notify = h('input', { type: 'checkbox', checked: ws.runOpts.notify });
     modal(h('div.confirm',
-      h('h2', { text: 'Go live with ' + s.campaigns + (s.campaigns === 1 ? ' campaign?' : ' campaigns?') }),
+      h('h2', { text: 'Launch ' + s.campaigns + (s.campaigns === 1 ? ' campaign?' : ' campaigns?') }),
       h('p.sub', { text: p.name + ' · ' + brand().name + ' · ' + tab().name }),
       h('div.kv',
         kv('Campaigns', String(s.campaigns)),
         kv('Accounts', s.accounts + ' (all checked ✓)'),
         kv('Geos', s.geos.join(', ')),
         kv('Daily budget', '$' + s.budget.toFixed(2))),
-      h('div.notice', icon('warn', 14), h('span', { text: 'Campaigns start paused, ads go live after review. In the real app this spends real money. Here nothing leaves the page.' })),
+      h('div.notice', icon('warn', 14), h('span', { text: 'With a real ad account this would spend money. In this demo nothing leaves the page.' })),
       h('label.check', notify, h('span', { text: 'Notify me when done' })),
       h('div.confirm__actions',
         h('button.btn.btn--ghost', { type: 'button', onclick: closeModal }, 'Cancel'),
-        h('button.btn.btn--danger-solid', { type: 'button', autofocus: true, onclick: function () { ws.runOpts.notify = notify.checked; closeModal(); startRun(plan); } }, 'Run live · ' + s.campaigns))
-    ), { label: 'Confirm run live' });
+        h('button.btn.btn--primary', { type: 'button', autofocus: true, onclick: function () { ws.runOpts.notify = notify.checked; closeModal(); startRun(plan); } }, 'Launch · ' + s.campaigns))
+    ), { label: 'Confirm launch' });
     log('run', 'confirm opened', { campaigns: s.campaigns, geos: s.geos });
   }
 
@@ -328,13 +318,13 @@ export function createWorkspace(app) {
       ws.panel.runId = run.id;
       log('run', 'finished', { run: run.id, live: run.live, failed: run.failed, took: run.took });
       render();
-      if (ws.runOpts.notify) toast('Run #' + run.id + ' finished: ' + run.live + ' live, ' + run.failed + ' failed.');
+      if (ws.runOpts.notify) toast('Launch #' + run.id + ' finished: ' + run.live + ' live, ' + run.failed + ' failed.');
     }
   }
 
   /* ---------- Layout ---------- */
 
-  var el = h('section.screen.ws', { 'aria-label': 'Workspace' });
+  var el = h('section.screen.ws', { 'aria-label': 'Batches' });
   var parts = {};
   var grid = { table: null, scroller: null, body: null };
 
@@ -345,50 +335,38 @@ export function createWorkspace(app) {
     var p = platformById(app.platform);
 
     parts.brandbar = h('div.brandbar',
-      h('span.brandbar__label', { text: 'Batch builder' }),
+      h('span.brandbar__label', { text: 'Brand' }),
       BRANDS.map(function (bd) {
         var on = bd.id === WORKSPACE.brand;
         return h('button.brand-chip' + (on ? '.is-active' : ''), {
-          type: 'button', title: 'Show ' + bd.name + ' workspaces', 'aria-pressed': String(on),
-          onclick: function () { if (!on) toast('This demo only has ' + b.short + ' workspaces. Every brand gets its own set.'); }
+          type: 'button', title: 'Show ' + bd.name + ' batches', 'aria-pressed': String(on),
+          onclick: function () { if (!on) toast('This demo only has ' + b.short + ' batches. Every brand gets its own set.'); }
         }, dot(bd.color), h('span', { text: bd.name }), bd.count ? h('small', { text: String(bd.count) }) : null);
       }));
 
     parts.tabs = h('div.tabstrip',
       ws.tabs.map(function (tb, i) { return tabEl(tb, i); }),
-      iconBtnSm('plus', 'New workspace', newTab),
-      h('button.btn.btn--sm', { type: 'button', title: 'Copy a tab from another platform into ' + p.name, onclick: function () { notInDemo('Copying a tab'); } }, icon('copy', 13), 'Copy from…'),
-      h('button.btn.btn--sm', { type: 'button', title: 'Find a workspace by name or ID (open or closed)', onclick: findTab }, icon('search', 13), 'Find'),
-      h('button.btn.btn--sm', { type: 'button', title: 'Manage tabs: archive, recolor or trash several at once', onclick: function () { notInDemo('Managing tabs'); } }, icon('list', 13), 'Manage'),
-      h('button.btn.btn--sm', { type: 'button', title: 'Clean up: close every open tab', onclick: function () { notInDemo('Clean up'); } }, icon('broom', 13), 'Clean up'),
+      h('button.btn.btn--sm.btn--ghost', { type: 'button', title: 'Start a new batch with ' + WORKSPACE.rows + ' empty rows', onclick: newTab }, icon('plus', 13), 'New batch'),
       h('span.tabstrip__fill'),
-      parts.saved = h('span.saved', {}),
-      h('span.split',
-        h('button.btn.btn--sm' + (ws.focus ? '.is-on' : ''), { type: 'button', 'aria-pressed': String(ws.focus), title: 'Fold the brand bar, toolbar and run panel away', onclick: function () { ws.focus = !ws.focus; log('ui', 'focus', { on: ws.focus }); render(); } }, icon('focus', 13), 'Focus'),
-        h('button.btn.btn--sm.split__caret', { type: 'button', 'aria-label': 'Choose what to fold', onclick: function () { notInDemo('Choosing what to fold'); } }, icon('down', 12))));
+      parts.saved = h('span.saved', {}));
 
     var ready = readyCount();
     parts.head = h('div.ws-head',
       dot(t.color, 'dot--sq'),
       h('b', { text: t.name }),
       h('span.muted', { text: p.name + ' · ' + b.name }),
-      h('button.id-chip', { type: 'button', title: 'Workspace ID ' + t.id + ': click to copy, then send it to support', onclick: function () { copyText(String(t.id), 'Copied workspace ID ' + t.id); } }, h('span.mono', { text: 'ID' }), h('b', { text: String(t.id) }), icon('copy', 12)),
-      parts.ready = h('span.ws-head__ready', { text: ready + (ready === 1 ? ' campaign ready' : ' campaigns ready') }),
-      h('span.tabstrip__fill'),
-      h('button.btn.btn--sm', { type: 'button', onclick: function () { notInDemo('Reporting a bug'); } }, icon('bug', 13), 'Report bug'),
-      h('button.btn.btn--sm', { type: 'button', onclick: function () { notInDemo('Requesting a feature'); } }, 'Request feature'),
-      h('button.btn.btn--sm.btn--ghost', { type: 'button', onclick: function () { app.shell.ask.toggle(true); } }, icon('help', 13), 'Need help?'));
+      parts.ready = h('span.ws-head__ready', { text: ready + (ready === 1 ? ' campaign ready' : ' campaigns ready') }));
 
     var nRes = resolveCount();
     var dataBtn = h('button.btn.btn--sm', { type: 'button', 'aria-haspopup': 'menu', 'data-tool': 'data', onclick: function () { openData(dataBtn); } }, icon('grid', 13), 'Data', icon('down', 12));
     var resolveCaret = h('button.btn.btn--sm.split__caret', { type: 'button', 'aria-label': 'Tracking link options', 'aria-haspopup': 'menu', onclick: function () {
       menuButton(resolveCaret, [
-        { label: 'Create links only · ' + nRes, icon: 'check', title: 'Make the tracking links. Upload later with Run live.', run: function () { resolve(); } },
-        { label: 'Create links & upload… · ' + nRes, icon: 'upload', title: 'Make the links, then go live as they come in.', run: function () { resolve(openRun); } }
+        { label: 'Create links only · ' + nRes, icon: 'check', title: 'Make the tracking links. Launch later.', run: function () { resolve(); } },
+        { label: 'Create links & launch… · ' + nRes, icon: 'upload', title: 'Make the links, then launch the batch.', run: function () { resolve(openRun); } }
       ]);
     } }, icon('down', 12));
-    var moreBtn = h('button.btn.btn--sm.btn--blue', { type: 'button', 'aria-haspopup': 'menu', onclick: function () { openMore(moreBtn); } }, 'More', icon('down', 12));
-    var runCaret = h('button.btn.btn--sm.btn--danger.split__caret', { type: 'button', 'aria-label': 'Run options', 'aria-haspopup': 'menu', onclick: function () { openRunOptions(runCaret); } }, icon('down', 12));
+    var moreBtn = h('button.btn.btn--sm', { type: 'button', 'aria-haspopup': 'menu', onclick: function () { openMore(moreBtn); } }, icon('more', 13), 'More', icon('down', 12));
+    var runCaret = h('button.btn.btn--sm.btn--primary.split__caret', { type: 'button', 'aria-label': 'Launch options', 'aria-haspopup': 'menu', onclick: function () { openRunOptions(runCaret); } }, icon('down', 12));
     var search = h('input.tool-search__input', {
       type: 'search', placeholder: 'Search rows…', value: ws.query, 'aria-label': 'Search rows',
       oninput: function () { ws.query = search.value; paintGrid(); paintCounts(); }
@@ -407,15 +385,12 @@ export function createWorkspace(app) {
         h('button.btn.btn--sm' + (nRes ? '' : '.is-quiet'), { type: 'button', 'data-tool': 'resolve', title: 'Make ' + nRes + ' tracking links, one per row, and fill the link columns', onclick: function () { resolve(); } }, icon('check', 13), 'Create tracking links · ' + nRes),
         resolveCaret),
       h('label.tool-search', icon('search', 13), search),
-      iconBtnSm('bookmark', 'Saved searches: keep the row searches you retype', function () { notInDemo('Saved searches'); }),
       colsBtn,
       h('span.tabstrip__fill'),
       moreBtn,
-      h('span.runmode', h('span', dot('#2e9a52'), 'Live on'), h('span', dot('#d99a1e'), 'Starts paused, ads live')),
       h('span.split',
-        h('button.btn.btn--sm.btn--danger', { type: 'button', 'data-tool': 'run', title: 'Create these campaigns live on the platform (in this demo, nothing is sent)', onclick: openRun }, 'Run live'),
-        runCaret),
-      iconBtnSm('help', 'How Run live works', function () { app.shell.ask.toggle(true); }));
+        h('button.btn.btn--sm.btn--primary', { type: 'button', 'data-tool': 'run', title: 'Create these campaigns on the platform (in this demo, nothing is sent)', onclick: openRun }, icon('play', 12), 'Launch'),
+        runCaret));
 
     parts.strip = h('div.strip',
       parts.hint = h('span.strip__hint', {}),
@@ -428,26 +403,14 @@ export function createWorkspace(app) {
     buildGrid();
 
     var footN = h('input.num', { type: 'number', min: 1, max: 50, value: 5, 'aria-label': 'Rows to add at the bottom' });
-    parts.footer = h('div.grid-foot',
-      h('div.grid-nav',
-        iconBtnSm('first', 'Jump to the first column', function () { grid.scroller.scrollLeft = 0; }),
-        iconBtnSm('left', 'Scroll left', function () { grid.scroller.scrollLeft -= 300; }),
-        h('span.tabstrip__fill'),
-        iconBtnSm('right', 'Scroll right', function () { grid.scroller.scrollLeft += 300; }),
-        iconBtnSm('last', 'Jump to the last column', function () { grid.scroller.scrollLeft = grid.scroller.scrollWidth; }),
-        h('span.grid-nav__gap'),
-        iconBtnSm('top', 'Jump to the first row', function () { grid.scroller.scrollTop = 0; }),
-        iconBtnSm('up', 'Scroll up', function () { grid.scroller.scrollTop -= 200; }),
-        iconBtnSm('down', 'Scroll down', function () { grid.scroller.scrollTop += 200; }),
-        iconBtnSm('bottom', 'Jump to the last row', function () { grid.scroller.scrollTop = grid.scroller.scrollHeight; })),
-      h('div.add-foot', h('button.btn.btn--sm', { type: 'button', onclick: function () { addRows(footN.value); } }, icon('plus', 13), 'Add rows'), footN, h('span.muted', 'at the bottom · '), h('button.link', { type: 'button', onclick: shortcuts }, 'Ctrl+/ shortcuts')));
+    parts.footer = h('div.add-foot', h('button.btn.btn--sm', { type: 'button', onclick: function () { addRows(footN.value); } }, icon('plus', 13), 'Add rows'), footN, h('span.muted', 'at the bottom · '), h('button.link', { type: 'button', onclick: shortcuts }, 'Ctrl+/ shortcuts'));
 
-    var view = h('div.ws__in' + (ws.focus ? '.is-focus' : ''),
-      ws.focus ? null : parts.brandbar,
+    var view = h('div.ws__in',
+      parts.brandbar,
       parts.tabs, parts.head,
-      ws.focus ? null : parts.toolbar,
-      ws.focus ? null : parts.strip,
-      ws.focus ? null : parts.panel,
+      parts.toolbar,
+      parts.strip,
+      parts.panel,
       parts.cellbar, grid.wrap, parts.footer,
       guide());
     el.replaceChildren(view);
@@ -470,7 +433,7 @@ export function createWorkspace(app) {
   }
   function selectTab(i) {
     if (i === ws.active) return;
-    if (ws.running) { toast('Wait for the run to finish.'); return; }
+    if (ws.running) { toast('Wait for the launch to finish.'); return; }
     ws.active = i;
     ws.sel = null;
     log('nav', 'tab', { tab: tab().name });
@@ -478,16 +441,9 @@ export function createWorkspace(app) {
   }
   function newTab() {
     var n = ws.tabs.length + 1;
-    ws.tabs.push({ id: tab().id + 20 + n, name: 'Workspace ' + n, color: TAB_COLORS[(n * 3) % TAB_COLORS.length], rows: blankRows(WORKSPACE.rows) });
+    ws.tabs.push({ id: tab().id + 20 + n, name: 'Batch ' + n, color: TAB_COLORS[(n * 3) % TAB_COLORS.length], rows: blankRows(WORKSPACE.rows) });
     selectTab(ws.tabs.length - 1);
-    toast('New workspace with ' + WORKSPACE.rows + ' empty rows.');
-  }
-  function findTab() {
-    var tabs = ws.tabs;
-    app.shell.palette({
-      label: 'Find a workspace', placeholder: 'Find a workspace by name or ID…',
-      items: tabs.map(function (tb, i) { return { label: tb.name + ' · ID ' + tb.id, icon: 'grid', kind: 'OPEN', run: function () { selectTab(i); } }; })
-    });
+    toast('New batch with ' + WORKSPACE.rows + ' empty rows.');
   }
   function renameTab(tabNode, tb) {
     var input = h('input.tab__rename', { type: 'text', value: tb.name, 'aria-label': 'Tab name', maxlength: 30 });
@@ -506,13 +462,11 @@ export function createWorkspace(app) {
     input.select();
   }
   function openTabMenu(anchor, tb, i) {
-    var upAnyway = h('input', { type: 'checkbox', checked: tb.upAnyway, onchange: function () { tb.upAnyway = upAnyway.checked; } });
     popover(anchor, h('div.tabmenu',
       h('div.menu__section', { text: 'COLOUR' }),
       h('div.swatches', TAB_COLORS.map(function (c) {
         return h('button.swatch' + (c === tb.color ? '.is-on' : ''), { type: 'button', 'aria-label': 'Colour ' + c, style: { background: c }, onclick: function () { tb.color = c; closePopover(); render(); } });
-      }), h('button.swatch.swatch--rainbow', { type: 'button', 'aria-label': 'Rainbow', onclick: function () { tb.color = TAB_COLORS[Math.floor(Math.random() * TAB_COLORS.length)]; closePopover(); render(); } })),
-      h('label.check', upAnyway, h('span', { text: 'Upload anyway (skip our policy)' })),
+      }), h('button.swatch.swatch--rainbow', { type: 'button', 'aria-label': 'Random colour', onclick: function () { tb.color = TAB_COLORS[Math.floor(Math.random() * TAB_COLORS.length)]; closePopover(); render(); } })),
       menu([
         { sep: true },
         { label: 'Rename', icon: 'pencil', run: function () { if (i !== ws.active) selectTab(i); setTimeout(function () { var node = el.querySelectorAll('.tab')[i]; if (node) renameTab(node, tb); }, 0); } },
@@ -534,8 +488,8 @@ export function createWorkspace(app) {
     toast('Duplicated ' + tb.name + (fresh ? ' with fresh links.' : '.'));
   }
   function removeTab(i, verb) {
-    if (ws.tabs.length === 1) { toast('Keep at least one workspace open.'); return; }
-    if (ws.running) { toast('Wait for the run to finish.'); return; }
+    if (ws.tabs.length === 1) { toast('Keep at least one batch open.'); return; }
+    if (ws.running) { toast('Wait for the launch to finish.'); return; }
     var name = ws.tabs[i].name;
     ws.tabs.splice(i, 1);
     ws.active = Math.min(ws.active, ws.tabs.length - 1);
@@ -546,30 +500,20 @@ export function createWorkspace(app) {
 
   function openMore(anchor) {
     menuButton(anchor, [
-      { note: 'Some tools moved here to fit the window.' },
-      { section: 'BUILD' },
-      { label: 'Setup', icon: 'settings', hint: '›', run: function () { notInDemo('Workspace setup'); } },
-      { label: 'Fill creatives', icon: 'image', run: fillCreatives },
-      { section: 'REVIEW' },
       { label: 'Go to column', icon: 'columns', hint: 'Ctrl+K', run: goToColumn },
-      { label: 'Filter', icon: 'filter', run: function () { notInDemo('Filters'); } },
-      { label: 'Checks', icon: 'check', run: checkRows },
+      { label: 'Check rows', icon: 'check', run: checkRows },
       { label: 'Simple view', icon: 'eye', toggle: ws.simple, run: function () { ws.simple = !ws.simple; log('ui', 'simple view', { on: ws.simple }); render(); } },
-      { label: 'Preferences', icon: 'settings', run: function () { notInDemo('Preferences'); } },
-      { label: 'History', icon: 'clock', run: function () { app.go('history'); } },
-      { label: 'Freeze…', icon: 'columns', run: function () { notInDemo('Freezing columns'); } },
-      { label: 'Color by Task', icon: 'layers', toggle: ws.colorByTask, run: function () { ws.colorByTask = !ws.colorByTask; } },
       { sep: true },
-      { label: 'Keyboard shortcuts', icon: 'terminal', hint: 'Ctrl+/', run: shortcuts },
-      { label: 'Customize toolbar…', icon: 'settings', run: function () { notInDemo('Customizing the toolbar'); } }
+      { label: 'Open Launches', icon: 'clock', run: function () { app.go('history'); } },
+      { label: 'Keyboard shortcuts', icon: 'terminal', hint: 'Ctrl+/', run: shortcuts }
     ], { align: 'right' });
   }
   function openRunOptions(anchor) {
     menuButton(anchor, [
-      { label: 'Check accounts & geos', icon: 'check', title: 'Check every campaign\'s account and geo before running', run: checkRows },
+      { label: 'Check accounts & geos', icon: 'check', title: 'Check every campaign\'s account and geo before launching', run: checkRows },
       { label: 'Pick accounts', icon: 'users', title: 'Fill each row\'s Account with the exact account it will upload to', run: resolveAccounts },
       { label: 'Notify when done', icon: 'bell', toggle: ws.runOpts.notify, run: function () { ws.runOpts.notify = !ws.runOpts.notify; } },
-      { label: 'Schedule…', icon: 'calendar', run: function () { notInDemo('Scheduling a run'); } }
+      { label: 'Schedule…', icon: 'calendar', run: function () { notInDemo('Scheduling a launch'); } }
     ], { align: 'right' });
   }
   function checkRows() {
@@ -594,7 +538,7 @@ export function createWorkspace(app) {
       }))), { reopen: true, focus: false });
   }
   function goToColumn() {
-    app.shell.palette({
+    picker({
       label: 'Go to column', placeholder: 'Jump to a column by name…',
       items: columns().map(function (c) {
         return { label: c.label, icon: 'columns', kind: columnLetter(COLUMNS.indexOf(c)), run: function () {
@@ -609,21 +553,22 @@ export function createWorkspace(app) {
       h('h2', { text: 'Keyboard shortcuts' }),
       h('div.kv', [
         ['Arrows', 'Move between cells'], ['Enter or typing', 'Edit the selected cell'], ['Esc', 'Cancel an edit'], ['Tab', 'Save and move right'],
-        ['Delete', 'Clear the cell'], ['Ctrl+Z / Ctrl+Shift+Z', 'Undo / Redo'], ['Ctrl+K', 'Go to column'], ['Ctrl+Shift+P', 'Command palette'], ['/', 'Search']
+        ['Delete', 'Clear the cell'], ['Ctrl+Z / Ctrl+Shift+Z', 'Undo / Redo'], ['Ctrl+K', 'Go to column'], ['Ctrl+/', 'This list']
       ].map(function (x) { return kv(x[0], x[1]); })),
       h('div.confirm__actions', h('button.btn', { type: 'button', autofocus: true, onclick: closeModal }, 'Close'))), { label: 'Keyboard shortcuts' });
   }
 
-  /* ---------- Live run panel ---------- */
+  /* ---------- Launch panel ---------- */
 
   function paintPanel() {
     var pn = ws.panel;
     if (!parts.panel) return;
     var running = pn.state === 'running';
+    var progress = running ? (pn.uploaded + pn.failed) + ' of ' + pn.total + ' done' : pn.uploaded + ' live · ' + pn.total + ' total';
     replace(parts.runChip, h('span.run-chip__in',
       running ? h('span.spin') : icon('check', 12),
-      h('b', { text: 'Live run · ' + pn.date }),
-      h('small', { text: running ? pn.uploaded + ' of ' + pn.total + ' uploaded' : pn.uploaded + ' uploaded · ' + pn.total + ' total' }),
+      h('b', { text: 'Launch · ' + pn.date }),
+      h('small', { text: progress }),
       icon(pn.open ? 'up' : 'down', 12)));
     parts.runChip.setAttribute('aria-expanded', String(pn.open));
     parts.runChip.classList.toggle('is-running', running);
@@ -636,16 +581,16 @@ export function createWorkspace(app) {
     replace(parts.panel, h('div.runpanel__in',
       h('div.runpanel__head',
         running ? h('span.spin') : icon('check', 13),
-        h('b', { text: 'Live run · ' + pn.date }),
-        h('small', { text: running ? pn.uploaded + ' of ' + pn.total + ' uploaded' : pn.uploaded + ' uploaded · ' + pn.total + ' total' }),
+        h('b', { text: 'Launch · ' + pn.date }),
+        h('small', { text: progress }),
         h('span.tabstrip__fill'),
-        finished && pn.runId ? h('button.btn.btn--xs.btn--blue', { type: 'button', 'data-tool': 'open-run', onclick: function () { app.go('history', { run: pn.runId }); } }, 'Open in Run history', icon('right', 12)) : null,
+        finished && pn.runId ? h('button.btn.btn--xs.btn--accent', { type: 'button', 'data-tool': 'open-run', onclick: function () { app.go('history', { run: pn.runId }); } }, 'Open in Launches', icon('right', 12)) : null,
         iconBtnSm(pn.collapsed ? 'down' : 'up', pn.collapsed ? 'Show the log' : 'Hide the log', function () { pn.collapsed = !pn.collapsed; paintPanel(); }),
-        iconBtnSm('x', 'Close the live run panel', function () { pn.open = false; paintPanel(); })),
+        iconBtnSm('x', 'Close the launch panel', function () { pn.open = false; paintPanel(); })),
       h('div.runpanel__sum' + (running ? '.is-running' : pn.failed ? '.is-partial' : ''),
         running ? h('span.spin') : icon(pn.failed ? 'warn' : 'check', 13),
-        h('b', { text: running ? 'Uploading…' : 'Upload finished' }),
-        h('span', h('b', { text: String(pn.uploaded) }), ' Uploaded'),
+        h('b', { text: running ? 'Launching…' : 'Launch finished' }),
+        h('span', h('b', { text: String(pn.uploaded) }), ' Live'),
         pn.failed ? h('span.is-bad', h('b', { text: String(pn.failed) }), ' Failed') : null,
         h('span', h('b', { text: String(pn.total) }), ' Total')),
       pn.collapsed ? null : logBox));
@@ -683,7 +628,7 @@ export function createWorkspace(app) {
     parts.cellInput.value = cellValue(r, col.key, ctx()) || '';
     var editable = isEditable(col);
     parts.cellInput.disabled = !editable;
-    parts.cellInput.placeholder = editable ? 'Edit ' + col.label + '…' : (col.kind === 'select' ? 'Pick from the list in the cell' : col.kind === 'resolved' ? 'Resolve fills this column' : 'Built from the other columns');
+    parts.cellInput.placeholder = editable ? 'Edit ' + col.label + '…' : (col.kind === 'select' ? 'Pick from the list in the cell' : col.kind === 'resolved' ? 'Create tracking links fills this column' : 'Built from the other columns');
   }
 
   /* ---------- Grid ---------- */
@@ -736,7 +681,7 @@ export function createWorkspace(app) {
       columns().map(function (c) { return cellEl(r, c); }));
   }
   function statusEl(r) {
-    if (r.status === 'running') return h('span.spin', { title: 'Uploading' });
+    if (r.status === 'running') return h('span.spin', { title: 'Launching' });
     if (r.status === 'live') return h('span.st.st--live', { title: 'Live' }, icon('check', 10));
     if (r.status === 'failed') return h('span.st.st--failed', { title: r.error }, icon('x', 10));
     return h('span.st.st--new', { title: r.status === 'queued' ? 'Waiting' : 'Not run yet' });
@@ -802,7 +747,7 @@ export function createWorkspace(app) {
   function setCell(id, key, value) {
     var r = rowById(id);
     if (!r || r[key] === value) return;
-    if (r.status === 'running' || r.status === 'queued') { toast('This row is uploading. Edit it when the run finishes.'); paintRow(id); return; }
+    if (r.status === 'running' || r.status === 'queued') { toast('This row is launching. Edit it when the launch finishes.'); paintRow(id); return; }
     commit('edit ' + key, function () {
       r[key] = value;
       if (key === 'geo' && value && !r.lang) r.lang = { DE: 'de', FR: 'fr', IT: 'it', ES: 'es', MX: 'es', NL: 'nl' }[value] || 'en';
@@ -923,7 +868,7 @@ export function createWorkspace(app) {
     var c = ws.sel && COLUMNS.filter(function (x) { return x.key === ws.sel.key; })[0];
     var r = ws.sel && rowById(ws.sel.id);
     replace(parts.hint, c && r
-      ? h('span', icon('info', 12), 'Row ' + (rows().indexOf(r) + 1) + ' · ' + c.label + '. ' + (isEditable(c) ? 'Type or press Enter to edit.' : c.kind === 'select' ? 'Pick a value from the list.' : c.kind === 'resolved' ? 'Resolve fills this.' : 'Built from the other columns.'))
+      ? h('span', icon('info', 12), 'Row ' + (rows().indexOf(r) + 1) + ' · ' + c.label + '. ' + (isEditable(c) ? 'Type or press Enter to edit.' : c.kind === 'select' ? 'Pick a value from the list.' : c.kind === 'resolved' ? 'Create tracking links fills this.' : 'Built from the other columns.'))
       : h('span', icon('info', 12), 'Select cells to see what you can do with them.'));
   }
 
@@ -947,8 +892,8 @@ export function createWorkspace(app) {
     var steps = [
       { done: ws.done.fill, text: 'Fill the grid', how: 'Data → Fill example data', run: fillExample, tool: 'data' },
       { done: ws.done.creatives, text: 'Add creatives and headlines', how: 'Data → Auto-fill creatives, then Auto-generate headlines', run: function () { fillCreatives(); waitIdle(fillHeadlines); }, tool: 'data' },
-      { done: ws.done.run, text: 'Go live', how: 'Run live, then confirm', run: openRun, tool: 'run' },
-      { done: ws.done.history, text: 'See what happened', how: 'Open in Run history', run: function () { if (ws.panel.runId) app.go('history', { run: ws.panel.runId }); else toast('Run live first, then open the run.'); }, tool: 'open-run' }
+      { done: ws.done.run, text: 'Launch the batch', how: 'Launch, then confirm', run: openRun, tool: 'run' },
+      { done: ws.done.history, text: 'See what happened', how: 'Open in Launches', run: function () { if (ws.panel.runId) app.go('history', { run: ws.panel.runId }); else toast('Launch first, then open it.'); }, tool: 'open-run' }
     ];
     var next = steps.filter(function (s) { return !s.done; })[0];
     replace(guideEl, h('div.guide__in',
@@ -957,7 +902,7 @@ export function createWorkspace(app) {
         return h('li' + (s.done ? '.is-done' : '') + (s === next ? '.is-next' : ''),
           h('span.guide__n', s.done ? icon('check', 11) : String(i + 1)),
           h('span.guide__txt', h('b', { text: s.text }), h('small', { text: s.how })),
-          s === next ? h('button.btn.btn--xs.btn--blue', { type: 'button', 'data-guide-step': String(i + 1), onclick: function () { flash(s.tool); s.run(); } }, 'Do it') : null);
+          s === next ? h('button.btn.btn--xs.btn--accent', { type: 'button', 'data-guide-step': String(i + 1), onclick: function () { flash(s.tool); s.run(); } }, 'Do it') : null);
       }))));
   }
   function waitIdle(fn) { (function check() { if (ws.busy) setTimeout(check, 60); else fn(); })(); }

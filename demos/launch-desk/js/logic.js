@@ -1,4 +1,4 @@
-/* Mega Uploader demo: the rules behind the replica. Pure functions, no DOM, so Node can test them.
+/* Launch Desk demo: the rules behind the replica. Pure functions, no DOM, so Node can test them.
    Every derived figure (totals, readiness, names, run outcomes) is computed here and only here. */
 
 import { VERTICALS, GEOS, LANGS, ASSETS, ACCOUNTS, REGIONS, STRATEGIES, KEYWORD_LISTS, FAILURES, SITE, PLATFORMS } from './data.js';
@@ -76,7 +76,7 @@ export function shortDate(daysAgo, now) {
 export function clock(now) { return pad2(now.getHours()) + ':' + pad2(now.getMinutes()); }
 export function clockSeconds(now) { return clock(now) + ':' + pad2(now.getSeconds()); }
 
-/* ---------- Dashboard ---------- */
+/* ---------- Overview ---------- */
 
 export function launchTotals(dashboard) {
   var live = sum(dashboard.launched, 'live');
@@ -183,7 +183,7 @@ export function fixGrammar(text) {
   return t ? t.charAt(0).toUpperCase() + t.slice(1) : t;
 }
 
-/* ---------- Run live ---------- */
+/* ---------- Launch ---------- */
 
 export function runnable(rows) { return rows.filter(function (r) { return isReady(r) && r.status !== 'live'; }); }
 
@@ -235,7 +235,7 @@ export function runSummary(plan) {
   };
 }
 
-/* ---------- Run history ---------- */
+/* ---------- Launches ---------- */
 
 export function runStatus(run) {
   if (run.failed >= run.campaigns) return 'failed';
@@ -284,7 +284,7 @@ export function runCampaigns(run, now) {
   return items;
 }
 
-/* Turns a finished plan into a run the history list can show, with its own campaigns. */
+/* Turns a finished plan into a launch the Launches list can show, with its own campaigns. */
 export function runFromPlan(plan, ctx) {
   var s = runSummary(plan);
   return {

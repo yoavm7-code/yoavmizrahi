@@ -26,10 +26,10 @@ export const DEMOS = {
     name: 'Upload demo',
     style: 'device',
     replica: {
-      title: 'Mega Uploader',
-      src: 'demos/mega-uploader/',
-      video: 'demos/mega-uploader/demo.mp4',
-      poster: 'demos/mega-uploader/poster.jpg',
+      title: 'Launch Desk',
+      src: 'demos/launch-desk/',
+      video: 'demos/launch-desk/demo.mp4',
+      poster: 'demos/launch-desk/poster.jpg',
       width: 1440,
       height: 900
     }
