@@ -12,6 +12,8 @@ export function describeChanges(liveRaw, draftRaw) {
   var draft = normalize(draftRaw);
   var out = [];
   function differs(a, b) { return JSON.stringify(a) !== JSON.stringify(b); }
+  /* The keys of one order that the other has too: a work added or removed isn't a change of order. */
+  function shared(a, b) { return a.filter(function (k) { return b.indexOf(k) !== -1; }); }
 
   if (differs(live.site, draft.site)) out.push('Edited the site settings');
 
@@ -19,6 +21,8 @@ export function describeChanges(liveRaw, draftRaw) {
   if (live.desk.hint !== draft.desk.hint || live.desk.hintMobile !== draft.desk.hintMobile) out.push('Edited the desk hint');
 
   if (differs(live.desk.order, draft.desk.order)) out.push('Changed the order of the desk');
+  if (!draft.desk.phoneOrder && live.desk.phoneOrder) out.push('Phones follow the computer order on the desk again');
+  else if (draft.desk.phoneOrder && differs(shared(live.desk.phoneOrder || live.desk.order, draft.desk.phoneOrder), shared(draft.desk.phoneOrder, live.desk.phoneOrder || live.desk.order))) out.push('Changed the order of the desk on phones');
 
   listChanges(live.works, draft.works, 'work', function (w) { return w.title; }, ['desk'], out);
   listChanges(live.films, draft.films, 'film', function (f) { return f.label || f.title; }, ['tape'], out);

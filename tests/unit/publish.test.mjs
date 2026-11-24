@@ -36,6 +36,7 @@ test('each kind of change is named in plain words', () => {
   assert.deepEqual(edit((r) => { r.works.push({ id: 'three', title: 'Three' }); }), ['Changed the order of the desk', 'Added work "Three"']);
   assert.deepEqual(edit((r) => { r.films = []; }), ['Removed film "FILM"', 'Changed the order of the desk']);
   assert.deepEqual(edit((r) => { r.works.reverse(); }), ['Changed the order of the desk', 'Changed the order of the works']);
+  assert.deepEqual(edit((r) => { r.desk.phoneOrder = ['work:two', 'tapes', 'monitor', 'note', 'work:one']; }), ['Changed the order of the desk on phones']);
   assert.deepEqual(edit((r) => { r.about.lead = 'More'; }), ['Edited the About page']);
 });
 

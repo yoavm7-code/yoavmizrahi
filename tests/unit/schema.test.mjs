@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import {
   slugify, uniqueId, youtubeId, isSafeUrl, isMediaPath, hasPlaceholder, runtimeSeconds,
-  deskKeys, normalize, validate, LIMITS
+  deskKeys, phoneOrder, normalize, validate, LIMITS
 } from '../../js/schema.js';
 
 const site = JSON.parse(await readFile(new URL('../../content/site.json', import.meta.url), 'utf8'));
@@ -171,6 +171,25 @@ test('the phone order of an older draft (mobileOrder) becomes the desk order', (
   assert.equal('mobileOrder' in c.desk, false);
   const both = normalize({ desk: { order: ['note', 'work:a'], mobileOrder: ['work:a', 'note'] }, works: [{ id: 'a' }] });
   assert.deepEqual(both.desk.order, ['note', 'work:a', 'monitor'], 'the new name wins');
+});
+
+test('phones follow the computer order until they have their own', () => {
+  const c = normalize({ desk: { order: ['work:a', 'note'] }, works: [{ id: 'a' }] });
+  assert.equal(c.desk.phoneOrder, null);
+  assert.deepEqual(phoneOrder(c), ['work:a', 'note', 'monitor']);
+  const own = normalize({ desk: { order: ['note', 'monitor', 'work:a'], phoneOrder: ['work:a', 'monitor', 'note'] }, works: [{ id: 'a' }] });
+  assert.deepEqual(phoneOrder(own), ['work:a', 'monitor', 'note']);
+  assert.deepEqual(own.desk.order, ['note', 'monitor', 'work:a'], 'the computer order is untouched');
+});
+
+test('the phone order is repaired like the computer order: stale and repeated keys out, new ones in', () => {
+  const c = normalize({
+    desk: { phoneOrder: ['work:b', 'gone', 'work:b', 'tapes', 'note'] },
+    works: [{ id: 'a' }, { id: 'b' }, { id: 'c', desk: { show: false } }],
+    films: [{ id: 'f', tape: { show: true } }]
+  });
+  assert.deepEqual(c.desk.phoneOrder, ['work:b', 'tapes', 'note', 'monitor', 'work:a']);
+  assert.equal(normalize({ desk: { phoneOrder: 'not a list' } }).desk.phoneOrder, null);
 });
 
 test('normalize drops empty background lines on the About page', () => {
