@@ -212,12 +212,19 @@ async function memesh(page, mark) {
 
 async function lorewire(page, mark) {
   const pause = (ms) => page.waitForTimeout(ms);
-  const click = async (target, opts = {}) => {
-    await target.scrollIntoViewIfNeeded();
-    const box = await target.boundingBox();
-    await page.mouse.move(box.x + box.width * (opts.x ?? 0.5), box.y + box.height / 2, { steps: 22 });
-    await pause(opts.wait ?? 260);
-    await target.click();
+  /* The home page rebuilds its rows when the hero turns, so a card can be replaced mid-move: try again. */
+  const click = async (target, opts = {}, tries = 3) => {
+    try {
+      await target.scrollIntoViewIfNeeded();
+      const box = await target.boundingBox();
+      await page.mouse.move(box.x + box.width * (opts.x ?? 0.5), box.y + box.height / 2, { steps: 22 });
+      await pause(opts.wait ?? 260);
+      await target.click();
+    } catch (e) {
+      if (tries <= 1 || !/not attached|detached/i.test(e.message)) throw e;
+      log('click retried', { demo: 'lorewire', reason: 'element rebuilt' });
+      await click(target, opts, tries - 1);
+    }
   };
   const wheel = async (dy, steps = 10) => { for (let i = 0; i < steps; i++) { await page.mouse.wheel(0, dy / steps); await pause(60); } };
 

@@ -212,7 +212,13 @@
       "tape": {
         "show": true,
         "label": "LEVIATHAN · PART 2"
-      }
+      },
+      "stills": [
+        "media/529c25c61ff63837.webp",
+        "media/75350f56b69de47a.webp",
+        "media/4a0546558b2f72ca.webp",
+        "media/ec45a096e0038c3b.webp"
+      ]
     },
     {
       "id": "devils-herd",
@@ -228,7 +234,13 @@
       "tape": {
         "show": true,
         "label": "DEVIL'S HERD"
-      }
+      },
+      "stills": [
+        "media/61fab9c33347b2b6.webp",
+        "media/80cf729d1be29f02.webp",
+        "media/5dec923363a6db71.webp",
+        "media/2cb7e9423e23cd5b.webp"
+      ]
     }
   ],
   "about": {

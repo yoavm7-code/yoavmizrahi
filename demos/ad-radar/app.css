@@ -13,7 +13,7 @@
   --text: #1c1a21;
   --text-2: #46434d;
   --muted: #6c6873;
-  --faint: #9d98a3;
+  --faint: #716d75;      /* the lightest text; 4.6:1 on the page, so small labels stay readable */
   --accent: oklch(52% .17 320);
   --accent-hover: oklch(46% .17 320);
   --accent-soft: oklch(96.5% .025 320);
@@ -163,7 +163,7 @@ textarea.input { resize: vertical; min-height: 84px; line-height: 1.5; }
 .fgroup--gap { background: var(--surface-2); }
 .fgroup--gap .label { color: var(--accent); }
 .checks { display: flex; flex-direction: column; max-height: 150px; overflow-y: auto; margin: 0 -4px; }
-.check { display: flex; align-items: center; gap: 9px; padding: 3px 4px; border-radius: 5px; font-size: 12.5px; cursor: pointer; }
+.check { display: flex; align-items: center; gap: 9px; min-height: 28px; padding: 3px 4px; border-radius: 5px; font-size: 12.5px; cursor: pointer; }
 .check:hover { background: var(--surface-2); }
 .check input { margin: 0; accent-color: var(--accent); }
 .check__name { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
