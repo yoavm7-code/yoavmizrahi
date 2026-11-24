@@ -19,7 +19,7 @@ export function createHistory(app) {
   var detailEl = null;
   var countEl = null;
 
-  function runs() { return sortRuns(filterRuns(app.runs, f, app.now), f.sort); }
+  function runs() { return sortRuns(filterRuns(app.runs, f), f.sort); }
 
   function render(opts) {
     if (opts && opts.run) { view.selected = opts.run; view.filter = 'all'; view.open = {}; }
@@ -162,7 +162,7 @@ export function createHistory(app) {
         h('button.link', { type: 'button', onclick: toggleAll }, Object.keys(view.open).length ? 'Collapse all' : 'Expand all')),
       h('div.ctable',
         h('div.ctable__head', ['', 'CAMPAIGN', 'ACCOUNT', 'GEO', 'TASK', 'STATUS', 'CREATIVES', 'OUTCOME'].map(function (t) { return h('span', { text: t }); })),
-        shown.length ? shown.map(function (c, i) { return campaignRow(c, items.indexOf(c)); }) : h('p.empty', { text: 'No campaigns in this view.' }))));
+        shown.length ? shown.map(function (c) { return campaignRow(c, items.indexOf(c)); }) : h('p.empty', { text: 'No campaigns in this view.' }))));
   }
 
   function campaignRow(c, idx) {

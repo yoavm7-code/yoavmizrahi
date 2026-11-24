@@ -160,7 +160,7 @@ export function createStory(app) {
     var text = h('div.along__text');
     var para = null;
     var lastPara = -1;
-    list.forEach(function (w, i) {
+    list.forEach(function (w) {
       if (w.para !== lastPara) { para = h('p'); text.appendChild(para); lastPara = w.para; }
       var sp = h('span.along__word', { text: w.text });
       spans.push(sp);

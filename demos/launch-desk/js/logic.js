@@ -312,7 +312,7 @@ export function runFromPlan(plan, ctx) {
   };
 }
 
-export function filterRuns(runs, f, now) {
+export function filterRuns(runs, f) {
   var q = String(f.q || '').trim().toLowerCase().replace(/^#/, '');
   return runs.filter(function (r) {
     if (q) {

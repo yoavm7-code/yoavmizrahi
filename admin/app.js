@@ -36,6 +36,7 @@ var mediaCache = {};
 var mediaLoading = {};
 var liveState = null;
 var account = null;
+var session = null;      // the signed-in run: its listeners and timers end with it (endSession)
 var signInOpen = false;
 
 /* ---------- The key ---------- */
@@ -58,6 +59,7 @@ function keyExpiry() { try { return localStorage.getItem(KEY_EXPIRES); } catch (
 /* ---------- Connect screen ---------- */
 
 function showConnect(message) {
+  endSession();
   document.body.className = 'is-connect';
   var input = h('input.input', { type: 'password', id: 'key', autocomplete: 'off', spellcheck: 'false', placeholder: 'github_pat_...' });
   var remember = h('input', { type: 'checkbox', id: 'remember', checked: !sharedHost, disabled: sharedHost });
@@ -115,6 +117,7 @@ function showConnect(message) {
 /* One card with three forms: sign in, first-time setup, and reset a forgotten password.
    Real <form>s with autocomplete hints, so the iPhone Passwords app and Face ID can fill them. */
 function showLogin(message, mode) {
+  endSession();
   document.body.className = 'is-connect';
   mode = mode || 'signin';
   var card = h('div.connect__card');
@@ -270,7 +273,18 @@ async function refreshAccount() {
 function startWithKey(key) { start(function () { return key; }, null); }
 function startWithLogin() { start(auth.token, LOGIN_API + '/gh'); }
 
+/* Everything a signed-in run starts (listeners, the account refresh, the draft's sync timer) stops
+   here, so signing out and in again without a reload never doubles them. */
+function endSession() {
+  if (session) session.abort();
+  session = null;
+  if (store) store.stop();
+}
+
 async function start(getToken, api) {
+  endSession();
+  session = new AbortController();
+  var signal = session.signal;
   document.body.className = 'is-loading';
   clear(app).appendChild(h('main.loading', h('span.loading__dot'), h('p', 'Opening your site…')));
   gh = createClient(getToken, api);
@@ -279,9 +293,13 @@ async function start(getToken, api) {
     var info = await gh.repoInfo();
     if (!info.permissions || !info.permissions.push) throw Object.assign(new Error('read only'), { status: 403 });
     var source = await store.load();
-    if (auth.enabled) { account = await auth.me().catch(function () { return null; }); setInterval(refreshAccount, 20 * 60000); }
-    buildShell();
-    window.addEventListener('hashchange', route);
+    if (auth.enabled) {
+      account = await auth.me().catch(function () { return null; });
+      var refresh = setInterval(refreshAccount, 20 * 60000);
+      signal.addEventListener('abort', function () { clearInterval(refresh); });
+    }
+    buildShell(signal);
+    window.addEventListener('hashchange', route, { signal: signal });
     route();
     if (source && source.stale) staleDraftNotice();
     else if (source && source.caughtUp) toast('The site changed since you started this draft. Your edits are kept, and so is everything published since.', null, 8000);
@@ -330,7 +348,7 @@ var NAV = [
 ];
 var TABS = ['#/', '#/desk', '#/works', '#/films', '#/about', '#/more'];
 
-function buildShell() {
+function buildShell(signal) {
   document.body.className = '';
   var undoBtn = button('Undo', { iconOnly: true, icon: 'undo', kind: 'ghost', title: 'Undo (Ctrl+Z)', onClick: function () { if (store.undo()) toast('Undone.'); } });
   var redoBtn = button('Redo', { iconOnly: true, icon: 'redo', kind: 'ghost', title: 'Redo (Ctrl+Shift+Z)', onClick: function () { if (store.redo()) toast('Redone.'); } });
@@ -340,6 +358,7 @@ function buildShell() {
   var main = h('main.main', { id: 'main', tabindex: '-1' });
 
   preview = createPreview({
+    signal: signal,
     device: window.matchMedia('(max-width: 720px)').matches ? 'phone' : 'desktop',
     getContent: function () { return store.state.draft; },
     mediaUrl: mediaUrl,
@@ -396,9 +415,9 @@ function buildShell() {
     if (info.structural) renderPanel(true);
     if (info.sync && store.state.syncError && (store.state.syncError.status === 401 || store.state.syncError.githubKey)) keyStopped(store.state.syncError);
   });
-  wide.addEventListener('change', function () { renderPanel(true); });
-  document.addEventListener('keydown', onKey);
-  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') store.sync(); });
+  wide.addEventListener('change', function () { renderPanel(true); }, { signal: signal });
+  document.addEventListener('keydown', onKey, { signal: signal });
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') store.sync(); }, { signal: signal });
   updateTop();
   preview.refresh(true);
 }
@@ -535,7 +554,7 @@ async function uploadMedia(file, onStep) {
   onStep('Uploading (' + Math.max(1, Math.round(prepared.base64.length * 0.75 / 1024)) + ' KB)…');
   var blob;
   try { blob = await gh.createBlob(prepared.base64); }
-  catch (e) { throw new Error(explain(e)); }
+  catch (e) { throw new Error(explain(e), { cause: e }); }
   mediaCache[prepared.path] = prepared.previewUrl;
   return { path: prepared.path, sha: blob.sha, type: prepared.type, width: prepared.width, height: prepared.height };
 }

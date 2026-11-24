@@ -7,6 +7,7 @@ const PORT = 4173;
 export default defineConfig({
   testDir: 'browser',
   fullyParallel: true,
+  workers: process.env.CI ? 2 : 4, // more at once made the admin tests time out on busy machines
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',

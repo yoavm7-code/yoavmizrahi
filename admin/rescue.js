@@ -57,7 +57,7 @@
         body: body ? JSON.stringify(body) : undefined
       });
     } catch (e) {
-      throw new Error(mode === 'login' ? "Can't reach the sign-in service. Try \"Use a GitHub key\" above." : "Can't reach GitHub. Check your internet connection.");
+      throw new Error(mode === 'login' ? "Can't reach the sign-in service. Try \"Use a GitHub key\" above." : "Can't reach GitHub. Check your internet connection.", { cause: e });
     }
     var data = await res.json().catch(function () { return {}; });
     if (mode === 'login' && res.status === 401) { session = null; throw new Error('Please sign in again.'); }
@@ -78,7 +78,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: $('username').value.trim(), password: $('password').value, remember: false, trusted: localStorage.getItem('ym-admin-trusted') || '' })
       });
-    } catch (e) { throw new Error("Can't reach the sign-in service. Try \"Use a GitHub key\" above."); }
+    } catch (e) { throw new Error("Can't reach the sign-in service. Try \"Use a GitHub key\" above.", { cause: e }); }
     var data = await res.json().catch(function () { return {}; });
     if (data.error === 'wrong') throw new Error('That username or password is not right.');
     if (data.error === 'wait') throw new Error('Too many tries. Wait a few minutes and try again.');

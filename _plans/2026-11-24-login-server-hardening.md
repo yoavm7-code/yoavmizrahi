@@ -1,6 +1,6 @@
 # Login server hardening
 
-Date: 2026-11-24. Status: approved 2026-11-24 (90 days / 7 days). Built; the Worker deploy waits for Yoav's OK. PR 5 of `2026-11-24-professional-polish.md`.
+Date: 2026-11-24. Status: approved 2026-11-24 (90 days / 7 days). Deployed 2026-11-24 as version e256b2af (rollback target 2460d479); Yoav's sign-in, a draft save and a draft reset checked on the live Worker, 2 to 3 ms CPU for the drafts check. PR 5 of `2026-11-24-professional-polish.md`.
 
 ## Goal
 

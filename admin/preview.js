@@ -103,8 +103,12 @@ export function createPreview(opts) {
     });
     stage.classList.toggle('is-phone', view.device === 'phone');
   }
-  window.addEventListener('resize', fit);
-  if (window.ResizeObserver) new ResizeObserver(fit).observe(stage);
+  window.addEventListener('resize', fit, { signal: opts.signal });
+  if (window.ResizeObserver) {
+    var observer = new ResizeObserver(fit);
+    observer.observe(stage);
+    if (opts.signal) opts.signal.addEventListener('abort', function () { observer.disconnect(); clearTimeout(view.timer); });
+  }
 
   function setDevice(d) {
     view.device = d;

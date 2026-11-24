@@ -82,7 +82,7 @@ export function createBoard(app) {
     }
   }
 
-  function endDrag(e) {
+  function endDrag() {
     if (!drag) return;
     var d = drag;
     cleanup();

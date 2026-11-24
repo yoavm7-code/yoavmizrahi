@@ -203,15 +203,15 @@ test('seeded runs list the right number of campaigns and failures, the same way 
 test('history filters and sorts', () => {
   const runs = D.RUNS;
   const first = runs[0];
-  assert.deepEqual(L.filterRuns(runs, { q: '#' + first.id }, NOW).map((r) => r.id), [first.id]);
-  assert.ok(L.filterRuns(runs, { platform: 'google' }, NOW).every((r) => r.platform === 'google'));
-  assert.ok(L.filterRuns(runs, { result: 'none' }, NOW).every((r) => r.live === 0));
-  assert.ok(L.filterRuns(runs, { result: 'failures' }, NOW).every((r) => r.failed > 0));
-  assert.ok(L.filterRuns(runs, { status: 'succeeded' }, NOW).every((r) => r.failed === 0));
-  assert.ok(L.filterRuns(runs, { time: 'today' }, NOW).every((r) => r.daysAgo === 0));
-  assert.ok(L.filterRuns(runs, { time: '7d' }, NOW).every((r) => r.daysAgo <= 6));
-  assert.ok(L.filterRuns(runs, { mode: 'live' }, NOW).every((r) => r.live > 0));
-  assert.deepEqual(L.filterRuns(runs, { q: 'no such thing' }, NOW), []);
+  assert.deepEqual(L.filterRuns(runs, { q: '#' + first.id }).map((r) => r.id), [first.id]);
+  assert.ok(L.filterRuns(runs, { platform: 'google' }).every((r) => r.platform === 'google'));
+  assert.ok(L.filterRuns(runs, { result: 'none' }).every((r) => r.live === 0));
+  assert.ok(L.filterRuns(runs, { result: 'failures' }).every((r) => r.failed > 0));
+  assert.ok(L.filterRuns(runs, { status: 'succeeded' }).every((r) => r.failed === 0));
+  assert.ok(L.filterRuns(runs, { time: 'today' }).every((r) => r.daysAgo === 0));
+  assert.ok(L.filterRuns(runs, { time: '7d' }).every((r) => r.daysAgo <= 6));
+  assert.ok(L.filterRuns(runs, { mode: 'live' }).every((r) => r.live > 0));
+  assert.deepEqual(L.filterRuns(runs, { q: 'no such thing' }), []);
   const byFailed = L.sortRuns(runs, 'failed');
   assert.ok(byFailed[0].failed >= byFailed.at(-1).failed);
   const newest = L.sortRuns(runs, 'newest');

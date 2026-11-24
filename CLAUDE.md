@@ -61,12 +61,14 @@ fonts/              the four typefaces as woff2, Latin and Latin Extended, with 
 js/main.js          behavior only: router, wipe, menu, cursor, desk, monitor/tapes, demos, reel
 admin/              the admin (see below)
 demos/<name>/       replicas: a clickable copy of a work with made-up data, plus its demo.mp4 and poster.jpg (see "Replicas")
+demos/shared/dom.js h(), clear(), makeLog(), makeToast(): one copy for every replica; each js/dom.js re-exports them
 tools/generate.mjs  regenerates index.html + share pages locally: node tools/generate.mjs
 tools/build-site.mjs collects the files that go live into _site/ (used by the deploy and the browser tests)
 404.html            the not-found page GitHub Pages serves (hand-written; root-relative paths)
 robots.txt, sitemap.xml  for search engines (hand-written)
 share.jpg           the home page's link preview, 1200 x 630 (made by tests/share-images.mjs)
-tests/              unit tests (node:test) and browser tests (Playwright). Own package.json, never deployed
+tests/              unit tests (node:test), browser tests (Playwright) and ESLint (eslint.config.mjs). Own package.json, never deployed
+.editorconfig, .nvmrc  editor settings and the Node version (24) CI uses
 .github/workflows/  deploy.yml (tests, then Pages) and checks.yml (tests + browser, on PRs and main)
 _plans/             approved plans
 README.md           short public readme
@@ -142,8 +144,11 @@ None right now. Missing content goes in `content/site.json` in `[SQUARE BRACKETS
 - **Always edit the live files.** Never paste an older version over the current one.
 - **No invented facts.** Don't make up stats, clients, testimonials or project details. Use `[PLACEHOLDER]` and ask.
 - **Accessibility basics:** real `<button>` and `<a>` elements, `aria-label` on icon-only buttons, touch targets of 44px or more (a small control keeps its look and gets an invisible `::after` tap area), and text contrast of 4.5:1 or better. `tests/browser/a11y.spec.mjs` runs axe on every page at every width and fails on any WCAG 2.2 AA issue.
+- **Logs:** the site and the replicas log only with `?debug` in the address (`info()` in `js/main.js`, `makeLog()` in `demos/shared/dom.js`); the site adds `?debug` to a replica's frame when it has it. The admin always logs. Keep the bracketed namespaces.
+- **Colours:** every colour in `css/style.css` is a token in `:root` (translucent shadows and grid lines stay as rgba of the ink). A new colour gets a named token with a comment, not a raw hex.
+- **Timing:** JavaScript that waits for a CSS transition uses `afterTransform()` in `js/main.js`, never a copied duration.
 - **Test before saying done:**
-  - Run the suites: `cd tests && npm test && npm run test:browser`. Add or update tests for every change.
+  - Run the suites: `cd tests && npm run lint && npm test && npm run test:browser`. Add or update tests for every change.
   - Serve the folder (`npx serve .` or `python -m http.server`).
   - Click through every route.
   - Drag a tape into the monitor.

@@ -2,7 +2,7 @@
 // its own (every moment a visitor tries: picks with autosave and undo, the dice, past results, the
 // Golden Ball picker, the leaderboard, the live match, Hebrew). The browser clock is controlled, so
 // the live match runs in a moment instead of forty seconds. Runs at phone, tablet and laptop width.
-import { test, expect, watchRequests } from './fixtures.mjs';
+import { test, expect, watchRequests, settled } from './fixtures.mjs';
 
 const APP = '/demos/toto-mundial/';
 
@@ -37,7 +37,7 @@ test('the work card keeps its phone clear of the title, at rest and on hover', a
   await expect.poll(gap, { message: 'the phone overlaps the title' }).toBeGreaterThan(8);
   if (page.viewportSize().width > 900) {
     await card.hover();
-    await page.waitForTimeout(1000);
+    await settled(card);
     expect(await gap(), 'the lifted phone overlaps the title').toBeGreaterThan(8);
   }
 });

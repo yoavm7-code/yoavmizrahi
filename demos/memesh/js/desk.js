@@ -166,7 +166,6 @@ export function createDesk(app) {
   /* ---------- Find customer ---------- */
 
   function search() {
-    var rows = searchCustomers(state.customers, view.q, view.sort, view.filter, state.cards);
     var input = h('input.input.input--big', { type: 'search', placeholder: t('d.searchPh'), value: view.q, 'aria-label': t('d.find'), oninput: function () { view.q = input.value; paintList(); } });
     var list = h('div.stack-sm');
     var count = h('small.muted');

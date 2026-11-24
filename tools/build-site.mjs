@@ -9,7 +9,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 /* Top-level names that never go live. Anything else in the repo root is served. */
 export const LEFT_OUT = [
-  '.git', '.github', '.claude', '.gitignore', 'node_modules',
+  '.git', '.github', '.claude', '.gitignore', '.editorconfig', '.nvmrc', 'node_modules',
   '_plans', '_site', 'tests', 'tools', 'worker', 'CLAUDE.md', 'README.md', 'LICENSE'
 ];
 

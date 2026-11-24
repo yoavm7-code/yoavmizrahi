@@ -4,7 +4,7 @@
 
 import { OUR_SITES, OUR_ARTICLES } from './data.js';
 import {
-  num, pad, adUrl, filterAds, sortAds, counts, kpis, topVerticals, isLongRunner, ourVersions,
+  num, adUrl, filterAds, sortAds, counts, kpis, topVerticals, isLongRunner, ourVersions,
   activeFilters, policyLabel, brandOf, BRANDS, SORTS, csv, EMPTY_FILTERS
 } from './logic.js';
 import { h, icon, toast, segmented, log } from './dom.js';
