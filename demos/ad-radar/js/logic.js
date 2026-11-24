@@ -1,14 +1,12 @@
-/* Ad Intel demo: the rules behind the replica. Pure functions, no DOM, so Node can test them.
-   Filters and sorting for the feed, matching ads against our own articles, trends, the pipeline,
-   and the scrape schedule. */
+/* Ad Radar demo: the rules behind the replica. Pure functions, no DOM, so Node can test them.
+   Filters and sorting for Ads, matching ads against our own articles, trends, the board, and the
+   scan schedule. */
 
 /* ---------- Formatting ---------- */
 
 export function num(n) { return Math.round(n).toLocaleString('en-US'); }
-/* Counts are zero-padded in the real tool: 0 shows as 00. */
+/* Small counts are zero-padded so columns of them line up: 0 shows as 00. */
 export function pad(n) { return n < 10 ? '0' + n : num(n); }
-export function money(n) { return n == null ? '–' : '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-export function ratio(n) { return n == null ? '–' : n.toFixed(2); }
 export function ago(hours) {
   if (hours < 1) return 'just now';
   if (hours < 48) return Math.round(hours) + 'h ago';
@@ -25,7 +23,7 @@ export function cleanUrl(url) { return String(url).split('#')[0].split('?')[0]; 
 export function ourUrl(article) { return 'https://' + article.domain + '/' + article.lang + '/articles/' + article.slug; }
 
 /* ---------- Our articles ----------
-   Our articles database writes countries and languages its own way (UK, en); ads are stored as
+   Our articles list writes countries and languages its own way (UK, en); ads are stored as
    GB, EN. Always normalize before comparing. */
 
 var COUNTRY_ALIASES = { UK: 'GB' };
@@ -35,9 +33,9 @@ export function normCountry(c) { var u = String(c || '').trim().toUpperCase(); r
 export function normLang(l) { var s = String(l || '').trim().toLowerCase(); return LANG_NAMES[s] || s.toUpperCase(); }
 
 /* Our versions of an ad: exact clones built from its landing URL, then articles on the same topic,
-   in the same country and language. With a domain, only articles on that domain count. */
-export function ourVersions(ad, articles, domain) {
-  var mine = articles.filter(function (a) { return !domain || a.domain === domain; });
+   in the same country and language. With a site, only articles on that site count. */
+export function ourVersions(ad, articles, site) {
+  var mine = articles.filter(function (a) { return !site || a.domain === site; });
   var clones = mine.filter(function (a) { return a.clone === ad.id; });
   var close = mine.filter(function (a) {
     return a.clone !== ad.id && a.vertical === ad.vertical && normCountry(a.country) === normCountry(ad.country) && normLang(a.lang) === normLang(ad.lang);
@@ -45,12 +43,12 @@ export function ourVersions(ad, articles, domain) {
   return { clones: clones, close: close, any: clones.length + close.length > 0 };
 }
 
-/* ---------- The feed ---------- */
+/* ---------- Ads ---------- */
 
-export var EMPTY_FILTERS = { query: '', ourDomain: '', ourArticle: 'all', landing: 'all', domains: [], feeds: [], verticals: [] };
+export var EMPTY_FILTERS = { query: '', ourSite: '', coverage: 'all', landing: 'all', domains: [], languages: [], verticals: [] };
 
 export function activeFilters(f) {
-  return (f.ourDomain ? 1 : 0) + (f.ourArticle !== 'all' ? 1 : 0) + (f.landing !== 'all' ? 1 : 0) + f.domains.length + f.feeds.length + f.verticals.length;
+  return (f.ourSite ? 1 : 0) + (f.coverage !== 'all' ? 1 : 0) + (f.landing !== 'all' ? 1 : 0) + f.domains.length + f.languages.length + f.verticals.length;
 }
 
 export function filterAds(ads, f, articles) {
@@ -60,37 +58,29 @@ export function filterAds(ads, f, articles) {
     if (f.landing === 'hide' && ad.dead) return false;
     if (f.landing === 'only' && !ad.dead) return false;
     if (f.domains.length && f.domains.indexOf(ad.domain) === -1) return false;
-    if (f.feeds.length && f.feeds.indexOf(ad.feed) === -1) return false;
+    if (f.languages.length && f.languages.indexOf(ad.lang) === -1) return false;
     if (f.verticals.length && f.verticals.indexOf(ad.vertical) === -1) return false;
-    if (f.ourDomain && f.ourArticle !== 'all') {
-      var have = ourVersions(ad, articles, f.ourDomain).any;
-      if (f.ourArticle === 'have' && !have) return false;
-      if (f.ourArticle === 'missing' && have) return false;
+    if (f.ourSite && f.coverage !== 'all') {
+      var have = ourVersions(ad, articles, f.ourSite).any;
+      if (f.coverage === 'have' && !have) return false;
+      if (f.coverage === 'missing' && have) return false;
     }
     return true;
   });
 }
 
-/* Sorts: newest first, longest running first, best earning first, or A to Z. Ads without a value
-   always go last. Ties keep a stable order by id. */
-export var SORTS = [
-  ['freshness', 'freshness'], ['days', 'days running'], ['revenue', 'revenue'], ['rpc', 'rpc'],
-  ['page', 'page'], ['domain', 'domain'], ['vertical', 'vertical']
-];
+/* Sorts: newest first, longest running first, or A to Z. Ties keep a stable order by id. */
+export var SORTS = [['freshness', 'Newest'], ['days', 'Days running'], ['page', 'Advertiser'], ['domain', 'Domain'], ['vertical', 'Vertical']];
 export function sortAds(ads, key) {
   var by = {
     freshness: function (a) { return a.first; },
     days: function (a) { return -a.days; },
-    revenue: function (a) { return a.revenue == null ? null : -a.revenue; },
-    rpc: function (a) { return a.rpc == null ? null : -a.rpc; },
     page: function (a) { return a.page.toLowerCase(); },
     domain: function (a) { return a.domain; },
     vertical: function (a) { return a.vertical.toLowerCase(); }
   }[key] || function (a) { return a.first; };
   return ads.slice().sort(function (a, b) {
     var x = by(a), y = by(b);
-    if (x === null && y !== null) return 1;
-    if (y === null && x !== null) return -1;
     if (x < y) return -1;
     if (x > y) return 1;
     return a.id < b.id ? -1 : 1;
@@ -105,15 +95,15 @@ export function counts(ads, field) {
     .sort(function (a, b) { return b.count - a.count || (a.value < b.value ? -1 : 1); });
 }
 
-/* An ad that keeps running is usually making money. */
-export var WINNER_DAYS = 30;
-export function isWinner(ad) { return ad.days >= WINNER_DAYS; }
+/* An ad that keeps running for a month is one the competitor keeps paying for. */
+export var LONG_RUN_DAYS = 30;
+export function isLongRunner(ad) { return ad.days >= LONG_RUN_DAYS; }
 
 export function kpis(ads) {
   return {
-    seen: ads.filter(function (a) { return a.seen; }).length,
+    found: ads.filter(function (a) { return a.seen; }).length,
     fresh: ads.filter(function (a) { return a.first <= 7; }).length,
-    winners: ads.filter(isWinner).length,
+    longRunners: ads.filter(isLongRunner).length,
     total: ads.length,
     competitors: counts(ads, 'domain').length,
     verticals: counts(ads, 'vertical').length
@@ -142,7 +132,7 @@ export function trends(ads) {
   return rows.sort(function (a, b) { return b.fresh - a.fresh || b.total - a.total || (a.vertical < b.vertical ? -1 : 1); });
 }
 
-/* ---------- Pipeline ---------- */
+/* ---------- Board ---------- */
 
 export var STATUSES = ['new', 'idea', 'drafting', 'published'];
 export function statusOf(work, id) { return (work[id] && work[id].status) || 'new'; }
@@ -166,7 +156,7 @@ export function startDraft(entry, me) {
 /* A linked article must be a full web address. */
 export function validLink(url) { return /^https?:\/\/[^\s/]+\.[^\s/]+(\/\S*)?$/i.test(String(url || '').trim()); }
 
-/* ---------- Control Room ---------- */
+/* ---------- Scans ---------- */
 
 export function validInterval(n) { var v = Number(n); return Number.isInteger(v) && v >= 1 && v <= 365; }
 

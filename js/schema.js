@@ -62,14 +62,14 @@ export const DEMOS = {
       label: 'LOREWIRE\'S OWN STORIES'
     }
   },
-  adintel: {
-    name: 'Ad Intel replica',
+  adradar: {
+    name: 'Ad Radar replica',
     style: 'screen',
     replica: {
-      title: 'Ad Intel',
-      src: 'demos/ad-intel/',
-      video: 'demos/ad-intel/demo.mp4',
-      poster: 'demos/ad-intel/poster.jpg',
+      title: 'Ad Radar',
+      src: 'demos/ad-radar/',
+      video: 'demos/ad-radar/demo.mp4',
+      poster: 'demos/ad-radar/poster.jpg',
       width: 1440,
       height: 900
     }

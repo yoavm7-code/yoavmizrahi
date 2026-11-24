@@ -1,4 +1,4 @@
-/* Ad Intel demo: the ad creatives, drawn for the demo. No real ad is shown anywhere. A "photo" ad is
+/* Ad Radar demo: the ad creatives, drawn for the demo. No real ad is shown anywhere. A "photo" ad is
    a flat illustration of its subject with the headline in a dark box over it, the way these native
    ads usually look; a "text" ad is the headline in big type on a colored card. The drawings are fixed
    strings written here; the headline always goes in as text. */

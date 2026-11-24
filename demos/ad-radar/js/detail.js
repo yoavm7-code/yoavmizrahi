@@ -1,10 +1,10 @@
-/* Ad Intel demo: one ad in full. The creative on the left; the copy, the competitor's landing
+/* Ad Radar demo: one ad in full. The creative on the left; the copy, the competitor's landing
    article and our own versions of it in the middle; the Workflow on the right (star, Draft article,
-   pipeline status, brand, owner, linked article and notes). K and J move to the previous and next ad
-   in the feed's current order. */
+   board status, brand, owner, linked article and notes). K and J move to the previous and next ad
+   in the Ads list's current order. */
 
 import { PEOPLE, OUR_ARTICLES, archiveId } from './data.js';
-import { adUrl, cleanUrl, ourUrl, ourVersions, isWinner, startDraft, validLink, statusOf, policyLabel, brandOf, BRANDS, ago } from './logic.js';
+import { adUrl, cleanUrl, ourUrl, ourVersions, isLongRunner, startDraft, validLink, statusOf, policyLabel, brandOf, BRANDS, ago } from './logic.js';
 import { h, icon, toast, log } from './dom.js';
 import { creative } from './creative.js';
 
@@ -25,7 +25,7 @@ export function createDetail(app) {
 
   function render() {
     var a = ad();
-    if (!a) { app.go('feed'); return; }
+    if (!a) { app.go('ads'); return; }
     app.lastAd = a.id;
     app.keepFocus(el, function () {
       el.replaceChildren(h('div.detail__grid', left(a), middle(a), workflow(a)));
@@ -49,7 +49,7 @@ export function createDetail(app) {
     if (e.target.closest && e.target.closest('input, textarea, select')) return;
     if (e.key === 'j' || e.key === 'J') step(1);
     if (e.key === 'k' || e.key === 'K') step(-1);
-    if (e.key === 'Escape') app.go('feed');
+    if (e.key === 'Escape') app.go('ads');
   });
 
   /* ---------- Left: the creative ---------- */
@@ -58,21 +58,21 @@ export function createDetail(app) {
     var i = app.order.indexOf(a.id);
     return h('div.detail__left',
       h('div.detail__bar',
-        h('button.link-btn', { type: 'button', 'data-back': '', onclick: function () { app.go('feed'); } }, '← FEED'),
-        h('span.muted.mono', { text: i >= 0 ? (i + 1) + ' / ' + app.order.length : '' }),
-        h('span.toolbar__fill'),
-        h('button.key', { type: 'button', 'data-prev': '', 'aria-label': 'Previous ad (K)', onclick: function () { step(-1); } }, 'K ↑'),
-        h('button.key', { type: 'button', 'data-next': '', 'aria-label': 'Next ad (J)', onclick: function () { step(1); } }, 'J ↓')),
-      h('div.stage', creative(a, 'large'), h('span.chip.stage__chip', { text: a.format === 'video' ? 'VIDEO' : 'IMAGE' })),
+        h('button.btn.btn--ghost', { type: 'button', 'data-back': '', onclick: function () { app.go('ads'); } }, icon('back', 14), 'All ads'),
+        h('span.muted.mono', { text: i >= 0 ? (i + 1) + ' of ' + app.order.length : '' }),
+        h('span.fill'),
+        h('button.key', { type: 'button', 'data-prev': '', 'aria-label': 'Previous ad (K)', title: 'Previous ad (K)', onclick: function () { step(-1); } }, h('kbd', { text: 'K' }), 'Prev'),
+        h('button.key', { type: 'button', 'data-next': '', 'aria-label': 'Next ad (J)', title: 'Next ad (J)', onclick: function () { step(1); } }, h('kbd', { text: 'J' }), 'Next')),
+      h('div.stage', creative(a, 'large'), h('span.chip.stage__chip', { text: a.format === 'video' ? 'Video' : 'Image' })),
       h('dl.facts',
-        fact('AD ARCHIVE ID', archiveId(a)),
-        fact('FIRST SEEN', a.first ? ago(a.first * 24) : 'this scrape'),
-        fact('DAYS RUNNING', a.days + 'd' + (isWinner(a) ? '  ★ PROVEN WINNER' : ''), isWinner(a)),
-        fact('FEED', a.feed),
-        fact('GEO · LANGUAGE', a.country + ' · ' + a.lang),
-        fact('POLICY', policyLabel(a))));
+        fact('Ad ID', archiveId(a), false, true),
+        fact('First seen', a.first ? ago(a.first * 24) : 'this scan'),
+        fact('Days running', a.days + 'd' + (isLongRunner(a) ? ' ★ long runner' : ''), isLongRunner(a)),
+        fact('Vertical', a.vertical),
+        fact('Geo and language', a.country + ' · ' + a.lang, false, true),
+        fact('Policy', policyLabel(a))));
   }
-  function fact(label, value, hot) { return h('div.fact', h('dt', { text: label }), h('dd' + (hot ? '.amber' : ''), { text: value })); }
+  function fact(label, value, hot, mono) { return h('div.fact', h('dt', { text: label }), h('dd' + (hot ? '.accent' : '') + (mono ? '.mono' : ''), { text: value })); }
 
   /* ---------- Middle: copy, landing article, our versions ---------- */
 
@@ -80,45 +80,43 @@ export function createDetail(app) {
     var url = adUrl(a);
     var mine = ourVersions(a, OUR_ARTICLES);
     return h('div.detail__middle',
-      h('div.detail__who', h('span', { text: a.page }), h('span.mono.muted', { text: a.domain })),
+      h('div.detail__who', h('b', { text: a.page }), h('span.mono.muted', { text: a.domain })),
       h('h1.detail__title', { text: a.headline }),
-      block('BODY TEXT', h('p', { text: a.body })),
-      h('div.two', block('CAPTION', h('p.mono', { text: a.domain })), block('LINK DESCRIPTION', h('p', { text: a.desc }))),
+      block('Body text', h('p', { text: a.body })),
+      h('div.two', block('Caption', h('p.mono', { text: a.domain })), block('Link description', h('p', { text: a.desc }))),
       h('div.cta',
         h('span.cta__btn', { text: 'Learn more' }),
-        h('div.cta__lines', h('small.mono.muted', { text: 'CTA_TYPE · LEARN_MORE' }), h('span.mono.amber.ellipsis', { title: url, text: url }), h('small.mono.ellipsis', h('span.muted', { text: 'CLEAN · ' }), cleanUrl(url)))),
-      h('hr.rule'),
+        h('div.cta__lines', h('span.mono.accent.ellipsis', { title: url, text: url }), h('small.mono.ellipsis', h('span.muted', { text: 'Without tracking: ' }), cleanUrl(url)))),
       h('section.landing',
-        h('div.cap-row', h('span.cap', { text: 'SCRAPED LANDING ARTICLE' }), a.dead ? h('span.chip.chip--red', { 'data-dead': '', text: 'LINK DEAD · 404 · SAVED COPY' }) : h('span.chip.chip--green', { text: 'LINK OPENS' })),
+        h('div.cap-row', h('span.label', { text: 'Their landing article' }), a.dead ? h('span.chip.chip--bad', { 'data-dead': '', text: 'Link dead (404), saved copy' }) : h('span.chip.chip--ok', { text: 'Link opens' })),
         h('h2.landing__title', { text: a.article[0] }),
         a.article.slice(1).map(function (p) { return h('p', { text: p }); })),
-      h('hr.rule'),
       versions(a, mine));
   }
-  function block(label, body) { return h('div.block', h('span.cap', { text: label }), body); }
+  function block(label, body) { return h('div.block', h('span.label', { text: label }), body); }
 
   function versions(a, mine) {
-    var head = h('div.cap-row', h('span.cap' + (mine.any ? '.green' : '.amber'), { text: '● OUR VERSIONS OF THIS URL' }));
+    var head = h('div.cap-row', h('span.label', { text: 'Our versions' }), h('span.chip' + (mine.any ? '.chip--ok' : '.chip--gap'), { text: mine.any ? (mine.clones.length + mine.close.length) + ' found' : 'None yet' }));
     if (!mine.any) {
       return h('section.versions', { 'data-versions': 'none' }, head,
-        h('p.gap', h('b.amber', { text: 'NO VERSION YET. ' }), 'None of our domains has an article on ' + a.vertical + ' for ' + a.country + ' in ' + (LANGS[a.lang] || a.lang) + '. That\'s a gap worth drafting.'));
+        h('p.gap', h('b', { text: 'No version yet. ' }), 'None of our sites has an article on ' + a.vertical + ' for ' + a.country + ' in ' + (LANGS[a.lang] || a.lang) + '. That\'s a gap worth drafting.'));
     }
     return h('section.versions', { 'data-versions': String(mine.clones.length + mine.close.length) }, head,
-      mine.clones.length ? [h('span.cap.amber', { text: 'EXACT CLONE OF THIS URL' }), h('p.hint', { text: 'We built our own article directly from this competitor\'s landing URL, so these are the closest possible match.' }), mine.clones.map(card)] : null,
-      mine.close.length ? [h('span.cap.amber', { text: 'SAME TOPIC, COUNTRY AND LANGUAGE' }), mine.close.map(card)] : null);
+      mine.clones.length ? [h('span.sublabel', { text: 'Written from this exact page' }), h('p.hint', { text: 'We wrote our own article from this competitor\'s landing page, so these are the closest match.' }), mine.clones.map(card)] : null,
+      mine.close.length ? [h('span.sublabel', { text: 'Same topic, country and language' }), mine.close.map(card)] : null);
   }
 
   function card(article) {
     var url = ourUrl(article);
     var linked = entry().link === url;
     return h('div.version',
-      h('div.version__top', h('span.mono', { text: article.domain }), h('span.chip', { text: article.country + ' · ' + article.lang }), h('span.chip', { text: article.vertical.toLowerCase() })),
+      h('div.version__top', h('span.mono', { text: article.domain }), h('span.chip', { text: article.country + ' · ' + article.lang }), h('span.chip', { text: article.vertical })),
       h('b.version__title', { text: article.title }),
+      h('small.mono.muted.ellipsis', { text: url }),
       h('div.version__actions',
-        h('button.obtn.obtn--green', { type: 'button', onclick: function () { toast('Our own sites aren\'t opened from the demo.'); } }, 'OPEN ↗'),
-        h('button.obtn', { type: 'button', onclick: function () { copy(url); } }, 'COPY URL'),
-        h('button.obtn.obtn--amber' + (linked ? '.is-on' : ''), { type: 'button', 'data-set-linked': '', disabled: linked ? true : null, onclick: function () { linkError = ''; save({ link: url }, 'Linked to ' + article.domain + '.'); } }, linked ? '✓ LINKED' : 'SET AS LINKED')),
-      h('small.mono.muted.ellipsis', { text: url }));
+        h('button.btn.btn--sm', { type: 'button', onclick: function () { toast('Our own sites aren\'t opened from the demo.'); } }, icon('out', 13), 'Open'),
+        h('button.btn.btn--sm', { type: 'button', onclick: function () { copy(url); } }, icon('copy', 13), 'Copy URL'),
+        h('button.btn.btn--sm.btn--soft' + (linked ? '.is-on' : ''), { type: 'button', 'data-set-linked': '', disabled: linked ? true : null, onclick: function () { linkError = ''; save({ link: url }, 'Linked to ' + article.domain + '.'); } }, icon(linked ? 'check' : 'link', 13), linked ? 'Linked' : 'Set as linked')));
   }
 
   function copy(text) {
@@ -140,41 +138,41 @@ export function createDetail(app) {
         linkError = '';
         save({ link: v }, v ? 'Linked article saved.' : 'Linked article removed.');
       } });
-    var notes = h('textarea.input', { rows: '4', placeholder: 'Angle worth copying…', 'aria-label': 'Notes', 'data-notes': '', 'data-focus': 'notes', maxlength: '600',
+    var notes = h('textarea.input', { rows: '4', placeholder: 'An angle worth copying', 'aria-label': 'Notes', 'data-notes': '', 'data-focus': 'notes', maxlength: '600',
       oninput: function () { entry().notes = notes.value; } });
     notes.value = e.notes || '';
     return h('aside.workflow', { 'aria-label': 'Workflow' },
-      h('div.workflow__head', h('span.cap', { text: 'WORKFLOW' }),
-        h('button.obtn' + (e.star ? '.is-amber' : ''), { type: 'button', 'aria-pressed': String(!!e.star), 'data-star': '', onclick: function () { save({ star: !e.star }); } }, icon(e.star ? 'starOn' : 'star', 12), e.star ? 'STARRED' : 'STAR')),
+      h('div.workflow__head', h('b', { text: 'Workflow' }),
+        h('button.btn.btn--sm' + (e.star ? '.is-on' : ''), { type: 'button', 'aria-pressed': String(!!e.star), 'data-star': '', onclick: function () { save({ star: !e.star }); } }, icon(e.star ? 'starOn' : 'star', 14), e.star ? 'Starred' : 'Star')),
       h('button.draft', { type: 'button', 'data-draft': '', onclick: function () {
         if (status === 'published') { toast('This one is already published.'); return; }
         var me = PEOPLE.filter(function (p) { return p.me; })[0];
         var next = startDraft(e, me.id);
         var owner = PEOPLE.filter(function (p) { return p.id === next.owner; })[0];
-        save(next, 'Draft started. It\'s in Drafting on the Pipeline, owned by ' + owner.name);
-      } }, icon('pencil', 15), 'DRAFT ARTICLE'),
-      h('span.cap', { text: 'PIPELINE STATUS' }),
-      h('div.radios', { role: 'radiogroup', 'aria-label': 'Pipeline status' }, [['idea', 'Idea'], ['drafting', 'Drafting'], ['published', 'Published']].map(function (s) {
+        save(next, 'Draft started. It\'s in Drafting on the Board, owned by ' + owner.name + '.');
+      } }, icon('pencil', 16), 'Draft article'),
+      h('span.label', { text: 'Status' }),
+      h('div.radios', { role: 'radiogroup', 'aria-label': 'Status' }, [['idea', 'Idea'], ['drafting', 'Drafting'], ['published', 'Published']].map(function (s) {
         var on = status === s[0];
         return h('button.radio' + (on ? '.is-on' : ''), { type: 'button', role: 'radio', 'aria-checked': String(on), 'data-status': s[0], onclick: function () { save({ status: on ? 'new' : s[0] }); } }, h('span.radio__dot'), s[1]);
       })),
-      h('span.cap', { text: 'BRAND' }),
+      h('span.label', { text: 'Brand' }),
       h('div.radios', { role: 'radiogroup', 'aria-label': 'Brand' }, BRANDS.map(function (b) {
         var on = brand === b[0];
         var set = e.brand === b[0];
         return h('button.radio' + (on ? '.is-on' : ''), { type: 'button', role: 'radio', 'aria-checked': String(on), 'data-brand': b[0], onclick: function () { save({ brand: set ? null : b[0] }); } },
-          h('span.radio__dot'), b[1], on ? h('small.radio__tag', { text: set ? 'SET' : 'AUTO' }) : null);
+          h('span.radio__dot'), b[1], on ? h('small.radio__tag', { text: set ? 'Set' : 'Auto' }) : null);
       })),
-      h('p.hint', { text: 'Auto-detected from the creative; click to correct, or click again to clear.' }),
-      h('span.cap', { text: 'OWNER' }),
+      h('p.hint', { text: 'Detected from the creative. Click to correct it, or click again to clear.' }),
+      h('span.label', { text: 'Owner' }),
       h('div.owners', PEOPLE.map(function (p) {
         var on = e.owner === p.id;
         return h('button.owner' + (on ? '.is-on' : ''), { type: 'button', 'aria-pressed': String(on), 'data-owner': p.id, title: p.full + (p.me ? ' (you)' : ''), onclick: function () { save({ owner: on ? null : p.id }); } },
           h('span.avatar', { text: p.id.toUpperCase() }), p.name);
       })),
-      h('span.cap', { text: 'LINKED ARTICLE URL' }), link,
+      h('span.label', { text: 'Linked article' }), link,
       linkError ? h('p.error', { role: 'alert', text: linkError }) : null,
-      h('span.cap', { text: 'NOTES' }), notes,
+      h('span.label', { text: 'Notes' }), notes,
       h('p.hint', { text: 'Changes save automatically. In this demo they stay in this tab.' }));
   }
 

@@ -1,8 +1,8 @@
-/* Ad Intel demo: small DOM helpers shared by every screen.
+/* Ad Radar demo: small DOM helpers shared by every screen.
    Text always goes in through textContent, so nothing a visitor types can become markup. */
 
 export function log(ns, msg, values) {
-  console.info('[ai-demo ' + ns + '] ' + msg, values || {});
+  console.info('[ad-radar ' + ns + '] ' + msg, values || {});
 }
 
 /* h('button.btn', { onclick, 'aria-label': 'x' }, 'Label', child...) */
@@ -48,10 +48,15 @@ var ICONS = {
   x: '<path d="M6 6l12 12M18 6 6 18"/>',
   play: '<path d="M7 5v14l12-7z" fill="currentColor" stroke="none"/>',
   stop: '<rect x="6" y="6" width="12" height="12" fill="currentColor" stroke="none"/>',
-  refresh: '<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>',
   down: '<path d="M12 4v12M6 11l6 6 6-6M5 20h14"/>',
   arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
-  check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>'
+  check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  search: '<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/>',
+  /* The four tabs. */
+  ads: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+  trends: '<path d="M4 17l5-5 4 3 7-8M15 7h5v5"/>',
+  board: '<rect x="4" y="4" width="4.5" height="16" rx="1.2"/><rect x="10" y="4" width="4.5" height="11" rx="1.2"/><rect x="16" y="4" width="4" height="7" rx="1.2"/>',
+  scans: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 12l5.6-5.6"/>'
 };
 
 export function icon(name, size) {
@@ -81,7 +86,7 @@ export function toast(text) {
   log('ui', 'toast', { text: text });
 }
 
-/* A segmented control: [ALL | HAVE | MISSING]. */
+/* A segmented control: [All | Have | Missing]. */
 export function segmented(options, value, onPick, opts) {
   opts = opts || {};
   return h('div.seg' + (opts.disabled ? '.is-disabled' : ''), { role: 'group', 'aria-label': opts.label },

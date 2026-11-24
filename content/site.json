@@ -35,7 +35,7 @@
       "work:toto",
       "work:memesh",
       "work:lorewire",
-      "work:ad-intel",
+      "work:ad-radar",
       "work:im-eng"
     ]
   },
@@ -121,16 +121,16 @@
       }
     },
     {
-      "id": "ad-intel",
-      "title": "Ad Intel",
+      "id": "ad-radar",
+      "title": "Ad Radar",
       "kind": "INTERNAL TOOL",
       "year": "2026",
       "madeWith": "AI coding agents",
-      "description": "A dashboard that watches the Facebook and Instagram ads competitors run, saves each one with its landing article, and shows which topics we haven't written about yet.",
-      "design": "Built to be read fast, like a trading terminal: a dark screen, hairline borders, and every number, domain and label in a monospace font so columns line up.\n\nOne amber marks what is live or needs a decision: the active tab, the counts that matter, the Draft article button. Green and red only show state, like a clear policy check or a dead link.",
+      "description": "Keeps an eye on the ads competitors run on Facebook and Instagram. Every scan saves the new ones with the page they lead to, and the gap finder shows which topics we haven't written about yet.",
+      "design": "Made for a small team that opens it every morning. Ads is the main list, with the filters beside it. One ad opens in full: the creative, the page it leads to, our own versions of it and a short workflow, and J and K step through the list without going back.\n\nA light, quiet screen: white cards on warm grey with soft corners, set in Plus Jakarta Sans. Numbers, domains and links are in a mono so they line up. One magenta marks what needs a decision, like a gap or the Draft article button. Green and red only show state.",
       "link": "",
       "style": "screen",
-      "demo": "adintel",
+      "demo": "adradar",
       "media": null,
       "desk": {
         "show": true

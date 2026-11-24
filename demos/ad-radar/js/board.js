@@ -1,27 +1,27 @@
-/* Ad Intel demo: the content pipeline. Four columns (new, idea, drafting, published). Drag a card
-   to another column to change its status, or use its arrow button. Clicking a card opens the ad. */
+/* Ad Radar demo: the Board. Four columns (new, idea, drafting, published). Drag a card to another
+   column to change its status, or use its arrow button. Clicking a card opens the ad. */
 
 import { PEOPLE } from './data.js';
 import { board, statusOf, nextStatus, STATUSES, pad } from './logic.js';
-import { h, toast, log } from './dom.js';
+import { h, icon, toast, log } from './dom.js';
 import { creative } from './creative.js';
 
-var TITLES = { new: 'NEW', idea: 'IDEA', drafting: 'DRAFTING', published: 'PUBLISHED' };
+var TITLES = { new: 'New', idea: 'Idea', drafting: 'Drafting', published: 'Published' };
 
-export function createPipeline(app) {
-  var el = h('section.view.pipeline', { 'aria-label': 'Content pipeline' });
+export function createBoard(app) {
+  var el = h('section.view.board', { 'aria-label': 'Board' });
   var drag = null;
 
   function render() {
-    var q = String(app.query.pipeline || '').trim().toLowerCase();
+    var q = String(app.query.board || '').trim().toLowerCase();
     var ads = app.ads.filter(function (a) { return !q || (a.headline + ' ' + a.vertical + ' ' + a.domain).toLowerCase().indexOf(q) !== -1; });
     var cols = board(ads, app.work);
     el.replaceChildren(
-      h('div.page-head', h('b.cap.white', { text: 'CONTENT PIPELINE' }), h('span.toolbar__fill'), h('span.muted.mono', { text: 'drag cards between columns · status saves to the record' })),
-      h('div.board', STATUSES.map(function (s) {
-        return h('section.col', { 'data-col': s, 'aria-label': TITLES[s] },
-          h('div.col__head', h('span.col__dot' + (s === 'new' ? '' : '.is-on')), h('b', { text: TITLES[s] }), h('span.toolbar__fill'), h('span.mono.muted', { 'data-count': s, text: pad(cols[s].length) })),
-          h('div.col__body', cols[s].length ? cols[s].map(card) : h('p.col__empty', { text: 'drop here' })));
+      h('div.page-head', h('h1', { text: 'Board' }), h('p.muted', { text: 'From idea to published. Drag a card to another column; the status saves on the ad.' })),
+      h('div.columns', STATUSES.map(function (s) {
+        return h('section.col.col--' + s, { 'data-col': s, 'aria-label': TITLES[s] },
+          h('div.col__head', h('span.col__dot'), h('b', { text: TITLES[s] }), h('span.fill'), h('span.col__n.mono', { 'data-count': s, text: pad(cols[s].length) })),
+          h('div.col__body', cols[s].length ? cols[s].map(card) : h('p.col__empty', { text: 'Drop a card here' })));
       })));
   }
 
@@ -33,19 +33,19 @@ export function createPipeline(app) {
       onpointerdown: function (e) { start(e, ad); },
       onkeydown: function (e) { if (e.key === 'Enter' && e.target === e.currentTarget) app.openAd(ad.id); } },
       h('div.pcard__top', creative(ad, 'thumb'), h('span.pcard__title', { text: ad.headline })),
-      h('div.pcard__foot', h('span.mono', { text: ad.vertical }), h('span.toolbar__fill'), h('span.mono.muted', { text: ad.domain }),
+      h('div.pcard__foot', h('span.chip', { text: ad.vertical }), h('span.mono.faint.ellipsis', { text: ad.domain }), h('span.fill'),
         h('span.avatar.avatar--sm' + (owner ? '' : '.is-empty'), { title: owner ? owner.full : 'No owner', text: owner ? owner.id.toUpperCase() : '·' }),
-        to ? h('button.pcard__move', { type: 'button', 'aria-label': 'Move to ' + TITLES[to].toLowerCase(), 'data-move': to, onclick: function () { move(ad, to); } }, '→') : null));
+        to ? h('button.pcard__move', { type: 'button', 'aria-label': 'Move to ' + TITLES[to].toLowerCase(), title: 'Move to ' + TITLES[to].toLowerCase(), 'data-move': to, onclick: function () { move(ad, to); } }, icon('arrow', 13)) : null));
   }
 
   function move(ad, to) {
     var e = app.work[ad.id] || (app.work[ad.id] = {});
     e.status = to;
-    log('pipeline', 'move', { ad: ad.id, to: to });
+    log('board', 'move', { ad: ad.id, to: to });
     render();
     var moved = el.querySelector('[data-card="' + ad.id + '"]');
     if (moved) { moved.classList.add('is-dropped'); moved.scrollIntoView({ block: 'nearest' }); }
-    toast('Moved to ' + TITLES[to].charAt(0) + TITLES[to].slice(1).toLowerCase() + '.');
+    toast('Moved to ' + TITLES[to] + '.');
   }
 
   /* ---------- Dragging ---------- */
