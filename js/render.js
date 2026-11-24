@@ -3,7 +3,7 @@
    Every value is escaped by the html`` tag, so content can never inject markup.
    Plain ES module, no dependencies, works in the browser and in Node. */
 
-import { normalize, runtimeSeconds, isSafeUrl, isMediaPath, DEMOS, posterSizes } from './schema.js';
+import { normalize, phoneOrder, runtimeSeconds, isSafeUrl, isMediaPath, DEMOS, posterSizes } from './schema.js';
 
 /* ---------- Safe templating ---------- */
 
@@ -119,7 +119,7 @@ export function routes(content) {
 
 /* ---------- Desk ---------- */
 
-/* Positions are worked out on the page by js/desk-layout.js; the markup follows the desk order. */
+/* Positions are worked out on the page by js/desk-layout.js; the markup follows the phone order. */
 function objAttrs(key) {
   return html`data-obj="${key}" data-cursor="drag"`;
 }
@@ -254,12 +254,14 @@ function pageHome(c, paths) {
   c.works.forEach(function (w, i) {
     if (w.desk.show) parts['work:' + w.id] = function () { return deskWork(w, i, paths); };
   });
-  var objects = c.desk.order.map(function (key) { return parts[key] ? parts[key]() : ''; });
+  /* Written in the phone order, so phones show it right away; js/main.js puts the computer order back
+     on wider screens before it lays the desk out (the desk stays hidden until then). */
+  var objects = phoneOrder(c).map(function (key) { return parts[key] ? parts[key]() : ''; });
   return html`
 <!-- ============ HOME: THE DESK ============ -->
 <section class="page page--home" data-page="home" data-route="/" data-label="The desk" data-name="THE DESK" aria-label="The desk">
   <div class="desk-scroll">
-    <div class="desk grid-surface" data-desk>
+    <div class="desk grid-surface" data-desk data-order="${c.desk.order.join(' ')}" data-phone-order="${phoneOrder(c).join(' ')}">
 ${objects}      <p class="desk__hint mono"><span class="only-wide">${c.desk.hint}</span><span class="only-narrow">${c.desk.hintMobile}</span></p>
     </div>
   </div>

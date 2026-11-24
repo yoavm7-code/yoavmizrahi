@@ -396,6 +396,27 @@ test('a tape taken into the monitor leaves the pile below it, and the monitor fo
   await expect(page.locator('.monitor [data-sound]')).toHaveAccessibleName('SOUND OFF');
 });
 
+/* The desk's top-level parts (objects and the tapes group) as they are in the page. */
+function pageOrder(page) {
+  return page.locator('[data-desk]').evaluate((desk) => [...desk.children]
+    .map((el) => el.getAttribute('data-obj') || (el.getAttribute('data-obj-group') === 'tapes' ? 'tapes' : null)).filter(Boolean));
+}
+function orderAttr(page, name) {
+  return page.locator('[data-desk]').evaluate((desk, n) => desk.getAttribute(n).split(' '), name);
+}
+
+test('the desk is in the phone order up to 900px and the computer order above, and swaps when the screen does', async ({ page }) => {
+  await page.goto('/#/');
+  const computer = await orderAttr(page, 'data-order');
+  const phone = await orderAttr(page, 'data-phone-order');
+  expect(await pageOrder(page)).toEqual(isNarrow(page) ? phone : computer);
+  const size = page.viewportSize();
+  await page.setViewportSize(isNarrow(page) ? { width: 1180, height: 800 } : { width: 390, height: 844 });
+  await expect.poll(() => pageOrder(page)).toEqual(isNarrow(page) ? phone : computer);
+  await page.setViewportSize(size);
+  await expect.poll(() => pageOrder(page)).toEqual(isNarrow(page) ? phone : computer);
+});
+
 test('on phones the tapes pile up with every label in full', async ({ page }) => {
   test.skip(page.viewportSize().width > 720, 'phone width only');
   await page.goto('/#/');

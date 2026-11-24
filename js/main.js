@@ -611,12 +611,22 @@
   /* ---------- The desk: layout, dragging, tapes, monitor ---------- */
   /* Wider than 900px, js/desk-layout.js places everything in the desk order: the note, the film
      corner (the monitor with its tapes piled beside it) and the works. Up to 900px the desk is a
-     pile you scroll through (CSS). Anything can be dragged anywhere on the desk, with a mouse
+     pile you scroll through (CSS), in the phone order (data-phone-order, set in the admin). Anything can be dragged anywhere on the desk, with a mouse
      straight away and on touch after a short press and hold, so a quick swipe still scrolls.
      A drag adds an offset to the object's home spot; Tidy up takes the offsets away. */
   var Layout = window.DeskLayout;
   var desk = $('[data-desk]');
-  var objs = $$('.obj', desk);
+  var deskOrder = { wide: keysOf('data-order'), narrow: keysOf('data-phone-order') };
+  function keysOf(attr) { return (desk.getAttribute(attr) || '').split(' ').filter(Boolean); }
+  /* What a key in the desk order stands for: one object, or the tapes as a group. */
+  function deskPart(key) { return $(key === 'tapes' ? '[data-obj-group="tapes"]' : '[data-obj="' + key + '"]', desk); }
+  /* Every object in the computer order, which the layout packs in (the tapes in their pile order). */
+  var objs = [];
+  deskOrder.wide.forEach(function (key) {
+    var part = deskPart(key);
+    if (part) objs = objs.concat(key === 'tapes' ? $$('.obj', part) : [part]);
+  });
+  $$('.obj', desk).forEach(function (o) { if (objs.indexOf(o) === -1) objs.push(o); });
   var monitorObj = $('[data-obj="monitor"]', desk);
   var tapes = $$('[data-tape]', desk);
   var screen = $('[data-monitor]');
@@ -636,11 +646,26 @@
   var offsets = {};      // key -> { dx, dy } added by dragging
   var sizes = {};        // key -> { w, h } measured before any tilt
   var layers = {};       // key -> the object's stacking layer at home, in page order
-  objs.forEach(function (o, i) {
-    offsets[keyOf(o)] = { dx: 0, dy: 0 };
-    layers[keyOf(o)] = i + 1;
-    o.style.zIndex = i + 1;
-  });
+  objs.forEach(function (o) { offsets[keyOf(o)] = { dx: 0, dy: 0 }; });
+
+  /* Puts the desk's objects in the page in this screen's order (the tapes move as one group), so
+     what you see, Tab and a screen reader all follow it. Then each object's home layer follows the
+     page order, so a pile stacks the same way it reads. */
+  var arranged = null;
+  function arrangeDesk() {
+    var which = narrow.matches ? 'narrow' : 'wide';
+    if (which === arranged) return;
+    arranged = which;
+    var hint = $('.desk__hint', desk);
+    deskOrder[which].forEach(function (key) { var part = deskPart(key); if (part) desk.insertBefore(part, hint); });
+    $$('.obj', desk).forEach(function (o, i) {
+      layers[keyOf(o)] = i + 1;
+      var off = offsets[keyOf(o)];
+      if (!off.dx && !off.dy) o.style.zIndex = i + 1;
+    });
+    info('[desk order]', { device: which === 'narrow' ? 'phone' : 'computer', keys: deskOrder[which] });
+  }
+  arrangeDesk();
 
   function keyOf(o) { return o.getAttribute('data-obj'); }
   function lean(o) {
@@ -663,6 +688,7 @@
   }
 
   function layoutDesk() {
+    arrangeDesk();
     if (!fontsReady || !desk.offsetWidth) return;
     if (narrow.matches) {
       desk.style.height = '';

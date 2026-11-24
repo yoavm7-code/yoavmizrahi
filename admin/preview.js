@@ -110,12 +110,17 @@ export function createPreview(opts) {
     if (opts.signal) opts.signal.addEventListener('abort', function () { observer.disconnect(); clearTimeout(view.timer); });
   }
 
+  /* Screens that follow the preview's size (the desk order) hear about every change. A listener whose
+     screen has gone returns false and is dropped. */
+  var deviceListeners = [];
   function setDevice(d) {
+    if (d === view.device) return;
     view.device = d;
     deviceBtns.desktop.setAttribute('aria-pressed', d === 'desktop' ? 'true' : 'false');
     deviceBtns.phone.setAttribute('aria-pressed', d === 'phone' ? 'true' : 'false');
     fit();
     refresh(true);
+    deviceListeners = deviceListeners.filter(function (fn) { return fn(d) !== false; });
   }
 
   /* ---------- Navigation ---------- */
@@ -145,6 +150,9 @@ export function createPreview(opts) {
     refresh: refresh,
     go: go,
     showVersion: showVersion,
-    fit: fit
+    fit: fit,
+    device: function () { return view.device; },
+    setDevice: setDevice,
+    onDevice: function (fn) { deviceListeners.push(fn); }
   };
 }

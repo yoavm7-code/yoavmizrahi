@@ -195,6 +195,11 @@ export function deskKeys(content) {
   return keys;
 }
 
+/* The order the desk stacks in on phones and tablets: its own, or the computer order it follows. */
+export function phoneOrder(content) {
+  return content.desk.phoneOrder || content.desk.order;
+}
+
 /* ---------- Normalize: fill defaults, coerce types, repair order. Never throws. ---------- */
 
 /* A replica's admin settings: a logo (an uploaded image) and wording overrides per language.
@@ -239,14 +244,16 @@ export function normalize(input) {
   });
 
   /* Positions are worked out on the page (js/desk-layout.js), so any saved ones are dropped. The
-     order used to be called mobileOrder, when it only applied to phones. */
+     order used to be called mobileOrder, when it only applied to phones. phoneOrder is null while
+     phones follow the computer order, and a list once phones have an order of their own. */
   var rawDesk = obj(c.desk);
   var rawNote = obj(rawDesk.note);
   var d = c.desk = {
     hint: caps(rawDesk.hint),
     hintMobile: caps(rawDesk.hintMobile),
     note: { hi: str(rawNote.hi), line: str(rawNote.line), small: str(rawNote.small) },
-    order: []
+    order: [],
+    phoneOrder: null
   };
 
   c.works = (Array.isArray(c.works) ? c.works : []).map(function (w) {
@@ -306,14 +313,17 @@ export function normalize(input) {
   dz.lead = str(dz.lead).trim();
   dz.points = (Array.isArray(dz.points) ? dz.points : []).map(function (l) { return str(l).trim(); }).filter(Boolean);
 
-  /* Desk order: keep the saved order, drop keys that no longer exist, append new ones. */
+  /* Desk orders: keep the saved order, drop keys that no longer exist, append new ones. */
   var keys = deskKeys(c);
-  var saved = Array.isArray(rawDesk.order) ? rawDesk.order : Array.isArray(rawDesk.mobileOrder) ? rawDesk.mobileOrder : [];
-  var order = saved.filter(function (k, i, arr) {
-    return keys.indexOf(k) !== -1 && arr.indexOf(k) === i;
-  });
-  keys.forEach(function (k) { if (order.indexOf(k) === -1) order.push(k); });
-  d.order = order;
+  function repairOrder(saved) {
+    var order = saved.filter(function (k, i, arr) {
+      return keys.indexOf(k) !== -1 && arr.indexOf(k) === i;
+    });
+    keys.forEach(function (k) { if (order.indexOf(k) === -1) order.push(k); });
+    return order;
+  }
+  d.order = repairOrder(Array.isArray(rawDesk.order) ? rawDesk.order : Array.isArray(rawDesk.mobileOrder) ? rawDesk.mobileOrder : []);
+  d.phoneOrder = Array.isArray(rawDesk.phoneOrder) ? repairOrder(rawDesk.phoneOrder) : null;
 
   return c;
 }

@@ -84,6 +84,23 @@ test('the desk is rendered in the desk order, without positions, with the layout
   assert.ok(page.includes('data-tidy hidden>Tidy up</button>'));
 });
 
+test('the desk is written in the phone order, and carries both orders for the page to switch between', () => {
+  const raw = base();
+  raw.works.push({ id: 'two', title: 'Two', style: 'device' });
+  raw.desk.order = ['note', 'monitor', 'tapes', 'work:one', 'work:two'];
+  raw.desk.phoneOrder = ['work:two', 'tapes', 'note', 'work:one', 'monitor'];
+  const page = renderSite(raw);
+  const keys = [...page.matchAll(/data-obj="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(keys, ['work:two', 'tape:film', 'note', 'work:one', 'monitor']);
+  assert.ok(page.includes('data-desk data-order="note monitor tapes work:one work:two" data-phone-order="work:two tapes note work:one monitor"'));
+});
+
+test('without a phone order, phones get the computer order', () => {
+  const raw = base();
+  raw.desk.order = ['monitor', 'note'];
+  assert.ok(renderSite(raw).includes('data-order="monitor note tapes work:one" data-phone-order="monitor note tapes work:one"'));
+});
+
 test('a work taken off the desk is not rendered on it', () => {
   const raw = base();
   raw.works[0].desk = { show: false };

@@ -1,7 +1,7 @@
 /* The editing screens. Each render function fills the main area for one admin route.
    ctx gives access to the store, the preview, uploads and navigation (see app.js). */
 
-import { STYLES, DEMOS, LIMITS, deskKeys, uniqueId, youtubeId, hasPlaceholder, isSafeUrl } from '../js/schema.js';
+import { STYLES, DEMOS, LIMITS, deskKeys, phoneOrder, uniqueId, youtubeId, hasPlaceholder, isSafeUrl } from '../js/schema.js';
 import { h, clear, icon, button, field, toggle, choiceCards, section, toast, dialog, confirm, when, plural } from './ui.js';
 import { ACCEPT } from './media.js';
 import { REPO } from './config.js';
@@ -82,10 +82,10 @@ export function styleArt(style) {
   return svg;
 }
 
-function deskLabel(d, key) {
+function deskLabel(d, key, onPhone) {
   if (key === 'note') return 'Sticky note';
   if (key === 'monitor') return 'Monitor';
-  if (key === 'tapes') return 'Tapes (on computers they sit with the monitor)';
+  if (key === 'tapes') return onPhone ? 'Tapes' : 'Tapes (on computers they sit with the monitor)';
   var id = key.split(':')[1];
   if (key.indexOf('work:') === 0) { var w = d.works.filter(function (x) { return x.id === id; })[0]; return w ? w.title : id; }
   if (key.indexOf('tape:') === 0) { var f = d.films.filter(function (x) { return x.id === id; })[0]; return f ? 'Tape: ' + (f.tape.label || f.title) : id; }
@@ -168,24 +168,63 @@ export function renderDesk(ctx, el) {
   });
   el.appendChild(onDesk);
 
-  var order = section('Order on the desk', 'Top of this list comes first, on computers (left to right, top to bottom) and on phones (top to bottom).');
+  var order = section('Order on the desk');
   renderOrder(ctx, order.body);
+  /* The list follows the preview's size, and the preview follows the list. */
+  ctx.preview.onDevice(function () {
+    if (!order.isConnected) return false;
+    renderOrder(ctx, order.body);
+  });
   el.appendChild(order);
   ctx.preview.go('#/');
 }
 
+/* The desk has an order on computers and one on phones and tablets. Phones follow the computer order
+   (desk.phoneOrder is null) until something is moved on their list. */
+var ORDER_TABS = [
+  { device: 'desktop', label: 'On computers', icon: 'desktop', intro: 'Left to right, then top to bottom. The top of the list comes first.' },
+  { device: 'phone', label: 'On phones and tablets', icon: 'phone', intro: 'Top to bottom, in this order.' }
+];
+
 function renderOrder(ctx, box) {
   clear(box);
   var d = draft(ctx);
-  var keys = d.desk.order.filter(function (k) { return deskKeys(d).indexOf(k) !== -1; });
+  var onPhone = ctx.preview.device() === 'phone';
+  var tab = ORDER_TABS[onPhone ? 1 : 0];
+  box.appendChild(h('div.seg.seg--order', { role: 'group', 'aria-label': 'Which screens' }, ORDER_TABS.map(function (t) {
+    return h('button.seg__btn', { type: 'button', 'aria-pressed': String(t === tab), 'aria-label': t.label,
+      on: { click: function () { ctx.preview.setDevice(t.device); } } }, icon(t.icon), h('span', t.label));
+  })));
+  box.appendChild(h('p.section__intro', tab.intro));
+
+  if (onPhone) {
+    var own = !!d.desk.phoneOrder;
+    box.appendChild(h('div.order__status',
+      h('span', own ? 'Phones have their own order.' : 'Same as on computers right now. Move anything to give phones their own order.'),
+      own ? button('Copy computer order', { kind: 'ghost', small: true, onClick: function () {
+        ctx.store.update(function (x) { x.desk.phoneOrder = null; });
+        console.info('[admin desk] phone order follows the computer again');
+        toast('Phones follow the computer order again.');
+        renderOrder(ctx, box);
+        ctx.preview.refresh();
+      } }) : null
+    ));
+  }
+
+  var keys = (onPhone ? phoneOrder(d) : d.desk.order).filter(function (k) { return deskKeys(d).indexOf(k) !== -1; });
   deskKeys(d).forEach(function (k) { if (keys.indexOf(k) === -1) keys.push(k); });
-  var list = h('ol.order');
+  var list = h('ol.order' + (onPhone ? '.order--phone' : ''), { 'aria-label': 'Order ' + tab.label.toLowerCase() });
   keys.forEach(function (k, i) {
     list.appendChild(h('li.order__item',
       h('span.order__num', String(i + 1)),
-      h('span.order__name', deskLabel(d, k)),
-      orderButtons(deskLabel(d, k), i, keys.length, function (from, to) {
-        ctx.store.update(function (x) { x.desk.order = keys.slice(); moveItem(x.desk.order, from, to); });
+      h('span.order__name', deskLabel(d, k, onPhone)),
+      orderButtons(deskLabel(d, k, onPhone), i, keys.length, function (from, to) {
+        ctx.store.update(function (x) {
+          var next = keys.slice();
+          moveItem(next, from, to);
+          if (onPhone) x.desk.phoneOrder = next; else x.desk.order = next;
+        });
+        console.info('[admin desk] order moved', { device: tab.device, key: k, from: from, to: to });
         renderOrder(ctx, box);
         ctx.preview.refresh();
       })
@@ -251,6 +290,7 @@ export function addWork(ctx) {
           desk: { show: true }
         });
         x.desk.order = (x.desk.order || []).concat('work:' + id);
+        if (x.desk.phoneOrder) x.desk.phoneOrder = x.desk.phoneOrder.concat('work:' + id);
       });
       ctx.go('#/works/' + id);
       toast('Added "' + title + '". Fill in the details, then publish.');
@@ -338,7 +378,9 @@ function addressField(ctx, kind, id, p) {
     ctx.store.update(function (x) {
       var arr = kind === 'work' ? x.works : x.films;
       arr.filter(function (it) { return it.id === id; })[0].id = next;
-      x.desk.order = (x.desk.order || []).map(function (k) { return k === 'work:' + id ? 'work:' + next : k; });
+      var rename = function (k) { return k === 'work:' + id ? 'work:' + next : k; };
+      x.desk.order = (x.desk.order || []).map(rename);
+      if (x.desk.phoneOrder) x.desk.phoneOrder = x.desk.phoneOrder.map(rename);
     });
     toast('The address is now "' + next + '".');
     ctx.go(kind === 'work' ? '#/works/' + next : '#/films/' + next);
