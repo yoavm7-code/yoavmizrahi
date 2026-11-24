@@ -94,7 +94,7 @@ test('a tape goes into the monitor, plays, and ejects', async ({ page }) => {
   await expect(tape).not.toHaveClass(/is-inserted/);
 });
 
-test('a second tape replaces the first', async ({ page }) => {
+test('a second tape replaces the first, even one pressed while the first is still on its way', async ({ page }) => {
   await page.goto('/#/');
   const tapes = page.locator('[data-tape]');
   test.skip(await tapes.count() < 2, 'needs two tapes');
@@ -102,6 +102,134 @@ test('a second tape replaces the first', async ({ page }) => {
   await tapes.nth(1).locator('[data-insert]').click();
   await expect(tapes.nth(0)).not.toHaveClass(/is-inserted/);
   await expect(tapes.nth(1)).toHaveClass(/is-inserted/);
+});
+
+test('a tape flies into the monitor and leaves nothing behind', async ({ page }) => {
+  await page.goto('/#/');
+  const tape = page.locator('[data-tape]').first();
+  await tape.locator('[data-insert]').click();
+  await expect(page.locator('.tape-ghost')).toHaveCount(1);
+  await expect(tape).toHaveClass(/is-inserted/);
+  await expect(page.locator('[data-monitor]')).toHaveAttribute('data-state', 'idle');
+  await expect(page.locator('.tape-ghost')).toHaveCount(0);
+});
+
+test('with reduced motion a tape goes straight in, with no flight', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/#/');
+  const tape = page.locator('[data-tape]').first();
+  await tape.locator('[data-insert]').click();
+  await expect(tape).toHaveClass(/is-inserted/);
+  expect(await page.locator('.tape-ghost').count()).toBe(0);
+});
+
+/* ---------- The monitor on standby ---------- */
+
+function stillsOf(page) {
+  return page.locator('[data-standby]').evaluate((el) => el.getAttribute('data-stills').split(' '));
+}
+function shownStill(page) {
+  return page.locator('[data-standby] img.is-on').evaluate((img) => new URL(img.src).pathname.slice(1));
+}
+
+test('with no tape in, the monitor stands by on the films\' stills and moves to the next', async ({ page }) => {
+  await page.goto('/#/');
+  const screen = page.locator('[data-monitor]');
+  await expect(screen).toHaveClass(/has-standby/);
+  await expect(page.locator('.monitor__standby')).toBeVisible();
+  await expect(page.locator('.monitor__off')).toBeHidden();
+  const stills = await stillsOf(page);
+  expect(await shownStill(page)).toBe(stills[0]);
+  await expect.poll(() => shownStill(page), { timeout: 8000 }).toBe(stills[1]);
+});
+
+test('the standby hides while a tape is in and comes back on eject', async ({ page }) => {
+  await page.goto('/#/');
+  await expect(page.locator('[data-monitor]')).toHaveClass(/has-standby/);
+  await page.locator('[data-tape] [data-insert]').first().click();
+  await expect(page.locator('[data-standby]')).toBeHidden();
+  await page.locator('[data-eject]').click();
+  await expect(page.locator('[data-standby]')).toBeVisible();
+});
+
+test('with reduced motion the standby holds one still', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const asked = [];
+  page.on('request', (r) => asked.push(new URL(r.url()).pathname));
+  await page.goto('/#/');
+  await expect(page.locator('[data-monitor]')).toHaveClass(/has-standby/);
+  const stills = await stillsOf(page);
+  await page.waitForTimeout(5600);
+  expect(await shownStill(page)).toBe(stills[0]);
+  expect(asked.filter((u) => stills.slice(1).includes(u.slice(1))), 'no other still is fetched').toEqual([]);
+});
+
+/* ---------- The first visit's hint ---------- */
+
+/* Notes whether any tape ever got the hint, from the very first moment of the page. */
+async function watchNudge(page) {
+  await page.addInitScript(() => {
+    window.__nudged = false;
+    new MutationObserver(() => {
+      if (document.querySelector('.is-nudging')) window.__nudged = true;
+    }).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] });
+  });
+}
+
+test('on a laptop the first tape leans toward the monitor once, and its play button rings', async ({ page }) => {
+  test.skip(isNarrow(page), 'the hint is for wide desks');
+  await page.setViewportSize({ width: 1440, height: 900 }); // tall enough that the tapes are in view; out of view there is no hint
+  await watchNudge(page);
+  await page.goto('/#/');
+  const tape = page.locator('[data-tape]').first();
+  await expect(tape).toHaveClass(/is-nudging/, { timeout: 4000 });
+  await expect(tape).not.toHaveClass(/is-nudging/);
+});
+
+test('there is no hint on phones and tablets, or with reduced motion', async ({ page }) => {
+  if (!isNarrow(page)) await page.emulateMedia({ reducedMotion: 'reduce' });
+  await watchNudge(page);
+  await page.goto('/#/');
+  await page.waitForTimeout(2600);
+  expect(await page.evaluate(() => window.__nudged)).toBe(false);
+});
+
+test('pressing play before the hint cancels it', async ({ page }) => {
+  test.skip(isNarrow(page), 'the hint is for wide desks');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await watchNudge(page);
+  await page.goto('/#/');
+  await page.locator('[data-tape] [data-insert]').nth(1).click();
+  await page.waitForTimeout(2600);
+  expect(await page.evaluate(() => window.__nudged)).toBe(false);
+});
+
+/* ---------- Hover and sound ---------- */
+
+test('with a mouse an object lifts a little under the pointer', async ({ page }) => {
+  test.skip(isNarrow(page), 'hover is for fine pointers on wide desks');
+  await page.goto('/#/');
+  await expect(page.locator('.desk.is-laid')).toBeVisible();
+  const note = page.locator('[data-obj="note"]');
+  await note.hover();
+  await settled(note);
+  expect(await note.evaluate((el) => getComputedStyle(el).translate)).toBe('0px -3px');
+});
+
+test('sound is off at first, the switch turns it on, and the choice is kept', async ({ page }) => {
+  await page.goto('/#/');
+  const sw = page.getByRole('button', { name: 'Sound' });
+  await expect(sw).toHaveAttribute('aria-pressed', 'false');
+  await sw.click();
+  await expect(sw).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('[data-tape] [data-insert]').first().click();
+  await expect(page.locator('[data-monitor]')).toHaveAttribute('data-state', 'idle');
+  await page.locator('[data-eject]').click();
+  await page.reload();
+  await expect(sw).toHaveAttribute('aria-pressed', 'true');
+  await sw.click();
+  await expect(sw).toHaveAttribute('aria-pressed', 'false');
+  expect(await page.evaluate(() => localStorage.getItem('ym-sound'))).toBe('off');
 });
 
 /* Real touch events through Chrome's DevTools protocol, so a press, a hold and a move reach the page
@@ -205,6 +333,12 @@ test('nothing can be dragged off the desk', async ({ page }) => {
   await page.mouse.down();
   await page.mouse.move(-400, -400, { steps: 8 });
   await page.mouse.up();
+  /* Measured where the note comes to rest: off the note, so its 3px hover lift is gone (the browser ends
+     the hover on its next frame), and after it has settled from the drag's 4% scale-up, which for a
+     moment reaches past the edge. */
+  await page.mouse.move(box.x + 600, box.y + 600);
+  await expect.poll(() => note.evaluate((el) => getComputedStyle(el).translate)).toBe('none');
+  await settled(note);
   const desk = await page.locator('[data-desk]').boundingBox();
   const after = await note.boundingBox();
   expect(after.x).toBeGreaterThanOrEqual(desk.x - 1);

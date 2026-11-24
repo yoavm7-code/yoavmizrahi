@@ -50,6 +50,21 @@
     }
     el.addEventListener('transitionend', finish);
   }
+  /* The same for a CSS animation: fn runs once el's own animation has ended or been cancelled. */
+  function afterAnimation(el, fn) {
+    var done = false;
+    var fallback = setTimeout(finish, 2000);
+    function finish(e) {
+      if (done || (e && e.target !== el)) return;
+      done = true;
+      clearTimeout(fallback);
+      el.removeEventListener('animationend', finish);
+      el.removeEventListener('animationcancel', finish);
+      fn();
+    }
+    el.addEventListener('animationend', finish);
+    el.addEventListener('animationcancel', finish);
+  }
 
   /* GitHub Pages now and then answers a burst of requests with a 503. A picture that fails to load is
      asked for once more a second later, so a visitor doesn't see a gap. A picture with a srcset drops
@@ -127,7 +142,8 @@
     openReplicas(r.page);
     if (route.film) reelGoId(route.film);
     if (r.page === 'films') fitText($('[data-reel-title]'));
-    if (r.page === 'home') layoutDesk();
+    if (r.page === 'home') { layoutDesk(); standby.start(); }
+    standby.sync();
     if (opening && !embedded) focusPage();
   }
   /* Keyboard and screen reader users land on the new page's heading, which reads out its name.
@@ -486,6 +502,74 @@
   function openReplicas(page) { replicas.forEach(function (r) { if (r.page === page) r.open(); }); }
   narrow.addEventListener('change', function () { openReplicas(current); });
 
+  /* ---------- Sound ---------- */
+  /* Off until the visitor turns it on with the switch on the monitor; the choice is kept on this device.
+     The sounds are made in the browser (Web Audio), so there are no audio files. The audio context starts
+     inside a click, as browsers ask. */
+  var sound = (function () {
+    var KEY = 'ym-sound';
+    var on = false;
+    var ctx = null, noiseBuf = null;
+    try { on = localStorage.getItem(KEY) === 'on'; } catch (e) { on = false; }
+
+    function context() {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      if (!ctx) {
+        ctx = new AC();
+        noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+        var data = noiseBuf.getChannelData(0);
+        for (var i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      }
+      if (ctx.state === 'suspended') ctx.resume();
+      return ctx;
+    }
+    function envelope(c, t, peak, dur) {
+      var g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(peak, t + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      g.connect(c.destination);
+      return g;
+    }
+    /* A low knock that falls in pitch: the weight of the tape landing. */
+    function thump(c, t, from, to, dur, peak) {
+      var o = c.createOscillator();
+      o.frequency.setValueAtTime(from, t);
+      o.frequency.exponentialRampToValueAtTime(to, t + dur);
+      o.connect(envelope(c, t, peak, dur));
+      o.start(t); o.stop(t + dur + 0.02);
+    }
+    /* A burst of filtered noise: the click of plastic, or the hiss of a set coming on. */
+    function hiss(c, t, dur, peak, freq, q) {
+      var src = c.createBufferSource();
+      var f = c.createBiquadFilter();
+      src.buffer = noiseBuf;
+      f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q;
+      src.connect(f); f.connect(envelope(c, t, peak, dur));
+      src.start(t); src.stop(t + dur + 0.02);
+    }
+    var SOUNDS = {
+      insert: function (c, t) { hiss(c, t, 0.04, 0.3, 2400, 1.2); thump(c, t + 0.02, 120, 45, 0.18, 0.55); hiss(c, t + 0.22, 0.45, 0.05, 5200, 0.6); },
+      eject: function (c, t) { hiss(c, t, 0.03, 0.25, 3200, 1.2); thump(c, t, 170, 90, 0.1, 0.3); },
+      tick: function (c, t) { hiss(c, t, 0.02, 0.2, 3000, 1.5); }
+    };
+    function play(name) {
+      if (!on) return;
+      var c = context();
+      if (!c) { info('[desk sound] no Web Audio here'); return; }
+      SOUNDS[name](c, c.currentTime + 0.01);
+      info('[desk sound] play', { name: name, state: c.state });
+    }
+    function set(next) {
+      on = !!next;
+      try { localStorage.setItem(KEY, on ? 'on' : 'off'); } catch (e) { /* storage blocked: kept for this visit only */ }
+      info('[desk sound]', { on: on });
+      play('tick');
+    }
+    return { play: play, set: set, isOn: function () { return on; } };
+  })();
+
   /* ---------- The desk: layout, dragging, tapes, monitor ---------- */
   /* Wider than 900px, js/desk-layout.js places everything in the desk order: the note, the film
      corner (the monitor with its tapes piled beside it) and the works. Up to 900px the desk is a
@@ -611,11 +695,12 @@
   function lift(d) {
     var o = d.o;
     d.lifted = true;
+    /* Dragging drops the hover lift at once, so the edges are measured from where the object really is. */
+    o.classList.add('is-dragging');
     var box = o.getBoundingClientRect(), room = desk.getBoundingClientRect();
     d.min = { x: room.left - box.left, y: room.top - box.top };
     d.max = { x: room.right - box.right, y: room.bottom - box.bottom };
     o.style.zIndex = ++z;
-    o.classList.add('is-dragging');
     o.style.transform = 'translate(' + d.dx + 'px,' + d.dy + 'px) rotate(0deg) scale(1.04)';
     if (d.touch && navigator.vibrate) navigator.vibrate(8);
   }
@@ -633,13 +718,14 @@
       function over(x, y) { return x > m.left && x < m.right && y > m.top && y < m.bottom; }
       if (over(px, py) || over(t.left + t.width / 2, t.top + t.height / 2)) {
         info('[desk drag] tape dropped on the monitor', { key: keyOf(o) });
-        insertTape(o);
+        flyIn(o);
       }
     }
   }
 
   objs.forEach(function (o) {
     o.addEventListener('pointerdown', function (e) {
+      nudge.cancel('touched');
       if (dragging || e.button !== 0 || e.target.closest('button, a, input, select, textarea, iframe, video')) return;
       var off = offsets[keyOf(o)];
       var d = { o: o, id: e.pointerId, sx: e.clientX, sy: e.clientY, dx: off.dx, dy: off.dy, touch: e.pointerType === 'touch', lifted: false };
@@ -699,7 +785,56 @@
   });
 
   /* ---------- Tapes and the monitor ---------- */
-  function setScreen(state) { screen.setAttribute('data-state', state); }
+  function setScreen(state) { screen.setAttribute('data-state', state); standby.sync(); }
+
+  /* A tape on its way in: a copy flies from the tape to the middle of the screen and fades (the timing is
+     in the CSS), while the real tape waits hidden in its place so nothing around it moves. On phones the
+     monitor scrolls into view first, then the tape is measured and flies. Reduced motion: straight in.
+     A tape pressed while another is in the air goes next, so the last one pressed is the one that plays. */
+  var flying = null, queued = null;
+  var SCROLL_SETTLE = 400; // smooth scrolling has no reliable end event on every phone
+  function flyIn(tape) {
+    if (flying) { if (tape !== flying) queued = tape; return; }
+    if (tape === tapeIn) return;
+    if (reduceMotion || !desk.offsetWidth) { insertTape(tape); return; }
+    flying = tape;
+    var near = !narrow.matches || screenInView();
+    if (!near) monitorObj.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(function () {
+      var from = tape.getBoundingClientRect(), to = screen.getBoundingClientRect();
+      var ghost = document.createElement('div');
+      ghost.className = 'tape-ghost';
+      ghost.setAttribute('aria-hidden', 'true');
+      ghost.inert = true;
+      var copy = $('.tape', tape).cloneNode(true);
+      copy.classList.remove('settle', 'd1', 'd2', 'd3', 'd4');
+      ghost.appendChild(copy);
+      var w = tape.offsetWidth, h = tape.offsetHeight;
+      ghost.style.left = Math.round(from.left + from.width / 2 - w / 2) + 'px';
+      ghost.style.top = Math.round(from.top + from.height / 2 - h / 2) + 'px';
+      ghost.style.width = w + 'px';
+      ghost.style.height = h + 'px';
+      ghost.style.transform = 'rotate(' + lean(tape) + 'deg)';
+      ghost.style.setProperty('--dx', Math.round(to.left + to.width / 2 - from.left - from.width / 2) + 'px');
+      ghost.style.setProperty('--dy', Math.round(to.top + to.height / 2 - from.top - from.height / 2) + 'px');
+      tape.style.visibility = 'hidden';
+      document.body.appendChild(ghost);
+      info('[desk tape] flying in', { key: keyOf(tape), scrolled: !near });
+      afterAnimation(ghost, function () {
+        ghost.remove();
+        tape.style.visibility = '';
+        flying = null;
+        insertTape(tape);
+        info('[desk tape] landed', { key: keyOf(tape), next: queued && keyOf(queued) });
+        if (queued) { var next = queued; queued = null; flyIn(next); }
+      });
+    }, near ? 0 : SCROLL_SETTLE);
+  }
+  function screenInView() {
+    var r = screen.getBoundingClientRect();
+    return r.top >= 0 && r.bottom <= window.innerHeight;
+  }
+
   function insertTape(tape) {
     if (tapeIn && tapeIn !== tape) returnTape(tapeIn);
     tapeIn = tape;
@@ -711,11 +846,16 @@
     var idle = $('.monitor__idle', screen);
     idle.classList.remove('tv-on'); void idle.offsetWidth; idle.classList.add('tv-on');
     setScreen('idle');
+    if (!reduceMotion) {
+      screen.classList.remove('is-warming'); void screen.offsetWidth; screen.classList.add('is-warming');
+      afterAnimation(screen, function () { screen.classList.remove('is-warming'); });
+    }
+    sound.play('insert');
     fitText($('[data-monitor-title]'));
     ejectBtn.classList.add('is-visible');
     power.classList.add('is-on');
     showTidy();
-    if (narrow.matches) monitorObj.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+    if (narrow.matches && !screenInView()) monitorObj.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
   }
   /* An ejected tape goes back to its place in the pile. */
   function returnTape(tape) {
@@ -733,10 +873,101 @@
     setScreen('empty');
     ejectBtn.classList.remove('is-visible');
     power.classList.remove('is-on');
+    sound.play('eject');
   }
   $$('[data-insert]', desk).forEach(function (b) {
-    b.addEventListener('click', function () { insertTape(b.closest('.obj')); });
+    b.addEventListener('click', function () { nudge.cancel('pressed'); flyIn(b.closest('.obj')); });
   });
+  var soundBtn = $('[data-sound]');
+  soundBtn.setAttribute('aria-pressed', sound.isOn() ? 'true' : 'false');
+  soundBtn.addEventListener('click', function () {
+    sound.set(!sound.isOn());
+    soundBtn.setAttribute('aria-pressed', sound.isOn() ? 'true' : 'false');
+  });
+
+  /* Standby: with no tape in, the screen crossfades through the films' first stills. The pictures load
+     one at a time, after the page has loaded, and only on the desk. The crossfade runs only while the
+     screen is in view, the tab is visible and the desk is open; with reduced motion one still stays. */
+  var standby = (function () {
+    var box = $('[data-standby]', screen);
+    if (!box) return { sync: function () {}, start: function () {} };
+    var urls = box.getAttribute('data-stills').split(' ').filter(Boolean);
+    var layers = [new Image(), new Image()];
+    var shown = -1, front = 0, timer = null, started = false, loaded = false, inView = false;
+    var STEP_MS = 5000;
+    layers.forEach(function (img) { img.alt = ''; img.decoding = 'async'; box.appendChild(img); });
+
+    function show(i) {
+      var img = layers[1 - front];
+      img.onload = function () {
+        img.onload = null;
+        layers[front].classList.remove('is-on');
+        img.classList.add('is-on');
+        front = 1 - front;
+        shown = i;
+        screen.classList.add('has-standby');
+        info('[desk standby] showing', { still: i, of: urls.length });
+        sync();
+      };
+      img.src = urls[i];
+    }
+    function sync() {
+      var run = started && !reduceMotion && urls.length > 1 && shown >= 0 && inView && !document.hidden &&
+        current === 'home' && screen.getAttribute('data-state') === 'empty';
+      if (run && !timer) timer = setInterval(function () { show((shown + 1) % urls.length); }, STEP_MS);
+      if (!run && timer) { clearInterval(timer); timer = null; }
+      info('[desk standby] sync', { running: run, inView: inView, page: current });
+    }
+    function start() {
+      if (started || current !== 'home' || !loaded) return;
+      started = true;
+      info('[desk standby] start', { stills: urls.length });
+      show(0);
+    }
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) { inView = entries[entries.length - 1].isIntersecting; sync(); }).observe(screen);
+    } else inView = true;
+    document.addEventListener('visibilitychange', sync);
+    var idle = window.requestIdleCallback || function (fn) { return setTimeout(fn, 200); };
+    function whenLoaded() { idle(function () { loaded = true; start(); }); }
+    if (document.readyState === 'complete') whenLoaded(); else window.addEventListener('load', whenLoaded);
+    return { sync: sync, start: start };
+  })();
+
+  /* The first visit's hint, on a laptop: a little after the desk appears, the first tape leans toward
+     the monitor and back while its play button rings once. Only if the visitor hasn't scrolled, pressed
+     or dragged anything yet and the tape is in view; never on phones, never with reduced motion. */
+  var nudge = (function () {
+    var NUDGE_WAIT = 1600, NUDGE_REACH = 26;
+    var timer = null, done = false;
+    function skip(reason) { done = true; clearTimeout(timer); info('[desk nudge] skipped', { reason: reason }); }
+    function run() {
+      var tape = tapes[0];
+      if (done) return;
+      if (current !== 'home') return skip('not on the desk');
+      if (window.scrollY > 0) return skip('scrolled');
+      if (!tape || tapeIn || flying) return skip('no free tape');
+      var t = tape.getBoundingClientRect(), m = screen.getBoundingClientRect();
+      if (t.bottom > window.innerHeight || t.top < 0) return skip('tape out of view');
+      var dx = m.left + m.width / 2 - t.left - t.width / 2, dy = m.top + m.height / 2 - t.top - t.height / 2;
+      var len = Math.sqrt(dx * dx + dy * dy) || 1;
+      done = true;
+      tape.style.setProperty('--nx', Math.round(dx / len * NUDGE_REACH) + 'px');
+      tape.style.setProperty('--ny', Math.round(dy / len * NUDGE_REACH) + 'px');
+      tape.classList.add('is-nudging');
+      info('[desk nudge] shown', { key: keyOf(tape) });
+      afterAnimation(tape, function () { tape.classList.remove('is-nudging'); });
+    }
+    if (reduceMotion || narrow.matches || !tapes.length) done = true;
+    else timer = setTimeout(run, NUDGE_WAIT);
+    window.addEventListener('scroll', function () { if (!done) skip('scrolled'); }, { passive: true, once: true });
+    return {
+      cancel: function (reason) {
+        if (!done) skip(reason);
+        else if (tapes[0] && tapes[0].classList.contains('is-nudging')) tapes[0].classList.remove('is-nudging');
+      }
+    };
+  })();
   ejectBtn.addEventListener('click', eject);
   $('[data-monitor-play]').addEventListener('click', function () {
     if (!tapeIn) return;

@@ -201,6 +201,10 @@ h1[tabindex="-1"]:focus { outline: none; } /* a page's heading takes focus when 
 .settle { animation: settle .9s var(--ease) both; }
 .d1 { animation-delay: .2s; } .d2 { animation-delay: .35s; } .d3 { animation-delay: .5s; } .d4 { animation-delay: .65s; }
 .tv-on { animation: flicker .6s ease-out both; }
+@keyframes warm { from { opacity: .9; } to { opacity: 0; } }
+@keyframes nudge { 45% { translate: var(--nx) var(--ny); } }
+@keyframes ping { from { opacity: .9; transform: scale(1); } to { opacity: 0; transform: scale(1.9); } }
+@keyframes tape-in { 65% { opacity: 1; } to { transform: translate(var(--dx), var(--dy)) scale(.45); opacity: 0; } }
 .scene-in { animation: sceneIn .7s var(--ease) both; }
 
 /* ---------- Header ---------- */
@@ -269,6 +273,15 @@ body[data-theme="dark"] .site-header { border-color: var(--ink-line); }
 }
 .obj.is-dragging { cursor: grabbing; transition: filter .25s ease; filter: drop-shadow(0 26px 28px rgba(23,22,20,.32)); }
 .obj.is-tidying { transition: transform .6s var(--ease), filter .25s ease; }
+/* With a mouse, an object lifts a little under the pointer, so it reads as something to pick up. The
+   translate property adds to the tilt and drag offset in transform without touching them. */
+@media (hover: hover) and (pointer: fine) and (min-width: 901px) {
+  .obj { transition: transform .25s var(--ease), translate .25s var(--ease), filter .25s ease; }
+  .obj:hover:not(.is-dragging):not(.is-tidying) { translate: 0 -3px; filter: drop-shadow(0 16px 20px rgba(23,22,20,.26)); }
+}
+/* The first visit's hint: a tape leans toward the monitor and back, and its ▶ rings once. */
+.obj.is-nudging { animation: nudge 1.1s var(--ease); }
+.obj.is-nudging .tape__play::before { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accent); animation: ping 1.1s var(--ease) both; }
 
 /* Tidy up: shows once something has moved, puts everything back. */
 .tidy { position: fixed; right: 32px; bottom: 28px; z-index: 40; box-shadow: 0 10px 24px rgba(23,22,20,.22); }
@@ -352,6 +365,20 @@ body[data-theme="dark"] .site-header { border-color: var(--ink-line); }
 .monitor__screen[data-state="playing"] .monitor__playing { display: flex; }
 .monitor__empty { flex-direction: column; align-items: center; gap: 10px; text-align: center; }
 .monitor__nosignal { font-size: 18px; letter-spacing: .3em; color: var(--muted-ink); }
+.monitor__standby { display: none; }
+/* Standby: the films' stills crossfade behind the text, dimmed so it stays readable. The words switch to
+   STANDBY only once a still has loaded; without one the screen stays as it was. */
+.standby { position: absolute; inset: 0; }
+.standby img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.06); transition: opacity 1.4s ease, transform 6s linear; }
+.standby img.is-on { opacity: .42; transform: none; }
+.standby::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(5,5,5,.25), rgba(5,5,5,.75)); }
+.monitor__screen:not([data-state="empty"]) .standby { display: none; }
+.monitor__screen.has-standby .monitor__off { display: none; }
+.monitor__screen.has-standby .monitor__standby { display: inline; }
+.monitor__screen.has-standby .monitor__nosignal, .monitor__screen.has-standby .monitor__hint { color: var(--soft-paper); }
+.monitor__empty { position: relative; }
+/* Power on: a short warm glow over the flicker, like an old set warming up. */
+.monitor__screen.is-warming::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(247,244,239,.22), transparent 70%); animation: warm .9s ease-out both; }
 .monitor__hint { font-size: 11px; letter-spacing: .14em; color: var(--muted-ink); }
 .monitor__idle { flex-direction: column; align-items: center; gap: 10px; text-align: center; padding: 20px; width: 100%; }
 .monitor__title { font-family: var(--display); font-weight: 800; font-size: 54px; letter-spacing: .04em; line-height: 1; white-space: nowrap; }
@@ -361,6 +388,14 @@ body[data-theme="dark"] .site-header { border-color: var(--ink-line); }
 .eject.is-visible { display: inline-block; }
 .power { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); transition: background .3s ease; }
 .power.is-on { background: var(--accent); }
+/* Sound: off until pressed. On, the speaker shows its waves in the accent. */
+.sound { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 8px 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted-ink); font-family: var(--mono); font-size: 11px; letter-spacing: .12em; transition: color .2s ease; }
+.sound svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.sound .sound__waves { opacity: 0; transition: opacity .2s ease; }
+.sound:hover { color: var(--paper); }
+.sound[aria-pressed="true"] { color: var(--paper); }
+.sound[aria-pressed="true"] svg { stroke: var(--accent); }
+.sound[aria-pressed="true"] .sound__waves { opacity: 1; }
 
 /* Tapes */
 .tape { width: 210px; height: 124px; background: var(--ink); border-radius: 10px; padding: 10px; border: 1px solid var(--ink-line); display: flex; flex-direction: column; gap: 8px; }
@@ -371,6 +406,10 @@ body[data-theme="dark"] .site-header { border-color: var(--ink-line); }
 .tape__reels { flex: 1 1 auto; display: flex; justify-content: center; align-items: center; gap: 46px; background: var(--ink-deep); border-radius: 5px; }
 .tape__reels span { width: 30px; height: 30px; border-radius: 50%; border: 6px solid var(--ink-3); }
 .obj[data-tape].is-inserted { display: none; }
+.tape__play { position: relative; }
+/* A copy of the tape flies into the screen while the real one waits hidden in its place (js/main.js). */
+.tape-ghost { position: fixed; z-index: 60; margin: 0; pointer-events: none; transform-origin: center; filter: drop-shadow(0 18px 22px rgba(23,22,20,.3)); animation: tape-in .55s var(--ease) both; }
+.tape-ghost .tape { width: 100%; height: 100%; }
 
 /* Polaroid */
 .polaroid { width: 220px; background: var(--paper-2); padding: 12px 12px 14px; display: flex; flex-direction: column; gap: 10px; color: var(--ink); }
@@ -658,9 +697,9 @@ body.menu-open .mlink:nth-child(4) .mlink__in { transition-delay: .54s; }
   .monitor { width: 100%; }
   .monitor__screen { height: auto; aspect-ratio: 16 / 10; }
   .tidy { right: 20px; bottom: 20px; }
-  .tape__play { position: relative; }
   .tape__play::after { content: ""; position: absolute; inset: -8px; }
   .eject { min-height: 44px; padding: 8px 14px; }
+  .sound { min-height: 44px; }
 
   /* Desktop replicas: the video plays here; the clickable demo is one link away. Phone replicas stay clickable,
      and so do sites with a phone view, which open in it (no Desktop / Phone switch here). */

@@ -249,6 +249,39 @@ test('the Films card runs the stills of every film along a strip, twice over so 
   assert.ok(card.includes('<div class="card__inner"><span class="card__no">02</span><span class="card__title">Films</span>'));
 });
 
+test('the monitor stands by on the first still of each film, in film order, listed only', () => {
+  const raw = base();
+  raw.films = [
+    { id: 'a', title: 'A', label: 'A', stills: ['media/a1.webp', 'media/a2.webp'] },
+    { id: 'b', title: 'B', label: 'B' },
+    { id: 'c', title: 'C', label: 'C', stills: ['media/c1.webp'] }
+  ];
+  const page = renderSite(raw);
+  assert.ok(page.includes('<div class="standby" data-standby data-stills="media/a1.webp media/c1.webp" aria-hidden="true"></div>'));
+  assert.ok(!page.includes('src="media/a1.webp" alt="" decoding'), 'no standby picture is written into the page');
+  assert.ok(page.includes('<span class="monitor__off">NO SIGNAL</span><span class="monitor__standby">STANDBY</span>'));
+});
+
+test('without stills the monitor has no standby', () => {
+  assert.equal(count(renderSite(base()), 'data-standby'), 0);
+});
+
+test('the standby stills follow the admin preview\'s media address, and skip unsafe paths', () => {
+  const raw = base();
+  raw.films = [
+    { id: 'a', title: 'A', label: 'A', stills: ['media/a1.webp'] },
+    { id: 'b', title: 'B', label: 'B', stills: ['../secret.webp'] }
+  ];
+  const page = renderSite(raw, { root: '../', mediaUrl: (p) => 'blob:' + p });
+  assert.ok(page.includes('data-stills="blob:media/a1.webp"'));
+});
+
+test('the monitor has a sound switch, off in the page as written', () => {
+  const page = renderSite(base());
+  assert.equal(count(page, '<button class="btn sound" type="button" data-sound aria-pressed="false">'), 1);
+  assert.ok(/data-sound aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true">.*<\/svg>SOUND<\/button>/.test(page));
+});
+
 test('without stills the Films card stays plain ink', () => {
   const page = renderSite(base());
   assert.ok(page.includes('<a class="card" href="#/films"'));
