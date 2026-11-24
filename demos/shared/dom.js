@@ -49,6 +49,23 @@ export function append(el, list) {
 
 export function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); return el; }
 
+/* GitHub Pages now and then answers a burst of requests with a 503. A picture that fails to load is
+   asked for once more a second later, so a visitor doesn't see a gap. A picture with a srcset drops
+   it on the retry and loads its plain src. */
+export function retryFailedImages(log) {
+  document.addEventListener('error', function (e) {
+    var img = e.target;
+    if (!(img instanceof HTMLImageElement) || img.hasAttribute('data-retried')) return;
+    img.setAttribute('data-retried', '');
+    setTimeout(function () {
+      var src = img.getAttribute('src') || '';
+      img.removeAttribute('srcset');
+      img.src = src + (src.indexOf('?') === -1 ? '?' : '&') + 'retry=1';
+      if (log) log('ui', 'image retried', { src: src });
+    }, 1000);
+  }, true);
+}
+
 /* Returns toast(text, tone): one status line at a time, announced politely, gone after opts.ms.
    tone adds toast--<tone>; opts.attrs adds attributes to the toast (a language, say). */
 export function makeToast(opts) {

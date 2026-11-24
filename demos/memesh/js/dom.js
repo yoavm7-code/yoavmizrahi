@@ -2,11 +2,13 @@
    Text always goes in through textContent, so nothing a visitor types can become markup. */
 
 import { qrModules } from './logic.js';
-import { h, makeLog, makeToast } from '../../shared/dom.js';
+import { h, makeLog, makeToast, retryFailedImages } from '../../shared/dom.js';
 
 export { h };
 export var log = makeLog('mm-demo');
 export var toast = makeToast({ ms: 3400, log: log });
+
+retryFailedImages(log);
 
 /* ---------- Icons (thin outline, 24px grid, drawn for this demo) ---------- */
 /* Icons marked flip point along the reading direction and mirror between Hebrew and English. */
