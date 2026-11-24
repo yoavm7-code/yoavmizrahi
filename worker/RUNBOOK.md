@@ -1,6 +1,6 @@
 # Login server runbook
 
-For future Claude Code sessions. Yoav does not run commands himself: run them for him and explain in plain words.
+Operations notes for the login server. Commands below are run by the AI agent working on the repo; report results to the owner in plain words.
 
 The login server is a Cloudflare Worker (`ym-admin-login`) on Yoav's Cloudflare account (free plan), at
 `https://ym-admin-login.yoavm7.workers.dev`. It signs Yoav in to `yoavmizrahi.com/admin/` and calls GitHub for the admin
@@ -22,7 +22,7 @@ wrangler.jsonc  config; wrangler is pinned in package.json
 
 | Name | What |
 |---|---|
-| `SETUP_CODE` | One-time setup code, also the password-reset code. Yoav keeps it in his Passwords app. |
+| `SETUP_CODE` | One-time setup code, also the password-reset code. Kept offline by the owner. |
 | `ENC_KEY` | 32 random bytes, base64url. Encrypts the GitHub key. Changing it makes the stored key unreadable (Yoav then pastes a new key via "Forgot your password?" or Settings). |
 | `SESSION_HMAC` | Signs session and trusted-device tokens. Changing it signs every device out. |
 | `PEPPER` | Mixed into password hashes. Changing it makes the current password stop working (Yoav resets with the setup code). |

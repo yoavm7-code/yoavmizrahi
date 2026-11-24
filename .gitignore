@@ -2,7 +2,7 @@ _site/
 tests/node_modules/
 tests/test-results/
 tests/playwright-report/
-# Real product tours (real names and data): local only, never committed
+# Reference material for the replicas: local only, never committed
 *-replica-spec.md
 *-screenshots/
 *-screenshots.zip

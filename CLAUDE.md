@@ -1,6 +1,6 @@
-# CLAUDE.md — yoavmizrahi portfolio
+# CLAUDE.md: yoavmizrahi portfolio
 
-Context for Claude Code. Read this before changing anything.
+Project context for AI coding agents (Claude Code). Read this before changing anything.
 
 ## What this is
 
@@ -12,11 +12,11 @@ The personal portfolio site of **Yoav Mizrahi**: a showcase of the products he b
 
 Repo: `github.com/yoavm7-code/yoavmizrahi` · Hosting: GitHub Pages, deployed by GitHub Actions from `main` only after the tests pass (see "Tests and deploys").
 
-## About the owner (how to work with him)
+## Working with the owner
 
-- Yoav is a **product engineer who builds through AI agents**. He is not a classic developer: explain changes in plain language, and don't ask him low-level coding questions. Decide sensibly and tell him what you decided.
-- He is **creative and a perfectionist**. He notices visual inconsistencies and cares about every detail. Before calling something done, check it in a real browser: desktop **and** phone width.
-- He prefers seeing real options over long discussion. For a visual change, show it.
+- Yoav is a **product engineer who builds through AI agents**: he owns the product, the design and the review, and the agents write the code. Describe changes by what they do for the visitor, make the implementation calls yourself and say what you decided.
+- The bar is **visual and behavioral consistency** across every page and screen size. Before calling something done, check it in a real browser: desktop **and** phone width.
+- Show real options instead of long discussion. For a visual change, show it.
 
 ## How the design was chosen
 
@@ -26,7 +26,7 @@ Eleven concepts were explored. The site is the 11th, "Harmonized", which combine
 2. **Studio (structure):** real pages, a full-screen menu, a page-wipe transition, letter-by-letter headings and a custom cursor.
 3. **Timeline (Films page):** a film editor: a viewer with a timecode, a scrubbable track of film clips, and a play/prev/next transport.
 
-**Harmony rules — keep them:**
+**Harmony rules (keep them):**
 - **One palette everywhere** (tokens in `:root` in `css/style.css`):
   - Paper: `--paper #EDE9E1`, `--paper-2 #F7F4EF`.
   - Ink: `--ink #171614`, `--ink-2/3`.
@@ -84,7 +84,7 @@ README.md           short public readme
 ## Tests and deploys
 
 - **Every push to `main` deploys only if `npm test` passes** (`.github/workflows/deploy.yml`). That includes admin publishes. A failure leaves the last good version live, and the admin says "The site check stopped this publish" with a link to the failed run (it reads the public Actions API, no key).
-- **Broken code on `main` blocks every admin publish until it is fixed, and Yoav cannot fix code.** So code changes go through a pull request, where `checks.yml` runs the browser suite too. Wait for it to be green before merging.
+- **Broken code on `main` blocks every admin publish until it is fixed.** So code changes go through a pull request, where `checks.yml` runs the browser suite too. Wait for it to be green before merging.
 - `tests/unit/generated.test.mjs` fails if `index.html`, `w/` or `f/` don't match `render.js` + `site.json`. Fix: `node tools/generate.mjs`.
 - The admin finds the deploy run by the workflow path `.github/workflows/deploy.yml`. Don't rename it.
 - Rollback of the pipeline itself: Settings → Pages → Source: *Deploy from a branch* (`main`, root).
@@ -124,7 +124,7 @@ None right now. Missing content goes in `content/site.json` in `[SQUARE BRACKETS
 ## Ideas on the list (not done yet)
 
 - Real assets instead of placeholders; the Toto demo could use real World Cup 2026 fixtures.
-- Hebrew version? Not decided — ask Yoav.
+- Hebrew version? Not decided, ask Yoav.
 
 ## Working rules
 

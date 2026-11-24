@@ -27,6 +27,7 @@ test('everything the site and the admin load is included', () => {
 
 test('development files are left out', () => {
   for (const name of LEFT_OUT) assert.ok(!existsSync(join(out, name)), name + ' should not be deployed');
+  for (const name of ['CLAUDE.md', 'README.md', 'LICENSE', '_plans']) assert.ok(!existsSync(join(out, name)), name + ' is repo documentation, not part of the site');
   for (const name of ['memesh-replica-spec.md', 'toto-mundial-screenshots', 'memesh-admin-screenshots.zip', 'lorewire-replica-spec.md', 'lorewire-screenshots.zip', 'adintel-replica-spec.md', 'adintel-screenshots.zip', 'adintel-screenshots', 'im-eng-replica-spec.md', 'im-eng-screenshots.zip']) assert.ok(leftOut(name), name + ' is a real-data tour');
   for (const name of ['index.html', 'demos', 'screenshots.md']) assert.ok(!leftOut(name), name + ' is part of the site');
   assert.ok(!existsSync(join(out, 'worker', 'src', 'crypto.js')));

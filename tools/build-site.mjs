@@ -10,7 +10,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 /* Top-level names that never go live. Anything else in the repo root is served. */
 export const LEFT_OUT = [
   '.git', '.github', '.claude', '.gitignore', 'node_modules',
-  '_plans', '_site', 'tests', 'tools', 'worker', 'CLAUDE.md'
+  '_plans', '_site', 'tests', 'tools', 'worker', 'CLAUDE.md', 'README.md', 'LICENSE'
 ];
 
 /* Tours of the real products (specs and screenshots) hold real names and data. They are git-ignored,
