@@ -596,7 +596,7 @@
   function showSound() {
     soundBtns.forEach(function (b) {
       b.classList.toggle('is-on', sound.isOn());
-      $('[data-sound-label]', b).textContent = sound.isOn() ? 'SOUND ON' : 'SOUND OFF';
+      $('[data-sound-state]', b).textContent = sound.isOn() ? 'ON' : 'OFF';
     });
   }
   sound.onChange(function () {

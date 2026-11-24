@@ -384,13 +384,14 @@ body[data-theme="dark"] .site-header { border-color: var(--ink-line); }
 .monitor__title { font-family: var(--display); font-weight: 800; font-size: 54px; letter-spacing: .04em; line-height: 1; white-space: nowrap; }
 .monitor__playing { position: absolute; inset: 0; align-items: center; justify-content: center; }
 .monitor__foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 0 6px; }
-.eject { display: none; background: var(--ink-line); color: var(--paper); border: 0; border-radius: 6px; padding: 8px 12px; min-height: 36px; font-family: var(--mono); font-size: 11px; letter-spacing: .12em; }
+.monitor__foot .mono-link { white-space: nowrap; }
+.eject { display: none; background: var(--ink-line); color: var(--paper); border: 0; border-radius: 6px; padding: 8px 12px; min-height: 36px; font-family: var(--mono); font-size: 11px; letter-spacing: .12em; white-space: nowrap; }
 .eject.is-visible { display: inline-block; }
 .power { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); transition: background .3s ease; }
 .power.is-on { background: var(--accent); }
 /* Sound: off until pressed, and the switch says which: SOUND OFF with a crossed-out speaker, or SOUND ON
    with the speaker's waves in the accent. */
-.sound { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 8px 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted-ink); font-family: var(--mono); font-size: 11px; letter-spacing: .12em; transition: color .2s ease; }
+.sound { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; min-height: 36px; padding: 8px 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted-ink); font-family: var(--mono); font-size: 11px; letter-spacing: .12em; transition: color .2s ease; }
 .sound svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .sound .sound__waves { display: none; }
 .sound.is-on { color: var(--paper); }
@@ -723,7 +724,13 @@ body.menu-open .mlink:nth-child(4) .mlink__in { transition-delay: .54s; }
   .desk { flex-direction: column; flex-wrap: nowrap; align-items: center; gap: 36px; padding: 24px 20px 64px; }
   /* Phones: the tapes pile up like on the big desk, each label and ▶ in view, full width. */
   .tapes { display: flex; flex-direction: column; align-self: center; width: min(360px, 100%); gap: 0; }
-  .tapes .obj + .obj { margin-top: -66px; }
+  /* Every tape overlaps the one above by the same margin, paid back by the pile's top padding, so a tape
+     taken into the monitor (display: none) never leaves the next one hanging over the monitor. */
+  .tapes { padding-top: 66px; }
+  .tapes .obj { margin-top: -66px; }
+  /* The monitor's foot is narrow here: the switch shows its speaker and ON / OFF; "SOUND" stays for
+     screen readers. */
+  .sound__word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .monitor { padding: 12px 12px 10px; }
   .monitor__title { font-size: 34px; }
   .tape { padding: 7px; }
@@ -779,6 +786,11 @@ body.menu-open .mlink:nth-child(4) .mlink__in { transition-delay: .54s; }
 @media (max-width: 380px) {
   .desk { padding-left: 14px; padding-right: 14px; }
   .tape__label span { letter-spacing: 0; }
+  /* The monitor's foot on the smallest phones: tighter letters and gaps, so it stays on one line. */
+  .monitor__foot { gap: 6px; padding: 0 2px; }
+  .monitor__foot .row-gap-12 { gap: 6px; }
+  .monitor__foot .mono-link, .sound, .eject { letter-spacing: .06em; }
+  .eject { padding: 8px 10px; }
 }
 
 /* ---------- Reduced motion ---------- */

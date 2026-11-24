@@ -377,6 +377,25 @@ for (const [w, h] of [[1180, 800], [1440, 900], [2560, 1290]]) {
   });
 }
 
+test('a tape taken into the monitor leaves the pile below it, and the monitor foot stays on one line', async ({ page }) => {
+  await page.goto('/#/');
+  const tapes = page.locator('[data-tape]');
+  await tapes.first().locator('[data-insert]').click();
+  await expect(tapes.first()).toHaveClass(/is-inserted/);
+  await settled(page.locator('[data-desk]'));
+  const monitor = await page.locator('[data-obj="monitor"]').boundingBox();
+  const next = await tapes.nth(1).boundingBox();
+  if (isNarrow(page)) expect(next.y, 'the next tape starts below the monitor').toBeGreaterThanOrEqual(monitor.y + monitor.height);
+  const foot = await page.locator('.monitor__foot').boundingBox();
+  for (const sel of ['.monitor__foot .mono-link', '.monitor [data-sound]', '[data-eject]']) {
+    const b = await page.locator(sel).boundingBox();
+    expect(b.height, sel + ' on one line').toBeLessThanOrEqual(44);
+    expect(b.x, sel).toBeGreaterThanOrEqual(foot.x - 1);
+    expect(b.x + b.width, sel).toBeLessThanOrEqual(foot.x + foot.width + 1);
+  }
+  await expect(page.locator('.monitor [data-sound]')).toHaveAccessibleName('SOUND OFF');
+});
+
 test('on phones the tapes pile up with every label in full', async ({ page }) => {
   test.skip(page.viewportSize().width > 720, 'phone width only');
   await page.goto('/#/');
