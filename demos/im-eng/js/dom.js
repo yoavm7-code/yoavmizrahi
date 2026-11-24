@@ -1,11 +1,13 @@
 /* I.M demo: small DOM helpers shared by every part of the page.
    Text always goes in through textContent, so nothing a visitor types can become markup. */
 
-import { h, makeLog, makeToast } from '../../shared/dom.js';
+import { h, makeLog, makeToast, retryFailedImages } from '../../shared/dom.js';
 
 export { h };
 export var log = makeLog('im-demo');
 export var toast = makeToast({ ms: 3400, attrs: { dir: 'ltr', lang: 'en' }, log: log });
+
+retryFailedImages(log);
 
 /* ---------- Icons (outline, 24px grid, drawn for this demo) ---------- */
 

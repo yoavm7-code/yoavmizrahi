@@ -62,6 +62,7 @@ js/main.js          behavior only: router, wipe, menu, cursor, desk, monitor/tap
 admin/              the admin (see below)
 demos/<name>/       replicas: a clickable copy of a work with made-up data, plus its demo.mp4 and poster.jpg (see "Replicas")
 demos/shared/dom.js h(), clear(), makeLog(), makeToast(): one copy for every replica; each js/dom.js re-exports them
+                    (and retryFailedImages(): a picture GitHub Pages fails with a 503 is asked for once more; js/main.js does the same for the site)
 tools/generate.mjs  regenerates index.html + share pages locally: node tools/generate.mjs
 tools/build-site.mjs collects the files that go live into _site/ (used by the deploy and the browser tests)
 404.html            the not-found page GitHub Pages serves (hand-written; root-relative paths)

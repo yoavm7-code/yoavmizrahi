@@ -1,11 +1,13 @@
 /* Launch Desk demo: small DOM helpers shared by every screen.
    Text always goes in through textContent, so nothing a visitor types can become markup. */
 
-import { h, clear, makeLog, makeToast } from '../../shared/dom.js';
+import { h, clear, makeLog, makeToast, retryFailedImages } from '../../shared/dom.js';
 
 export { h, clear };
 export var log = makeLog('ld-demo');
 export var toast = makeToast({ ms: 3400, log: log });
+
+retryFailedImages(log);
 
 export function replace(el, child) { clear(el); if (child) el.appendChild(child); return el; }
 

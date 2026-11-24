@@ -51,6 +51,21 @@
     el.addEventListener('transitionend', finish);
   }
 
+  /* GitHub Pages now and then answers a burst of requests with a 503. A picture that fails to load is
+     asked for once more a second later, so a visitor doesn't see a gap. A picture with a srcset drops
+     it on the retry and loads its plain src. */
+  document.addEventListener('error', function (e) {
+    var img = e.target;
+    if (!(img instanceof HTMLImageElement) || img.hasAttribute('data-retried')) return;
+    img.setAttribute('data-retried', '');
+    setTimeout(function () {
+      var src = img.getAttribute('src') || '';
+      img.removeAttribute('srcset');
+      img.src = src + (src.indexOf('?') === -1 ? '?' : '&') + 'retry=1';
+      info('[site image] retried', { src: src });
+    }, 1000);
+  }, true);
+
   /* ---------- Split headings into letters ---------- */
   $$('[data-split]').forEach(function (el) {
     var text = el.textContent;

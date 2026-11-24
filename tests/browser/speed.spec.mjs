@@ -49,3 +49,39 @@ test('the custom cursor stops animating once it has caught up with a still point
   await page.waitForTimeout(600);
   expect(await page.evaluate(() => window.__frames) - before, 'animation frames while the pointer is still').toBe(0);
 });
+
+/* ---------- A picture that fails once ---------- */
+
+/* Answers the first request for a matching picture with a 503, as GitHub Pages sometimes does; every
+   later request goes through. Returns the paths that failed. */
+async function failOnce(page, pattern) {
+  const failed = new Set();
+  await page.route(pattern, (route) => {
+    if (failed.size) return route.continue();
+    failed.add(new URL(route.request().url()).pathname);
+    return route.fulfill({ status: 503, body: '' });
+  });
+  return failed;
+}
+
+test.describe('a picture the server fails once', () => {
+  test.use({ allowedConsole: [/status of 503/] });
+
+  test('on the desk is asked for again and shows', async ({ page }) => {
+    const failed = await failOnce(page, '**/demos/memesh/poster*');
+    await page.goto('/#/');
+    const img = page.locator('[data-obj="work:memesh"] img');
+    await img.scrollIntoViewIfNeeded();
+    await expect.poll(() => img.evaluate((i) => i.complete && i.naturalWidth > 0), { timeout: 5000 }).toBe(true);
+    expect(failed.size, 'the first request failed').toBe(1);
+  });
+
+  test('in a replica is asked for again and shows', async ({ page }) => {
+    test.skip(page.viewportSize().width <= 900, 'the LoreWire home page is checked at laptop width');
+    const failed = await failOnce(page, '**/demos/lorewire/media/**/wide.webp');
+    await page.goto('/demos/lorewire/');
+    const hero = page.locator('img.hero__art.is-on');
+    await expect.poll(() => hero.evaluate((i) => i.complete && i.naturalWidth > 0), { timeout: 5000 }).toBe(true);
+    expect(failed.size, 'the first request failed').toBe(1);
+  });
+});

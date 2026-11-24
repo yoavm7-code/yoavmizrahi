@@ -1,11 +1,13 @@
 /* Toto Mundial demo: small DOM helpers shared by every screen.
    Text always goes in through textContent, so nothing a visitor types can become markup. */
 
-import { h, clear, makeLog, makeToast } from '../../shared/dom.js';
+import { h, clear, makeLog, makeToast, retryFailedImages } from '../../shared/dom.js';
 
 export { h, clear };
 export var log = makeLog('tm-demo');
 export var toast = makeToast({ ms: 3200, log: log });
+
+retryFailedImages(log);
 
 /* ---------- Icons (outline, 24px grid, drawn for this demo) ---------- */
 /* Icons marked flip point along the reading direction and mirror in Hebrew. */

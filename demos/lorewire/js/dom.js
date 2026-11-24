@@ -1,11 +1,13 @@
 /* LoreWire demo: small DOM helpers shared by every screen.
    Text always goes in through textContent, so nothing a visitor types can become markup. */
 
-import { h, makeLog, makeToast } from '../../shared/dom.js';
+import { h, makeLog, makeToast, retryFailedImages } from '../../shared/dom.js';
 
 export { h };
 export var log = makeLog('lw-demo');
 export var toast = makeToast({ ms: 3200, log: log });
+
+retryFailedImages(log);
 
 /* ---------- Icons (outline, 24px grid, drawn for this demo) ---------- */
 
