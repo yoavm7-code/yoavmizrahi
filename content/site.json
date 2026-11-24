@@ -37,6 +37,17 @@
       "work:lorewire",
       "work:ad-radar",
       "work:im-eng"
+    ],
+    "phoneOrder": [
+      "note",
+      "work:uploader",
+      "work:memesh",
+      "work:ad-radar",
+      "work:lorewire",
+      "monitor",
+      "tapes",
+      "work:toto",
+      "work:im-eng"
     ]
   },
   "works": [
