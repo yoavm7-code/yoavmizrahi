@@ -13,7 +13,8 @@ src/index.js    routes: /health /setup /login /me /reauth /password /pat /signou
 src/rules.js    what the proxy allows (read this before changing anything); pure, unit-tested
 src/crypto.js   password hashing (PBKDF2 40k + pepper), signed tokens, AES-GCM for the GitHub key
 src/store.js    the SQLite Durable Object: account, encrypted key, session version, backoff, sign-in log
-test/           node --test test/rules.test.js   (npm test)
+test/           npm test: rules.test.js (the allowlist, crypto) and handlers.test.js (every route with the real
+                AuthStore on Node's node:sqlite and a fake GitHub, see harness.js). Also run by CI from tests/.
 wrangler.jsonc  config; wrangler is pinned in package.json
 .dev.vars       local-only test secrets (git-ignored, never deploy these)
 ```
@@ -56,6 +57,13 @@ node -e "process.stdout.write(require('crypto').randomBytes(32).toString('base64
 
 `wrangler dev` sometimes leaves `workerd.exe` running on Windows after the terminal is stopped. Stop only the ones whose
 command line contains `yoavmizrahi-site\worker\node_modules`.
+
+## Sign-in limits (2026-11-24)
+
+- Per network address and name: 3 misses free, then 30 s doubling to 1 hour, forgotten after a day.
+- All unknown devices together (`login:all`): 20 misses free, then the same doubling. A device with a trusted token skips both.
+- Sessions renew while used, up to 90 days after the sign-in with "keep me signed in", 7 days without.
+- `wrangler tail` shows `global wait`, `renewal capped` and `drafts move refused` when they happen.
 
 ## Limits that shaped the design (verified 2026-11-22)
 

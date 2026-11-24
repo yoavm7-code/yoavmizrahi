@@ -120,4 +120,21 @@ export function checkCompare(compare) {
   return '';
 }
 
+/* For a move of drafts (which is never deployed, so it gets a lighter check than main). Allowed:
+   - a reset to the live site or a commit in its history (publishing, or "no draft"),
+   - one new commit on top of where drafts points right now (a compare-and-swap: a save built on
+     an older draft is turned away with DRAFT_CONFLICT, and the admin rebuilds it on the newer one),
+   - with no drafts branch yet, one new commit on top of the live site's history.
+   move: { current, parents, isLive, parentIsLive } where current is drafts' sha or null, parents the
+   new commit's parent shas, isLive and parentIsLive whether the new commit / its parent is main or
+   one of its ancestors. Returns an error string, or '' when allowed. */
+export var DRAFT_CONFLICT = 'The draft moved on since this save started.';
+export function checkDraftsMove(move) {
+  if (move.isLive) return '';
+  var parents = move.parents || [];
+  if (parents.length !== 1) return 'A draft is saved one commit at a time.';
+  if (move.current) return parents[0] === move.current ? '' : DRAFT_CONFLICT;
+  return move.parentIsLive ? '' : 'A draft has to start from the live site.';
+}
+
 export function isSha(s) { return typeof s === 'string' && /^[0-9a-f]{40}$/.test(s); }

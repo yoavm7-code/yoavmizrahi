@@ -136,3 +136,14 @@ test('GitHub key encryption round trip, and a wrong key cannot read it', async (
   assert.ok(!sealed.includes('secret'));
   await assert.rejects(decryptText(k2, sealed));
 });
+
+test('drafts moves: a reset to the live history, or one save on top of the current draft', async () => {
+  const { checkDraftsMove, DRAFT_CONFLICT } = await import('../src/rules.js');
+  assert.equal(checkDraftsMove({ isLive: true, current: SHA, parents: [] }), '', 'reset to the live site');
+  assert.equal(checkDraftsMove({ current: SHA, parents: [SHA] }), '', 'a save on top');
+  assert.equal(checkDraftsMove({ current: SHA, parents: [SHA2] }), DRAFT_CONFLICT, 'a save built on an older draft');
+  assert.notEqual(checkDraftsMove({ current: SHA, parents: [SHA, SHA2] }), '', 'two parents');
+  assert.notEqual(checkDraftsMove({ current: SHA, parents: [] }), '', 'no parent');
+  assert.equal(checkDraftsMove({ current: null, parents: [SHA], parentIsLive: true }), '', 'a first save on the live site');
+  assert.notEqual(checkDraftsMove({ current: null, parents: [SHA], parentIsLive: false }), '', 'a first save elsewhere');
+});
