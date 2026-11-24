@@ -63,7 +63,7 @@ test('canonical path check', () => {
 });
 
 test('content paths', () => {
-  for (const p of ['content/site.json', 'content/draft.json', 'index.html', 'w/ad-intel/index.html', 'f/leviathan-1/index.html', 'media/5009f60d450de350.webp', 'media/abc.mp4']) assert.ok(CONTENT_PATH.test(p), p);
+  for (const p of ['content/site.json', 'content/draft.json', 'index.html', 'w/ad-radar/index.html', 'f/leviathan-1/index.html', 'media/5009f60d450de350.webp', 'media/abc.mp4']) assert.ok(CONTENT_PATH.test(p), p);
   for (const p of ['admin/app.js', 'js/main.js', 'css/style.css', '.github/workflows/x.yml', 'CNAME', 'content/../admin/app.js', 'w/../admin/index.html', 'media/x.html', 'media/x.svg', 'w/a/b/index.html', 'index.html/x', 'Index.html', '.nojekyll', 'tools/generate.mjs', 'worker/src/index.js']) assert.equal(CONTENT_PATH.test(p), false, p);
 });
 

@@ -1,8 +1,8 @@
-// The Mega Uploader replica's rules (demos/mega-uploader/js/logic.js) and its made-up data.
+// The Launch Desk replica's rules (demos/launch-desk/js/logic.js) and its made-up data.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import * as D from '../../demos/mega-uploader/js/data.js';
-import * as L from '../../demos/mega-uploader/js/logic.js';
+import * as D from '../../demos/launch-desk/js/data.js';
+import * as L from '../../demos/launch-desk/js/logic.js';
 
 const NOW = new Date(2026, 10, 23, 12, 0, 0);
 const ctx = { platform: 'facebook', now: NOW };
@@ -56,6 +56,12 @@ test('ids are unique and every platform the data mentions exists', () => {
   for (const id of [...D.DASHBOARD.launched.map((p) => p.platform), ...D.DASHBOARD.platformRows.map((p) => p.platform), ...D.RUNS.map((r) => r.platform)]) {
     assert.ok(ids.includes(id), id);
   }
+});
+
+test('the data keeps nothing for parts the demo no longer has (sidebar, tips, assistant, org)', () => {
+  for (const name of ['NAV', 'TIPS', 'ASK', 'ORG']) assert.equal(D[name], undefined, name);
+  const words = JSON.stringify(D.NOTIFICATIONS).toLowerCase();
+  assert.ok(!/workspace|run history/.test(words), 'notifications use the new names');
 });
 
 /* ---------- Grid rules ---------- */
@@ -124,7 +130,7 @@ test('placeholders and grammar fixes', () => {
   assert.equal(L.fixGrammar(''), '');
 });
 
-/* ---------- Run live ---------- */
+/* ---------- Launch ---------- */
 
 test('a filled 20-row example grid runs 20 campaigns with exactly one policy failure', () => {
   const rows = filledGrid(20);
@@ -176,7 +182,7 @@ test('a finished plan becomes a history run with its own campaigns', () => {
   assert.ok(run.items.filter((c) => c.ok).every((c) => c.account && c.linkId && c.landing));
 });
 
-/* ---------- Run history ---------- */
+/* ---------- Launches ---------- */
 
 test('run status: all failed, some failed, none failed', () => {
   assert.equal(L.runStatus({ campaigns: 3, live: 0, failed: 3 }), 'failed');

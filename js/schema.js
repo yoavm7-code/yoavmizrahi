@@ -26,10 +26,10 @@ export const DEMOS = {
     name: 'Upload demo',
     style: 'device',
     replica: {
-      title: 'Mega Uploader',
-      src: 'demos/mega-uploader/',
-      video: 'demos/mega-uploader/demo.mp4',
-      poster: 'demos/mega-uploader/poster.jpg',
+      title: 'Launch Desk',
+      src: 'demos/launch-desk/',
+      video: 'demos/launch-desk/demo.mp4',
+      poster: 'demos/launch-desk/poster.jpg',
       width: 1440,
       height: 900
     }
@@ -62,14 +62,14 @@ export const DEMOS = {
       label: 'LOREWIRE\'S OWN STORIES'
     }
   },
-  adintel: {
-    name: 'Ad Intel replica',
+  adradar: {
+    name: 'Ad Radar replica',
     style: 'screen',
     replica: {
-      title: 'Ad Intel',
-      src: 'demos/ad-intel/',
-      video: 'demos/ad-intel/demo.mp4',
-      poster: 'demos/ad-intel/poster.jpg',
+      title: 'Ad Radar',
+      src: 'demos/ad-radar/',
+      video: 'demos/ad-radar/demo.mp4',
+      poster: 'demos/ad-radar/poster.jpg',
       width: 1440,
       height: 900
     }

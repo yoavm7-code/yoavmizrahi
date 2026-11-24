@@ -25,7 +25,7 @@ function warningsOf(raw) { return validate(normalize(raw)).warnings.map((w) => w
 /* ---------- Helpers ---------- */
 
 test('slugify makes web-safe ids', () => {
-  assert.equal(slugify('Mega Uploader'), 'mega-uploader');
+  assert.equal(slugify('Launch Desk'), 'launch-desk');
   assert.equal(slugify('  Café Olé!! '), 'cafe-ole');
   assert.equal(slugify('---'), 'item');
   assert.equal(slugify(''), 'item');
@@ -284,6 +284,6 @@ test('replica settings: a logo only where allowed, wording only as plain text un
   ] });
   assert.deepEqual(c.works[0].replica, { logo: { src: 'media/abc-1.webp' }, strings: { he: { 'p.bookings': 'שלי' }, en: { 'p.cards': 'Cards' } } });
   assert.deepEqual(c.works[1].replica, { logo: null, strings: { en: { 'nav.home': 'Start' }, he: {} } }, 'Toto has no logo slot');
-  assert.equal(c.works[2].replica, undefined, 'Mega Uploader has no editable settings');
+  assert.equal(c.works[2].replica, undefined, 'Launch Desk has no editable settings');
   assert.equal(c.works[3].replica.logo, null, 'a logo must be an uploaded image');
 });

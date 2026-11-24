@@ -229,7 +229,7 @@ export function renderWorks(ctx, el) {
 }
 
 export function addWork(ctx) {
-  var name = field({ label: 'Name', placeholder: 'For example: Ad Intel', max: LIMITS.title });
+  var name = field({ label: 'Name', placeholder: 'For example: Price Tracker', max: LIMITS.title });
   var style = 'polaroid';
   var picker = choiceCards({
     label: 'How it looks on the desk',

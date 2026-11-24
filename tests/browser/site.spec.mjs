@@ -254,18 +254,18 @@ test('on phones the tapes pile up with every label in full', async ({ page }) =>
 
 /* ---------- Demos ---------- */
 
-test('the uploader on the desk runs live: four go live, Credit Cards fails, then it runs again', async ({ page }) => {
+test('the uploader on the desk launches: four go live, Credit Cards fails, then it launches again', async ({ page }) => {
   await page.goto('/#/');
   const demo = page.locator('.page.is-active [data-widget="uploader"]');
   await expect(demo.locator('.u-sum')).toHaveText('5 campaigns ready');
-  await demo.getByRole('button', { name: 'RUN LIVE' }).click();
-  await expect(demo.getByRole('button', { name: 'RUNNING…' })).toBeDisabled();
+  await demo.getByRole('button', { name: 'LAUNCH', exact: true }).click();
+  await expect(demo.getByRole('button', { name: 'LAUNCHING…' })).toBeDisabled();
   await expect(demo.locator('.u-row.is-running')).toHaveCount(1);
-  await expect(demo.getByRole('button', { name: 'RUN AGAIN' })).toBeVisible({ timeout: 10000 });
+  await expect(demo.getByRole('button', { name: 'LAUNCH AGAIN' })).toBeVisible({ timeout: 10000 });
   await expect(demo.locator('.u-sum')).toHaveText('4 live · 1 failed');
   await expect(demo.locator('.u-row.is-failed')).toContainText('AU · Credit Cards');
   await expect(demo.locator('.u-row.is-failed .u-state')).toHaveText('policy');
-  await demo.getByRole('button', { name: 'RUN AGAIN' }).click();
+  await demo.getByRole('button', { name: 'LAUNCH AGAIN' }).click();
   await expect(demo.locator('.u-sum')).toHaveText('0 live · 0 failed');
   await expect(demo.locator('.u-row.is-live')).toHaveCount(0);
 });

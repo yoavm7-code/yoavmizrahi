@@ -15,9 +15,9 @@ const PORT = 4174;
 
 function log(msg, values) { console.log('[record] ' + msg, values ? JSON.stringify(values) : ''); }
 
-/* ---------- Mega Uploader: the three best moments from the UI tour ---------- */
+/* ---------- Launch Desk: fill a batch, launch it, then read the launch ---------- */
 
-async function megaUploader(page, mark) {
+async function launchDesk(page, mark) {
   const pause = (ms) => page.waitForTimeout(ms);
   const point = async (target, opts = {}) => {
     const box = await target.boundingBox();
@@ -50,15 +50,15 @@ async function megaUploader(page, mark) {
   await click(page.locator('[data-tool="resolve"]'));
   await pause(2200);
 
-  /* 2. Run live: confirm, then the log streams and rows turn green (one fails on policy). */
+  /* 2. Launch: confirm, then the log streams and rows turn green (one fails on policy). */
   await click(page.locator('[data-tool="run"]'));
   await pause(1400);
-  await click(page.locator('.btn--danger-solid'));
+  await click(page.getByRole('dialog').getByRole('button', { name: /^Launch · / }));
   await page.locator('[data-tool="open-run"]').waitFor({ timeout: 60000 });
   await pause(1200);
   await mark('poster');
 
-  /* 3. Run history: the new run, its failure, and an upload trace. */
+  /* 3. Launches: the new launch, its failure, and a launch trace. */
   await click(page.locator('[data-tool="open-run"]'));
   await pause(1600);
   await click(page.locator('.tile', { hasText: 'FAILED' }));
@@ -70,8 +70,8 @@ async function megaUploader(page, mark) {
   await click(page.locator('.crow__main').first(), { x: 0.3 });
   await pause(2600);
 
-  /* The dashboard, to close. */
-  await click(page.locator('.nav__item', { hasText: 'Dashboard' }).first());
+  /* The overview, to close. */
+  await click(page.locator('.topnav__tab', { hasText: 'Overview' }));
   await pause(2400);
 }
 
@@ -261,9 +261,9 @@ async function lorewire(page, mark) {
   await pause(2600);
 }
 
-/* ---------- Ad Intel: the gap, the ad, the trend, the board and a live scrape ---------- */
+/* ---------- Ad Radar: the gap, the ad, the trend, the board and a live scan ---------- */
 
-async function adIntel(page, mark) {
+async function adRadar(page, mark) {
   const pause = (ms) => page.waitForTimeout(ms);
   const to = async (target, opts = {}) => {
     await target.scrollIntoViewIfNeeded();
@@ -278,11 +278,11 @@ async function adIntel(page, mark) {
   await mark('poster');
   await pause(1800);
 
-  /* 1. The gap: pick our domain, show only what we're missing, longest running first. */
-  await to(page.locator('[data-our-domain]'));
-  await page.locator('[data-our-domain]').selectOption('ourhub.com');
+  /* 1. The gap: pick our site, show only what we're missing, longest running first. */
+  await to(page.locator('[data-our-site]'));
+  await page.locator('[data-our-site]').selectOption('ourhub.com');
   await pause(1400);
-  await click(page.locator('[data-seg="our:missing"]'));
+  await click(page.locator('[data-seg="cov:missing"]'));
   await pause(1300);
   await click(page.locator('[data-sort="days"]'));
   await pause(2000);
@@ -293,6 +293,8 @@ async function adIntel(page, mark) {
   await page.mouse.move(860, 520, { steps: 16 });
   for (let i = 0; i < 6; i++) { await page.mouse.wheel(0, 140); await pause(90); }
   await pause(900);
+  await click(page.locator('[data-star]'));
+  await pause(400);
   await click(page.locator('[data-status="idea"]'));
   await pause(500);
   await click(page.locator('[data-owner="rk"]'));
@@ -303,10 +305,10 @@ async function adIntel(page, mark) {
   await click(page.locator('[data-draft]'));
   await pause(2200);
 
-  /* 3. Trends, then the pipeline: drag a card from New to Idea. */
+  /* 3. Trends, then the board: drag a card from New to Idea. */
   await click(page.locator('[data-tab="trends"]'));
   await pause(2400);
-  await click(page.locator('[data-tab="pipeline"]'));
+  await click(page.locator('[data-tab="board"]'));
   await pause(1400);
   const card = page.locator('[data-col="new"] [data-card]').first();
   const target = page.locator('[data-col="idea"] .col__body');
@@ -319,8 +321,8 @@ async function adIntel(page, mark) {
   await page.mouse.up();
   await pause(2000);
 
-  /* 4. Control Room: run a scrape and watch new ads come in. */
-  await click(page.locator('[data-tab="control"]'));
+  /* 4. Scans: scan now and watch new ads come in. */
+  await click(page.locator('[data-tab="scans"]'));
   await pause(1000);
   await click(page.locator('[data-run]'));
   await pause(5200);
@@ -395,11 +397,11 @@ async function imEng(page, mark) {
 
 /* view is the page size; scale makes the frames sharper; width is the video's width. */
 const DEMOS = [
-  { name: 'mega-uploader', run: megaUploader, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' },
+  { name: 'launch-desk', run: launchDesk, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' },
   { name: 'toto-mundial', run: totoMundial, view: { width: 390, height: 844 }, scale: 2, width: 780, pointer: '.rec-pointer' },
   { name: 'memesh', run: memesh, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' },
   { name: 'lorewire', run: lorewire, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' },
-  { name: 'ad-intel', run: adIntel, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' },
+  { name: 'ad-radar', run: adRadar, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' },
   { name: 'im-eng', run: imEng, view: { width: 1440, height: 900 }, scale: 4 / 3, width: 1440, pointer: '.rec-cursor' }
 ];
 const ONLY = process.argv.slice(2);

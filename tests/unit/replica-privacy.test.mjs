@@ -29,6 +29,10 @@ const BANNED = new Set([
   '401f8cb366ef4de6', 'f020ead6e950fdb6', 'c1bf0c9314b15d33', '9fb23fa85d269a8e', '04af46a1e0b08994', '3860edac0ccb7475',
   'ae91ac8d24ba0c9f', '71dd76e4bc275d3e', '033a1236a77e9cef', '784c9715cab9dad0', '25b220238ec7eed9', '6ee77a60b623a6cc',
   '5fc745a4c505583f', '08d0398647a13b8f',
+  // The launcher replica's old product name.
+  '9be90cc7fa7782b3',
+  // The ad dashboard replica's old product name.
+  'ca111fd7533adab9', '113665a5257d7089',
   // Toto Mundial: real players' names and distinctive point and pot figures from the tour.
   '00260e9b05ddcbe7', '1de1f84a98acf0fd', '40587f346de6362f', '36505755eb34f660', 'faf4e1efa54ef4a5', 'd576b445708ef98e',
   'd4ef93ae2b538012', '346cd2b49312f2f7', '02742e4df5e75dd5', 'b2068ae753f72424', '3bcd8ed3670d2539', '4d5d0ac3dbeb8ae0',
@@ -48,7 +52,7 @@ const BANNED = new Set([
   '201917f0174bb711', '1bfe65d00f469f59', '75b96d6761d45a9c', 'b62f519507624b6c', '7cad3dbe9b18ebc6', '479cdb5974e303e7',
   '2da55b46972224ee', '676754736988d613', 'd8e04b3dc957bb89', '00e6c637eaf06318', 'b581e323b55c7511', 'dccce57ffe89f9df',
   'ad3e3ad89cb9fb68',
-  // Ad Intel: competitor domains, feeds and people seen in the tour screenshots.
+  // The ad dashboard: competitor domains, feeds and people seen in the tour screenshots.
   'cd0a2d0410684fff', '6911dd30c7f024f6', 'af660499ce1ff96b', '1c765f3e38532924', '2ee08536b85a6c6a', '9e715fd19df28502',
   '9265963c31d63f95', '06b5cd9f5e996447', 'ce82f0acff704e9e', '7a1683026baa3cfe', 'c852e3afac84e238', '2a9fe94ab5a02d88',
   '1c0a0c0e121f6878', '361a7074f81f6a27', '772782bd1f0b8065', '865f7480e0a85b87', 'f8c1370c1d3f4472', '8137bd57187df05f',
