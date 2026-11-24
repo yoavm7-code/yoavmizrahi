@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { renderSite, renderSharePages, routes, reelSpans, SITE_CSP } from '../../js/render.js';
+import { renderSite, renderSharePages, routes, reelSpans, SITE_CSP, structuredData } from '../../js/render.js';
 import { normalize, DEMOS, POSTER_WIDTHS, posterSizes } from '../../js/schema.js';
 
 const site = JSON.parse(await readFile(new URL('../../content/site.json', import.meta.url), 'utf8'));
@@ -121,6 +121,37 @@ test('the home page has one main heading, a skip link to the content, and a larg
 test('the reel ruler is a slider a keyboard can reach', () => {
   const page = renderSite(site);
   assert.ok(/<div class="ruler" data-scrub role="slider" tabindex="0" aria-label="Reel position" aria-valuemin="0" aria-valuemax="150"/.test(page));
+});
+
+function ldOf(page) {
+  const m = page.match(/<script type="application\/ld\+json">(.*?)<\/script>/);
+  return m ? JSON.parse(m[1]) : null;
+}
+
+test('the page tells search engines who it is about: the person, the site and the profiles', () => {
+  const ld = ldOf(renderSite(site));
+  const [person, web] = ld['@graph'];
+  assert.equal(ld['@context'], 'https://schema.org');
+  assert.equal(person['@type'], 'Person');
+  assert.equal(person.name, site.site.name);
+  assert.equal(person.url, site.site.url + '/');
+  assert.deepEqual(person.sameAs, site.site.links.map((l) => l.url));
+  assert.equal(web['@type'], 'WebSite');
+  assert.equal(web.author['@id'], person['@id']);
+});
+
+test('structured data drops unsafe links, escapes markup, and is left out without an address', () => {
+  const raw = base();
+  raw.site.name = 'Yoav </script><script>alert(1)</script>';
+  raw.site.links = [{ label: 'Bad', url: 'javascript:alert(1)' }, { label: 'Good', url: 'https://example.com/me' }];
+  const page = renderSite(raw);
+  assert.equal((page.match(/<\/script>/g) || []).length, (page.match(/<script/g) || []).length, 'no script was closed early');
+  const ld = ldOf(page);
+  assert.equal(ld['@graph'][0].name, raw.site.name, 'the name survives the escaping');
+  assert.deepEqual(ld['@graph'][0].sameAs, ['https://example.com/me']);
+  raw.site.url = '';
+  assert.equal(structuredData(normalize(raw)), '');
+  assert.ok(!renderSite(raw).includes('application/ld+json'));
 });
 
 test('the page is deterministic: same content, same page', () => {
