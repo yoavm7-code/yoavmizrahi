@@ -24,6 +24,7 @@ function html(strings) {
 }
 
 var PLAY_ICON = new Raw('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>');
+var SOUND_ICON = new Raw('<svg viewBox="0 0 24 24" aria-hidden="true"><path class="sound__body" d="M4 9h4l5-4v14l-5-4H4z"/><path class="sound__waves" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>');
 
 /* ---------- Helpers ---------- */
 
@@ -179,14 +180,23 @@ function deskWork(w, i, paths) {
 `;
 }
 
-function deskMonitor() {
+/* With no tape in, the monitor stands by on the first still of each film. Only the list is written here:
+   js/main.js loads the pictures after the page has loaded, so they never slow the first view down. */
+function standbyStills(c, paths) {
+  return c.films.map(function (f) { return f.stills && f.stills[0] ? paths.media(f.stills[0]) : ''; }).filter(Boolean);
+}
+
+function deskMonitor(c, paths) {
+  var stills = standbyStills(c, paths);
+  var standby = stills.length ? html`
+            <div class="standby" data-standby data-stills="${stills.join(' ')}" aria-hidden="true"></div>` : '';
   return html`
       <!-- Monitor -->
       <div class="obj" ${objAttrs('monitor')}>
         <div class="monitor settle d1">
-          <div class="monitor__screen" data-monitor data-state="empty">
+          <div class="monitor__screen" data-monitor data-state="empty">${standby}
             <span class="scanlines" aria-hidden="true"></span>
-            <div class="monitor__empty mono"><span class="monitor__nosignal">NO SIGNAL</span><span class="monitor__hint"><span class="only-wide">DRAG A TAPE IN HERE</span><span class="only-narrow">TAP ▶ ON A TAPE TO PLAY IT</span></span></div>
+            <div class="monitor__empty mono"><span class="monitor__nosignal"><span class="monitor__off">NO SIGNAL</span><span class="monitor__standby">STANDBY</span></span><span class="monitor__hint"><span class="only-wide">DRAG A TAPE IN HERE</span><span class="only-narrow">TAP ▶ ON A TAPE TO PLAY IT</span></span></div>
             <div class="monitor__idle tv-on">
               <span class="credit" data-monitor-presents></span>
               <span class="monitor__title" data-monitor-title></span>
@@ -198,6 +208,7 @@ function deskMonitor() {
           <div class="monitor__foot">
             <a class="uline mono-link mono-link--light" href="#/films">ALL FILMS →</a>
             <div class="row-gap-12">
+              <button class="btn sound" type="button" data-sound aria-pressed="false">${SOUND_ICON}SOUND</button>
               <button class="btn eject" type="button" data-eject>⏏ EJECT</button>
               <span class="power" data-power aria-hidden="true"></span>
             </div>
@@ -230,7 +241,7 @@ ${tapes.map(function (f, j) {
 function pageHome(c, paths) {
   var parts = {
     note: function () { return deskNote(c); },
-    monitor: deskMonitor,
+    monitor: function () { return deskMonitor(c, paths); },
     tapes: function () { return deskTapes(c); }
   };
   c.works.forEach(function (w, i) {

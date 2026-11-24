@@ -26,6 +26,32 @@ test('the desk fetches only the posters it shows, as the small copies', async ({
   expect(posters.filter((u) => /launch-desk|toto-mundial/.test(u)), 'nothing from pages not yet opened').toEqual([]);
 });
 
+test('the standby stills load after the page, one at a time, and stop when the desk is left', async ({ page }) => {
+  const urls = [];
+  let loadedAt = -1;
+  page.on('load', () => { loadedAt = urls.length; });
+  page.on('request', (r) => urls.push(new URL(r.url()).pathname.slice(1)));
+  await page.goto('/#/');
+  await expect(page.locator('[data-monitor]')).toHaveClass(/has-standby/);
+  const stills = await page.locator('[data-standby]').evaluate((el) => el.getAttribute('data-stills').split(' '));
+  const first = urls.indexOf(stills[0]);
+  expect(first, 'the first still is fetched after the page has loaded').toBeGreaterThanOrEqual(loadedAt);
+  expect(urls.filter((u) => stills.slice(1).includes(u)), 'only the still on screen').toEqual([]);
+
+  await page.goto('/#/about');
+  const before = urls.length;
+  await page.waitForTimeout(5600);
+  expect(urls.slice(before).filter((u) => stills.includes(u)), 'nothing more off the desk').toEqual([]);
+});
+
+test('a page opened first never fetches the standby stills', async ({ page }) => {
+  const urls = track(page);
+  await page.goto('/#/about');
+  await page.waitForLoadState('networkidle');
+  const stills = await page.locator('[data-standby]').evaluate((el) => el.getAttribute('data-stills').split(' ').map((u) => '/' + u));
+  expect(urls.filter((u) => stills.includes(u))).toEqual([]);
+});
+
 test('a project page gives its video the poster when it opens', async ({ page }) => {
   await page.goto('/#/');
   const video = page.locator('section[data-page="work-memesh"] [data-replica-video]');
